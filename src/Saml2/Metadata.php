@@ -1,18 +1,4 @@
 <?php
-/**
- * This file is part of php-saml.
- *
- * (c) OneLogin Inc
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- *
- * @package OneLogin
- * @author  OneLogin Inc <saml-info@onelogin.com>
- * @license MIT https://github.com/onelogin/php-saml/blob/master/LICENSE
- * @link    https://github.com/onelogin/php-saml
- */
-
 namespace OneLogin\Saml2;
 
 use RobRichards\XMLSecLibs\XMLSecurityKey;
@@ -200,7 +186,7 @@ METADATA_TEMPLATE;
      * @param string $digestAlgorithm Digest algorithm method
      *
      * @return string Signed Metadata
-     * 
+     *
      * @throws Exception
      */
     public static function signMetadata($metadata, $key, $cert, $signAlgorithm = XMLSecurityKey::RSA_SHA256, $digestAlgorithm = XMLSecurityDSig::SHA256)
@@ -217,7 +203,7 @@ METADATA_TEMPLATE;
      * @param bool   $wantsEncrypted Whether to include the KeyDescriptor for encryption
      *
      * @return string Metadata with KeyDescriptors
-     * 
+     *
      * @throws Exception
      */
     public static function addX509KeyDescriptors($metadata, $cert, $wantsEncrypted = true)

@@ -1,18 +1,4 @@
 <?php
-/**
- * This file is part of php-saml.
- *
- * (c) OneLogin Inc
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- *
- * @package OneLogin
- * @author  OneLogin Inc <saml-info@onelogin.com>
- * @license MIT https://github.com/onelogin/php-saml/blob/master/LICENSE
- * @link    https://github.com/onelogin/php-saml
- */
-
 namespace OneLogin\Saml2;
 
 use RobRichards\XMLSecLibs\XMLSecurityKey;
@@ -522,7 +508,7 @@ class Auth
      * @param bool        $setNameIdPolicy When true the AuthNRequest will set a nameIdPolicy element
      *
      * @return string|null If $stay is True, it return a string with the SLO URL + LogoutRequest + parameters
-     * 
+     *
      * @throws Error
      */
     public function login($returnTo = null, array $parameters = array(), $forceAuthn = false, $isPassive = false, $stay = false, $setNameIdPolicy = true)

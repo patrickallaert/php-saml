@@ -1,18 +1,4 @@
 <?php
-/**
- * This file is part of php-saml.
- *
- * (c) OneLogin Inc
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- *
- * @package OneLogin
- * @author  OneLogin Inc <saml-info@onelogin.com>
- * @license MIT https://github.com/onelogin/php-saml/blob/master/LICENSE
- * @link    https://github.com/onelogin/php-saml
- */
-
 namespace OneLogin\Saml2;
 
 use DOMDocument;
@@ -65,10 +51,10 @@ class LogoutResponse
      *
      * @param Settings $settings Settings.
      * @param string|null             $response An UUEncoded SAML Logout response from the IdP.
-     * 
+     *
      * @throws Error
      * @throws Exception
-     * 
+     *
      */
     public function __construct(\OneLogin\Saml2\Settings $settings, $response = null)
     {
@@ -140,7 +126,7 @@ class LogoutResponse
      * @param bool        $retrieveParametersFromServer True if we want to use parameters from $_SERVER to validate the signature
      *
      * @return bool Returns if the SAML LogoutResponse is or not valid
-     * 
+     *
      * @throws ValidationError
      */
     public function isValid($requestId = null, $retrieveParametersFromServer = false)

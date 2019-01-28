@@ -1,18 +1,4 @@
 <?php
-/**
- * This file is part of php-saml.
- *
- * (c) OneLogin Inc
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- *
- * @package OneLogin
- * @author  OneLogin Inc <saml-info@onelogin.com>
- * @license MIT https://github.com/onelogin/php-saml/blob/master/LICENSE
- * @link    https://github.com/onelogin/php-saml
- */
-
 namespace OneLogin\Saml2;
 
 use RobRichards\XMLSecLibs\XMLSecurityKey;
@@ -792,7 +778,7 @@ class Settings
      *
      * @param bool $alwaysPublishEncryptionCert When 'true', the returned
      * metadata will always include an 'encryption' KeyDescriptor. Otherwise,
-     * the 'encryption' KeyDescriptor will only be included if 
+     * the 'encryption' KeyDescriptor will only be included if
      * $advancedSettings['security']['wantNameIdEncrypted'] or
      * $advancedSettings['security']['wantAssertionsEncrypted'] are enabled.
      * @param int|null      $validUntil    Metadata's valid time
