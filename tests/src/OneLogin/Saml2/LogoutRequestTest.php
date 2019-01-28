@@ -2,14 +2,13 @@
 
 namespace OneLogin\Saml2\Tests;
 
+use DomDocument;
 use OneLogin\Saml2\Constants;
 use OneLogin\Saml2\Error;
 use OneLogin\Saml2\LogoutRequest;
 use OneLogin\Saml2\Settings;
 use OneLogin\Saml2\Utils;
 use OneLogin\Saml2\ValidationError;
-
-use DomDocument;
 
 /**
  * Unit tests for Logout Request
@@ -23,8 +22,8 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function setUp()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $settings = new Settings($settingsInfo);
         $this->_settings = $settings;
@@ -37,8 +36,8 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testConstructor()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $settingsInfo['security']['nameIdEncrypted'] = true;
 
@@ -46,7 +45,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
 
         $logoutRequest = new LogoutRequest($settings);
 
-        $parameters = array('SAMLRequest' => $logoutRequest->getRequest());
+        $parameters = ['SAMLRequest' => $logoutRequest->getRequest()];
         $logoutUrl = Utils::redirect('http://idp.example.com/SingleLogoutService.php', $parameters, true);
         $this->assertRegExp('#^http://idp\.example\.com\/SingleLogoutService\.php\?SAMLRequest=#', $logoutUrl);
         parse_str(parse_url($logoutUrl, PHP_URL_QUERY), $exploded);
@@ -65,8 +64,8 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testConstructorWithRequest()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $settings = new Settings($settingsInfo);
 
@@ -74,7 +73,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
 
         $logoutRequest = new LogoutRequest($settings, $encodedDeflatedRequest);
 
-        $parameters = array('SAMLRequest' => $logoutRequest->getRequest());
+        $parameters = ['SAMLRequest' => $logoutRequest->getRequest()];
         $logoutUrl = Utils::redirect('http://idp.example.com/SingleLogoutService.php', $parameters, true);
         $this->assertRegExp('#^http://idp\.example\.com\/SingleLogoutService\.php\?SAMLRequest=#', $logoutUrl);
         parse_str(parse_url($logoutUrl, PHP_URL_QUERY), $exploded);
@@ -92,15 +91,15 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testConstructorWithSessionIndex()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $sessionIndex = '_51be37965feb5579d803141076936dc2e9d1d98ebf';
         $settings = new Settings($settingsInfo);
 
         $logoutRequest = new LogoutRequest($settings, null, null, $sessionIndex);
 
-        $parameters = array('SAMLRequest' => $logoutRequest->getRequest());
+        $parameters = ['SAMLRequest' => $logoutRequest->getRequest()];
         $logoutUrl = Utils::redirect('http://idp.example.com/SingleLogoutService.php', $parameters, true);
         $this->assertRegExp('#^http://idp\.example\.com\/SingleLogoutService\.php\?SAMLRequest=#', $logoutUrl);
         parse_str(parse_url($logoutUrl, PHP_URL_QUERY), $exploded);
@@ -112,7 +111,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
 
         $sessionIndexes = LogoutRequest::getSessionIndexes($inflated);
         $this->assertInternalType('array', $sessionIndexes);
-        $this->assertEquals(array($sessionIndex), $sessionIndexes);
+        $this->assertEquals([$sessionIndex], $sessionIndexes);
     }
 
     /**
@@ -122,8 +121,8 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testConstructorWithNameIdFormatOnParameter()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $nameId = 'test@example.com';
         $nameIdFormat = 'urn:oasis:names:tc:SAML:2.0:nameid-format:transient';
@@ -131,7 +130,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
 
         $logoutRequest = new LogoutRequest($settings, null, $nameId, null, $nameIdFormat);
 
-        $parameters = array('SAMLRequest' => $logoutRequest->getRequest());
+        $parameters = ['SAMLRequest' => $logoutRequest->getRequest()];
         $logoutUrl = Utils::redirect('http://idp.example.com/SingleLogoutService.php', $parameters, true);
         $this->assertRegExp('#^http://idp\.example\.com\/SingleLogoutService\.php\?SAMLRequest=#', $logoutUrl);
         parse_str(parse_url($logoutUrl, PHP_URL_QUERY), $exploded);
@@ -155,14 +154,14 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     */
     public function testConstructorWithNameIdFormatOnSettings()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
         $nameId = 'test@example.com';
         $nameIdFormat = 'urn:oasis:names:tc:SAML:2.0:nameid-format:transient';
         $settingsInfo['sp']['NameIDFormat'] = $nameIdFormat;
         $settings = new Settings($settingsInfo);
         $logoutRequest = new LogoutRequest($settings, null, $nameId, null, null);
-        $parameters = array('SAMLRequest' => $logoutRequest->getRequest());
+        $parameters = ['SAMLRequest' => $logoutRequest->getRequest()];
         $logoutUrl = Utils::redirect('http://idp.example.com/SingleLogoutService.php', $parameters, true);
         $this->assertRegExp('#^http://idp\.example\.com\/SingleLogoutService\.php\?SAMLRequest=#', $logoutUrl);
         parse_str(parse_url($logoutUrl, PHP_URL_QUERY), $exploded);
@@ -184,14 +183,14 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     */
     public function testConstructorWithoutNameIdFormat()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
         $nameId = 'test@example.com';
         $nameIdFormat = 'urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified';
         $settingsInfo['sp']['NameIDFormat'] = $nameIdFormat;
         $settings = new Settings($settingsInfo);
         $logoutRequest = new LogoutRequest($settings, null, $nameId, null, null);
-        $parameters = array('SAMLRequest' => $logoutRequest->getRequest());
+        $parameters = ['SAMLRequest' => $logoutRequest->getRequest()];
         $logoutUrl = Utils::redirect('http://idp.example.com/SingleLogoutService.php', $parameters, true);
         $this->assertRegExp('#^http://idp\.example\.com\/SingleLogoutService\.php\?SAMLRequest=#', $logoutUrl);
         parse_str(parse_url($logoutUrl, PHP_URL_QUERY), $exploded);
@@ -212,14 +211,14 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     */
     public function testConstructorWithNameIdNameQualifier()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
         $nameId = 'test@example.com';
         $nameIdFormat = 'urn:oasis:names:tc:SAML:2.0:nameid-format:transient';
         $nameIdNameQualifier = 'https://test.example.com/saml/metadata';
         $settings = new Settings($settingsInfo);
         $logoutRequest = new LogoutRequest($settings, null, $nameId, null, $nameIdFormat, $nameIdNameQualifier);
-        $parameters = array('SAMLRequest' => $logoutRequest->getRequest());
+        $parameters = ['SAMLRequest' => $logoutRequest->getRequest()];
         $logoutUrl = Utils::redirect('http://idp.example.com/SingleLogoutService.php', $parameters, true);
         $this->assertRegExp('#^http://idp\.example\.com\/SingleLogoutService\.php\?SAMLRequest=#', $logoutUrl);
         parse_str(parse_url($logoutUrl, PHP_URL_QUERY), $exploded);
@@ -245,7 +244,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     {
         $logoutRequest = new LogoutRequest($this->_settings);
 
-        $parameters = array('SAMLRequest' => $logoutRequest->getRequest());
+        $parameters = ['SAMLRequest' => $logoutRequest->getRequest()];
         $logoutUrl = Utils::redirect('http://idp.example.com/SingleLogoutService.php', $parameters, true);
         $this->assertRegExp('#^http://idp\.example\.com\/SingleLogoutService\.php\?SAMLRequest=#', $logoutUrl);
         parse_str(parse_url($logoutUrl, PHP_URL_QUERY), $exploded);
@@ -264,8 +263,8 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testConstructorEncryptIdUsingX509certMulti()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings6.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings6.php';
 
         $settingsInfo['security']['nameIdEncrypted'] = true;
 
@@ -273,7 +272,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
 
         $logoutRequest = new LogoutRequest($settings);
 
-        $parameters = array('SAMLRequest' => $logoutRequest->getRequest());
+        $parameters = ['SAMLRequest' => $logoutRequest->getRequest()];
         $logoutUrl = Utils::redirect('http://idp.example.com/SingleLogoutService.php', $parameters, true);
         $this->assertRegExp('#^http://idp\.example\.com\/SingleLogoutService\.php\?SAMLRequest=#', $logoutUrl);
         parse_str(parse_url($logoutUrl, PHP_URL_QUERY), $exploded);
@@ -296,7 +295,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
         $id = LogoutRequest::getID($logoutRequest);
         $this->assertEquals('ONELOGIN_21584ccdfaca36a145ae990442dcd96bfe60151e', $id);
 
-        $dom = new DOMDocument;
+        $dom = new DOMDocument();
         $dom->loadXML($logoutRequest);
         $id2 = LogoutRequest::getID($dom);
         $this->assertEquals('ONELOGIN_21584ccdfaca36a145ae990442dcd96bfe60151e', $id2);
@@ -323,11 +322,11 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetNameIdData()
     {
-        $expectedNameIdData = array(
+        $expectedNameIdData = [
             'Value' => 'ONELOGIN_1e442c129e1f822c8096086a1103c5ee2c7cae1c',
             'Format' => 'urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified',
-            'SPNameQualifier' => 'http://idp.example.com/'
-        );
+            'SPNameQualifier' => 'http://idp.example.com/',
+        ];
 
         $request = file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request.xml');
 
@@ -352,11 +351,11 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
         $key = $this->_settings->getSPkey();
         $nameIdData4 = LogoutRequest::getNameIdData($request2, $key);
 
-        $expectedNameIdData = array(
+        $expectedNameIdData = [
             'Value' => 'ONELOGIN_9c86c4542ab9d6fce07f2f7fd335287b9b3cdf69',
             'Format' => 'urn:oasis:names:tc:SAML:2.0:nameid-format:emailAddress',
-            'SPNameQualifier' => 'https://pitbulk.no-ip.org/newonelogin/demo1/metadata.php'
-        );
+            'SPNameQualifier' => 'https://pitbulk.no-ip.org/newonelogin/demo1/metadata.php',
+        ];
 
         $this->assertEquals($expectedNameIdData, $nameIdData4);
 
@@ -368,18 +367,17 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
             $this->assertContains('NameID not found in the Logout Request', $e->getMessage());
         }
 
-
         $logoutRequest = new LogoutRequest($this->_settings, null, "ONELOGIN_1e442c129e1f822c8096086a1103c5ee2c7cae1c", null, Constants::NAMEID_PERSISTENT, $this->_settings->getIdPData()['entityId'], $this->_settings->getSPData()['entityId']);
         $logoutRequestStr = $logoutRequest->getXML();
         $this->assertContains('ONELOGIN_1e442c129e1f822c8096086a1103c5ee2c7cae1c', $logoutRequestStr);
-        $this->assertContains('Format="'.Constants::NAMEID_PERSISTENT, $logoutRequestStr);
-        $this->assertContains('NameQualifier="'.$this->_settings->getIdPData()['entityId'], $logoutRequestStr);
-        $this->assertContains('SPNameQualifier="'.$this->_settings->getSPData()['entityId'], $logoutRequestStr);
+        $this->assertContains('Format="' . Constants::NAMEID_PERSISTENT, $logoutRequestStr);
+        $this->assertContains('NameQualifier="' . $this->_settings->getIdPData()['entityId'], $logoutRequestStr);
+        $this->assertContains('SPNameQualifier="' . $this->_settings->getSPData()['entityId'], $logoutRequestStr);
 
         $logoutRequest2 = new LogoutRequest($this->_settings, null, "ONELOGIN_1e442c129e1f822c8096086a1103c5ee2c7cae1c", null, Constants::NAMEID_ENTITY, $this->_settings->getIdPData()['entityId'], $this->_settings->getSPData()['entityId']);
         $logoutRequestStr2 = $logoutRequest2->getXML();
         $this->assertContains('ONELOGIN_1e442c129e1f822c8096086a1103c5ee2c7cae1c', $logoutRequestStr2);
-        $this->assertContains('Format="'.Constants::NAMEID_ENTITY, $logoutRequestStr2);
+        $this->assertContains('Format="' . Constants::NAMEID_ENTITY, $logoutRequestStr2);
         $this->assertNotContains('NameQualifier', $logoutRequestStr2);
         $this->assertNotContains('SPNameQualifier', $logoutRequestStr2);
 
@@ -452,7 +450,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
 
         $request2 = file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request_with_sessionindex.xml');
         $sessionIndexes2 = LogoutRequest::getSessionIndexes($request2);
-        $this->assertEquals(array('_ac72a76526cb6ca19f8438e73879a0e6c8ae5131'), $sessionIndexes2);
+        $this->assertEquals(['_ac72a76526cb6ca19f8438e73879a0e6c8ae5131'], $sessionIndexes2);
     }
 
     /**
@@ -542,8 +540,8 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testIsInValidWrongXML()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $settingsInfo['security']['wantXMLValidation'] = false;
 
@@ -660,8 +658,8 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     public function testWeCanChooseToCompressARequest()
     {
         //Test that we can compress.
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $settings = new Settings($settingsInfo);
         $logoutRequest = new LogoutRequest($settings);
@@ -669,7 +667,6 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
         $decoded = base64_decode($payload);
         $decompressed = gzinflate($decoded);
         $this->assertRegExp('#^<samlp:LogoutRequest#', $decompressed);
-
     }
 
     /**
@@ -681,8 +678,8 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     public function testWeCanChooseNotToCompressARequest()
     {
         //Test that we can choose not to compress the request payload.
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings2.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings2.php';
 
         $settings = new Settings($settingsInfo);
         $logoutRequest = new LogoutRequest($settings);
@@ -701,8 +698,8 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     public function testWeCanChooseToDeflateARequestBody()
     {
         //Test that we can choose not to compress the request payload.
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         //Compression is currently turned on in settings.
         $settings = new Settings($settingsInfo);
@@ -712,8 +709,8 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
         $this->assertRegExp('#^<samlp:LogoutRequest#', $decoded);
 
         //Test that we can choose not to compress the request payload.
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings2.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings2.php';
 
         //Compression is currently turned off in settings.
         $settings = new Settings($settingsInfo);
@@ -734,12 +731,12 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
         $currentURL = Utils::getSelfURLNoQuery();
 
         $this->_settings->setStrict(false);
-        $_GET = array(
+        $_GET = [
             'SAMLRequest' => 'lVLBitswEP0Vo7tjeWzJtki8LIRCYLvbNksPewmyPc6K2pJqyXQ/v1LSQlroQi/DMJr33rwZbZ2cJysezNms/gt+X9H55G2etBOXlx1ZFy2MdMoJLWd0wvfieP/xQcCGCrsYb3ozkRvI+wjpHC5eGU2Sw35HTg3lA8hqZFwWFcMKsStpxbEsxoLXeQN9OdY1VAgk+YqLC8gdCUQB7tyKB+281D6UaF6mtEiBPudcABcMXkiyD26Ulv6CevXeOpFlVvlunb5ttEmV3ZjlnGn8YTRO5qx0NuBs8kzpAd829tXeucmR5NH4J/203I8el6gFRUqbFPJnyEV51Wq30by4TLW0/9ZyarYTxt4sBsjUYLMZvRykl1Fxm90SXVkfwx4P++T4KSafVzmpUcVJ/sfSrQZJPphllv79W8WKGtLx0ir8IrVTqD1pT2MH3QAMSs4KTvui71jeFFiwirOmprwPkYW063+5uRq4urHiiC4e8hCX3J5wqAEGaPpw9XB5JmkBdeDqSlkz6CmUXdl0Qae5kv2F/1384wu3PwE=',
             'RelayState' => '_1037fbc88ec82ce8e770b2bed1119747bb812a07e6',
             'SigAlg' => 'http://www.w3.org/2000/09/xmldsig#rsa-sha1',
-            'Signature' => 'XCwCyI5cs7WhiJlB5ktSlWxSBxv+6q2xT3c8L7dLV6NQG9LHWhN7gf8qNsahSXfCzA0Ey9dp5BQ0EdRvAk2DIzKmJY6e3hvAIEp1zglHNjzkgcQmZCcrkK9Czi2Y1WkjOwR/WgUTUWsGJAVqVvlRZuS3zk3nxMrLH6f7toyvuJc='
-        );
+            'Signature' => 'XCwCyI5cs7WhiJlB5ktSlWxSBxv+6q2xT3c8L7dLV6NQG9LHWhN7gf8qNsahSXfCzA0Ey9dp5BQ0EdRvAk2DIzKmJY6e3hvAIEp1zglHNjzkgcQmZCcrkK9Czi2Y1WkjOwR/WgUTUWsGJAVqVvlRZuS3zk3nxMrLH6f7toyvuJc=',
+        ];
 
         $request = gzinflate(base64_decode($_GET['SAMLRequest']));
         $encodedRequest = $_GET['SAMLRequest'];
@@ -794,14 +791,13 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
         $this->assertFalse($logoutRequest5->isValid());
         $this->assertEquals('Signature validation failed. Logout Request rejected', $logoutRequest5->getError());
 
-
         $_GET['SigAlg'] = 'http://www.w3.org/2000/09/xmldsig#dsa-sha1';
 
         $this->assertFalse($logoutRequest5->isValid());
         $this->assertEquals('Invalid signAlg in the recieved Logout Request', $logoutRequest5->getError());
 
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
         $settingsInfo['strict'] = true;
         $settingsInfo['security']['wantMessagesSigned'] = true;
 
@@ -834,15 +830,15 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testIsValidSignUsingX509certMulti()
     {
-        $_GET = array(
+        $_GET = [
             'SAMLRequest' => 'fZJNa+MwEIb/itHdiTz6sC0SQyEsBPoB27KHXoIsj7cGW3IlGfLzV7G7kN1DL2KYmeedmRcdgp7GWT26326JP/FzwRCz6zTaoNbKkSzeKqfDEJTVEwYVjXp9eHpUsKNq9i4640Zyh3xP6BDQx8FZkp1PR3KpqexAl72QmpUCS8SW01IiZz2TVVGD4X1VQYlAsl/oQyKPJAklPIQFzzZEbWNK0YLnlOVA3wqpQCoB7yQ7pWsGq+NKfcQ4q/0+xKXvd8ZNe7Td7AYbw10UxrCbP2aSPbv4Yl/8Qx/R3+SB5bTOoXiDQvFNvjnc7lXrIr75kh+6eYdXPc0jrkMO+/umjXhOtpxP2Q/nJx2/9+uWGbq8X1tV9NqGAW0kzaVvoe1AAJeCSWqYaUVRM2SilKKuqDTpFSlszdcK29RthVm9YriZebYdXpsLdhVAB7VJzif3haYMqqTVcl0JMBR4y+s2zak3sf/4v8l/vlHzBw==',
             'RelayState' => '_1037fbc88ec82ce8e770b2bed1119747bb812a07e6',
             'SigAlg' => 'http://www.w3.org/2000/09/xmldsig#rsa-sha1',
-            'Signature' => 'Ouxo9BV6zmq4yrgamT9EbSKy/UmvSxGS8z26lIMgKOEP4LFR/N23RftdANmo4HafrzSfA0YTXwhKDqbOByS0j+Ql8OdQOes7vGioSjo5qq/Bi+5i6jXwQfphnfcHAQiJL4gYVIifkhhHRWpvYeiysF1Y9J02me0izwazFmoRXr4='
-        );
+            'Signature' => 'Ouxo9BV6zmq4yrgamT9EbSKy/UmvSxGS8z26lIMgKOEP4LFR/N23RftdANmo4HafrzSfA0YTXwhKDqbOByS0j+Ql8OdQOes7vGioSjo5qq/Bi+5i6jXwQfphnfcHAQiJL4gYVIifkhhHRWpvYeiysF1Y9J02me0izwazFmoRXr4=',
+        ];
 
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings6.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings6.php';
         $settingsInfo['strict'] = true;
         $settingsInfo['security']['wantMessagesSigned'] = true;
         $encodedRequest = $_GET['SAMLRequest'];
@@ -864,8 +860,8 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetXML()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $settings = new Settings($settingsInfo);
         $logoutRequest = new LogoutRequest($settings);
@@ -884,8 +880,8 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetID()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $settings = new Settings($settingsInfo);
         $logoutRequest = new LogoutRequest($settings);
@@ -908,11 +904,11 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetIDException()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
         $settings = new Settings($settingsInfo);
         $logoutRequest = new LogoutRequest($settings);
         $xml = $logoutRequest->getXML();
-        $id1 = LogoutRequest::getID($xml.'<garbage>');
+        $id1 = LogoutRequest::getID($xml . '<garbage>');
     }
 }

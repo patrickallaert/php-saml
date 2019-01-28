@@ -1,11 +1,10 @@
 <?php
 namespace OneLogin\Saml2;
 
-use RobRichards\XMLSecLibs\XMLSecurityKey;
-use RobRichards\XMLSecLibs\XMLSecurityDSig;
-
 use DOMDocument;
 use Exception;
+use RobRichards\XMLSecLibs\XMLSecurityDSig;
+use RobRichards\XMLSecLibs\XMLSecurityKey;
 
 /**
  * Metadata lib of OneLogin PHP Toolkit
@@ -29,9 +28,8 @@ class Metadata
      *
      * @return string SAML Metadata XML
      */
-    public static function builder($sp, $authnsign = false, $wsign = false, $validUntil = null, $cacheDuration = null, $contacts = array(), $organization = array(), $attributes = array())
+    public static function builder($sp, $authnsign = false, $wsign = false, $validUntil = null, $cacheDuration = null, $contacts = [], $organization = [], $attributes = [])
     {
-
         if (!isset($validUntil)) {
             $validUntil =  time() + self::TIME_VALID;
         }
@@ -67,9 +65,9 @@ SLS_TEMPLATE;
         $strOrganization = '';
 
         if (!empty($organization)) {
-            $organizationInfoNames = array();
-            $organizationInfoDisplaynames = array();
-            $organizationInfoUrls = array();
+            $organizationInfoNames = [];
+            $organizationInfoDisplaynames = [];
+            $organizationInfoUrls = [];
             foreach ($organization as $lang => $info) {
                 $organizationInfoNames[] = <<<ORGANIZATION_NAME
        <md:OrganizationName xml:lang="{$lang}">{$info['name']}</md:OrganizationName>
@@ -81,7 +79,7 @@ ORGANIZATION_DISPLAY;
        <md:OrganizationURL xml:lang="{$lang}">{$info['url']}</md:OrganizationURL>
 ORGANIZATION_URL;
             }
-            $orgData = implode("\n", $organizationInfoNames)."\n".implode("\n", $organizationInfoDisplaynames)."\n".implode("\n", $organizationInfoUrls);
+            $orgData = implode("\n", $organizationInfoNames) . "\n" . implode("\n", $organizationInfoDisplaynames) . "\n" . implode("\n", $organizationInfoUrls);
             $strOrganization = <<<ORGANIZATIONSTR
 
     <md:Organization>
@@ -92,7 +90,7 @@ ORGANIZATIONSTR;
 
         $strContacts = '';
         if (!empty($contacts)) {
-            $contactsInfo = array();
+            $contactsInfo = [];
             foreach ($contacts as $type => $info) {
                 $contactsInfo[] = <<<CONTACT
     <md:ContactPerson contactType="{$type}">
@@ -101,7 +99,7 @@ ORGANIZATIONSTR;
     </md:ContactPerson>
 CONTACT;
             }
-            $strContacts = "\n".implode("\n", $contactsInfo);
+            $strContacts = "\n" . implode("\n", $contactsInfo);
         }
 
         $strAttributeConsumingService = '';
@@ -116,7 +114,7 @@ CONTACT;
             if (!isset($sp['attributeConsumingService']['serviceName'])) {
                 $sp['attributeConsumingService']['serviceName'] = 'Service';
             }
-            $requestedAttributeData = array();
+            $requestedAttributeData = [];
             foreach ($sp['attributeConsumingService']['requestedAttributes'] as $attribute) {
                 $requestedAttributeStr = sprintf('            <md:RequestedAttribute Name="%s"', $attribute['name']);
                 if (isset($attribute['nameFormat'])) {
@@ -133,10 +131,10 @@ CONTACT;
                 if (isset($attribute['attributeValue']) && !empty($attribute['attributeValue'])) {
                     $reqAttrAuxStr = '>';
                     if (is_string($attribute['attributeValue'])) {
-                        $attribute['attributeValue'] = array($attribute['attributeValue']);
+                        $attribute['attributeValue'] = [$attribute['attributeValue']];
                     }
                     foreach ($attribute['attributeValue'] as $attrValue) {
-                        $reqAttrAuxStr .=<<<ATTRIBUTEVALUE
+                        $reqAttrAuxStr .= <<<ATTRIBUTEVALUE
 
                 <saml:AttributeValue xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">{$attrValue}</saml:AttributeValue>
 ATTRIBUTEVALUE;
@@ -217,7 +215,7 @@ METADATA_TEMPLATE;
                 throw new Exception('Error parsing metadata');
             }
         } catch (Exception $e) {
-            throw new Exception('Error parsing metadata. '.$e->getMessage());
+            throw new Exception('Error parsing metadata. ' . $e->getMessage());
         }
 
         $formatedCert = Utils::formatCert($cert, false);

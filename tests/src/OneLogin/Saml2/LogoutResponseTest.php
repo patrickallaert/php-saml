@@ -7,8 +7,6 @@ use OneLogin\Saml2\LogoutResponse;
 use OneLogin\Saml2\Settings;
 use OneLogin\Saml2\Utils;
 
-use DomDocument;
-
 /**
  * Unit tests for Logout Response
  */
@@ -21,8 +19,8 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function setUp()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $settings = new Settings($settingsInfo);
         $this->_settings = $settings;
@@ -51,7 +49,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
         $inResponseTo = 'ONELOGIN_21584ccdfaca36a145ae990442dcd96bfe60151e';
         $responseBuilder = new LogoutResponse($this->_settings);
         $responseBuilder->build($inResponseTo);
-        $parameters = array('SAMLResponse' => $responseBuilder->getResponse());
+        $parameters = ['SAMLResponse' => $responseBuilder->getResponse()];
 
         $logoutUrl = Utils::redirect('http://idp.example.com/SingleLogoutService.php', $parameters, true);
 
@@ -216,8 +214,8 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function testIsInValidWrongXML()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $settingsInfo['security']['wantXMLValidation'] = false;
 
@@ -280,12 +278,12 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
         $currentURL = Utils::getSelfURLNoQuery();
 
         $this->_settings->setStrict(false);
-        $_GET = array(
+        $_GET = [
             'SAMLResponse' => 'fZJva8IwEMa/Ssl7TZrW/gnqGHMMwSlM8cXeyLU9NaxNQi9lfvxVZczB5ptwSe733MPdjQma2qmFPdjOvyE5awiDU1MbUpevCetaoyyQJmWgQVK+VOvH14WSQ6Fca70tbc1ukPsEEGHrtTUsmM8mbDfKUhnFci8gliGINI/yXIAAiYnsw6JIRgWWAKlkwRZb6skJ64V6nKjDuSEPxvdPIowHIhpIsQkTFaYqSt9ZMEPy2oC/UEfvHSnOnfZFV38MjR1oN7TtgRv8tAZre9CGV9jYkGtT4Wnoju6Bauprme/ebOyErZbPi9XLfLnDoohwhHGc5WVSVhjCKM6rBMpYQpWJrIizfZ4IZNPxuTPqYrmd/m+EdONqPOfy8yG5rhxv0EMFHs52xvxWaHyd3tqD7+j37clWGGyh7vD+POiSrdZdWSIR49NrhR9R/teGTL8A',
             'RelayState' => 'https://pitbulk.no-ip.org/newonelogin/demo1/index.php',
             'SigAlg' => 'http://www.w3.org/2000/09/xmldsig#rsa-sha1',
-            'Signature' => 'vfWbbc47PkP3ejx4bjKsRX7lo9Ml1WRoE5J5owF/0mnyKHfSY6XbhO1wwjBV5vWdrUVX+xp6slHyAf4YoAsXFS0qhan6txDiZY4Oec6yE+l10iZbzvie06I4GPak4QrQ4gAyXOSzwCrRmJu4gnpeUxZ6IqKtdrKfAYRAcVfNKGA='
-        );
+            'Signature' => 'vfWbbc47PkP3ejx4bjKsRX7lo9Ml1WRoE5J5owF/0mnyKHfSY6XbhO1wwjBV5vWdrUVX+xp6slHyAf4YoAsXFS0qhan6txDiZY4Oec6yE+l10iZbzvie06I4GPak4QrQ4gAyXOSzwCrRmJu4gnpeUxZ6IqKtdrKfAYRAcVfNKGA=',
+        ];
 
         $response = new LogoutResponse($this->_settings, $_GET['SAMLResponse']);
         $this->assertTrue($response->isValid());
@@ -336,8 +334,8 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
         $this->assertFalse($response8->isValid());
         $this->assertEquals('Invalid signAlg in the recieved Logout Response', $response8->getError());
 
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
         $settingsInfo['strict'] = true;
         $settingsInfo['security']['wantMessagesSigned'] = true;
 
@@ -370,15 +368,15 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function testIsValidSignUsingX509certMulti()
     {
-        $_GET = array(
+        $_GET = [
             'SAMLResponse' => 'fZHbasJAEIZfJey9ZrNZc1gSodRSBKtQxYveyGQz1kCyu2Q24OM3jS21UHo3p++f4Z+CoGud2th3O/hXJGcNYXDtWkNqapVs6I2yQA0pAx2S8lrtH142Ssy5cr31VtuW3SH/E0CEvW+sYcF6VbLTIktFLMWZgxQR8DSP85wDB4GJGMOqShYVaoBUsOCIPY1kyUahEScacG3Ig/FjiUdyxuOZ4IcoUVGq4vSNBSsk3xjwE3Xx3qkwJD+cz3NtuxBN7WxjPN1F1NLcXdwob77tONiS7bZPm93zenvCqopxgVJmuU50jREsZF4noKWAOuNZJbNznnBky+LTDDVd2S+/dje1m+MVOtfidEER3g8Vt2fsPfiBfmePtsbgCO2A/9tL07TaD1ojEQuXtw0/ouFfD19+AA==',
             'RelayState' => 'http://stuff.com/endpoints/endpoints/index.php',
             'SigAlg' => 'http://www.w3.org/2000/09/xmldsig#rsa-sha1',
-            'Signature' => 'OV9c4R0COSjN69fAKCpV7Uj/yx6/KFxvbluVCzdK3UuortpNMpgHFF2wYNlMSG9GcYGk6p3I8nB7Z+1TQchMWZOlO/StjAqgtZhtpiwPcWryNuq8vm/6hnJ3zMDhHTS7F8KG4qkCXmJ9sQD3Y31UNcuygBwIbNakvhDT5Qo9Nsw='
-        );
+            'Signature' => 'OV9c4R0COSjN69fAKCpV7Uj/yx6/KFxvbluVCzdK3UuortpNMpgHFF2wYNlMSG9GcYGk6p3I8nB7Z+1TQchMWZOlO/StjAqgtZhtpiwPcWryNuq8vm/6hnJ3zMDhHTS7F8KG4qkCXmJ9sQD3Y31UNcuygBwIbNakvhDT5Qo9Nsw=',
+        ];
 
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings6.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings6.php';
         $settingsInfo['strict'] = true;
         $settingsInfo['security']['wantMessagesSigned'] = true;
         $encodedResponse = $_GET['SAMLResponse'];
@@ -427,8 +425,8 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
     public function testWeCanChooseToCompressAResponse()
     {
         //Test that we can compress.
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $message = file_get_contents(
             TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64'
@@ -440,7 +438,6 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
         $decoded = base64_decode($payload);
         $decompressed = gzinflate($decoded);
         $this->assertRegExp('#^<samlp:LogoutResponse#', $decompressed);
-
     }
 
     /**
@@ -452,8 +449,8 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
     public function testWeCanChooseNotToCompressAResponse()
     {
         //Test that we can choose not to compress the request payload.
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings2.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings2.php';
 
         $message = file_get_contents(
             TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64'
@@ -474,23 +471,22 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function testWeCanChooseToDeflateAResponseBody()
     {
-
         $message = file_get_contents(
             TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64'
         );
 
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
-        
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
+
         $settings = new Settings($settingsInfo);
         $logoutResponse = new LogoutResponse($settings, $message);
         $payload = $logoutResponse->getResponse(false);
         $decoded = base64_decode($payload);
         $this->assertRegExp('#^<samlp:LogoutResponse#', $decoded);
 
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings2.php';
-        
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings2.php';
+
         $settings = new Settings($settingsInfo);
         $logoutResponse = new LogoutResponse($settings, $message);
         $payload = $logoutResponse->getResponse(true);
@@ -507,8 +503,8 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetXML()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $settings = new Settings($settingsInfo);
         $logoutResponse = new LogoutResponse($settings);
@@ -528,8 +524,8 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetID()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $settings = new Settings($settingsInfo);
         $logoutResponse = new LogoutResponse($settings);
@@ -538,7 +534,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
         $xml = $logoutResponse->getXML();
         $id1 = $logoutResponse->getID();
         $this->assertNotNull($id1);
-    
+
         $processedLogoutResponse = new LogoutResponse($settings, base64_encode($xml));
         $id2 = $processedLogoutResponse->getID();
         $this->assertEquals($id1, $id2);
@@ -554,8 +550,8 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetIDException()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
         $settings = new Settings($settingsInfo);
         $logoutResponse = new LogoutResponse($settings, '<garbage>');
     }

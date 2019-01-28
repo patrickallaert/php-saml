@@ -2,16 +2,14 @@
 
 namespace OneLogin\Saml2\Tests;
 
+use DOMDocument;
+use Exception;
 use OneLogin\Saml2\Constants;
 use OneLogin\Saml2\Settings;
 use OneLogin\Saml2\Utils;
 use OneLogin\Saml2\ValidationError;
-
-use RobRichards\XMLSecLibs\XMLSecurityKey;
 use RobRichards\XMLSecLibs\XMLSecurityDSig;
-
-use DOMDocument;
-use Exception;
+use RobRichards\XMLSecLibs\XMLSecurityKey;
 
 /**
  * Unit tests for Utils class
@@ -20,7 +18,6 @@ use Exception;
  */
 class UtilsTest extends \PHPUnit\Framework\TestCase
 {
-
     /**
      * Tests the loadXML method of the Utils
      *
@@ -34,11 +31,11 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         $res1 = Utils::loadXML($dom, $metadataUnloaded);
         $this->assertFalse($res1);
 
-        $metadataInvalid = file_get_contents(TEST_ROOT .'/data/metadata/noentity_metadata_settings1.xml');
+        $metadataInvalid = file_get_contents(TEST_ROOT . '/data/metadata/noentity_metadata_settings1.xml');
         $res2 = Utils::loadXML($dom, $metadataInvalid);
         $this->assertTrue($res2 instanceof DOMDocument);
 
-        $metadataOk = file_get_contents(TEST_ROOT .'/data/metadata/metadata_settings1.xml');
+        $metadataOk = file_get_contents(TEST_ROOT . '/data/metadata/metadata_settings1.xml');
         $res3 = Utils::loadXML($dom, $metadataOk);
         $this->assertTrue($res3 instanceof DOMDocument);
     }
@@ -116,26 +113,26 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         $metadataUnloaded = '<xml><EntityDescriptor>';
         $this->assertEquals(Utils::validateXML($metadataUnloaded, 'saml-schema-metadata-2.0.xsd'), 'unloaded_xml');
 
-        $metadataInvalid = file_get_contents(TEST_ROOT .'/data/metadata/noentity_metadata_settings1.xml');
+        $metadataInvalid = file_get_contents(TEST_ROOT . '/data/metadata/noentity_metadata_settings1.xml');
         $this->assertEquals(Utils::validateXML($metadataInvalid, 'saml-schema-metadata-2.0.xsd'), 'invalid_xml');
 
-        $metadataExpired = file_get_contents(TEST_ROOT .'/data/metadata/expired_metadata_settings1.xml');
+        $metadataExpired = file_get_contents(TEST_ROOT . '/data/metadata/expired_metadata_settings1.xml');
         $res = Utils::validateXML($metadataExpired, 'saml-schema-metadata-2.0.xsd');
         $this->assertTrue($res instanceof DOMDocument);
 
-        $metadataOk = file_get_contents(TEST_ROOT .'/data/metadata/metadata_settings1.xml');
+        $metadataOk = file_get_contents(TEST_ROOT . '/data/metadata/metadata_settings1.xml');
         $res2 = Utils::validateXML($metadataOk, 'saml-schema-metadata-2.0.xsd');
         $this->assertTrue($res2 instanceof DOMDocument);
 
-        $metadataBadOrder = file_get_contents(TEST_ROOT .'/data/metadata/metadata_bad_order_settings1.xml');
+        $metadataBadOrder = file_get_contents(TEST_ROOT . '/data/metadata/metadata_bad_order_settings1.xml');
         $res3 = Utils::validateXML($metadataBadOrder, 'saml-schema-metadata-2.0.xsd');
         $this->assertFalse($res3 instanceof DOMDocument);
 
-        $metadataSigned = file_get_contents(TEST_ROOT .'/data/metadata/signed_metadata_settings1.xml');
+        $metadataSigned = file_get_contents(TEST_ROOT . '/data/metadata/signed_metadata_settings1.xml');
         $res4 = Utils::validateXML($metadataSigned, 'saml-schema-metadata-2.0.xsd');
         $this->assertTrue($res4 instanceof DOMDocument);
 
-        $dom = new DOMDocument;
+        $dom = new DOMDocument();
         Utils::loadXML($dom, $metadataOk);
         $res5 = Utils::validateXML($dom, 'saml-schema-metadata-2.0.xsd');
         $this->assertTrue($res5 instanceof DOMDocument);
@@ -148,8 +145,8 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
      */
     public function testFormatCert()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings2.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings2.php';
 
         $settings = new Settings($settingsInfo);
 
@@ -165,12 +162,10 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         $formatedCert2 = Utils::formatCert($cert, true);
         $this->assertEquals($formatedCert1, $formatedCert2);
 
-
         $formatedCert3 = Utils::formatCert($cert, false);
         $this->assertNotContains('-----BEGIN CERTIFICATE-----', $formatedCert3);
         $this->assertNotContains('-----END CERTIFICATE-----', $formatedCert3);
         $this->assertEquals(strlen($cert), 860);
-
 
         $cert2 = $settingsInfo['sp']['x509cert'];
         $this->assertNotContains('-----BEGIN CERTIFICATE-----', $cert);
@@ -184,12 +179,10 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         $formatedCert5 = Utils::formatCert($cert, true);
         $this->assertEquals($formatedCert4, $formatedCert5);
 
-
         $formatedCert6 = Utils::formatCert($cert, false);
         $this->assertNotContains('-----BEGIN CERTIFICATE-----', $formatedCert6);
         $this->assertNotContains('-----END CERTIFICATE-----', $formatedCert6);
         $this->assertEquals(strlen($cert2), 860);
-
     }
 
     /**
@@ -199,8 +192,8 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
      */
     public function testFormatPrivateKey()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings2.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings2.php';
 
         $settings = new Settings($settingsInfo);
 
@@ -216,7 +209,6 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
 
         $formatedKey2 = Utils::formatPrivateKey($key, true);
         $this->assertEquals($formatedKey1, $formatedKey2);
-
 
         $formatedKey3 = Utils::formatPrivateKey($key, false);
 
@@ -237,8 +229,8 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         $url = "http://$hostname/example";
         $url2 = '/example';
 
-        $targetUrl = Utils::redirect($url, array(), true);
-        $targetUrl2 = Utils::redirect($url2, array(), true);
+        $targetUrl = Utils::redirect($url, [], true);
+        $targetUrl2 = Utils::redirect($url2, [], true);
 
         $this->assertEquals($targetUrl, $targetUrl2);
 
@@ -246,17 +238,17 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         $url3 = "https://$hostname/example?test=true";
         $url4 = "ftp://$hostname/example";
 
-        $targetUrl3 = Utils::redirect($url3, array(), true);
+        $targetUrl3 = Utils::redirect($url3, [], true);
 
         try {
-            $targetUrl4 = Utils::redirect($url4, array(), true);
+            $targetUrl4 = Utils::redirect($url4, [], true);
             $this->fail('Exception was not raised');
         } catch (Exception $e) {
             $this->assertContains('Redirect to invalid URL', $e->getMessage());
         }
 
         // Review parameter prefix
-        $parameters1 = array('value1' => 'a');
+        $parameters1 = ['value1' => 'a'];
 
         $targetUrl5 = Utils::redirect($url, $parameters1, true);
         $this->assertEquals("http://$hostname/example?value1=a", $targetUrl5);
@@ -265,20 +257,20 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals("https://$hostname/example?test=true&value1=a", $targetUrl6);
 
         // Review parameters
-        $parameters2 = array(
+        $parameters2 = [
             'alphavalue' => 'a',
-            'numvalue' => array('1', '2'),
+            'numvalue' => ['1', '2'],
             'testing' => null,
-        );
+        ];
 
         $targetUrl7 = Utils::redirect($url, $parameters2, true);
         $this->assertEquals("http://$hostname/example?alphavalue=a&numvalue[]=1&numvalue[]=2&testing", $targetUrl7);
 
-        $parameters3 = array(
+        $parameters3 = [
             'alphavalue' => 'a',
-            'emptynumvaluelist' => array(),
-            'numvaluelist' => array(''),
-        );
+            'emptynumvaluelist' => [],
+            'numvaluelist' => [''],
+        ];
 
         $targetUrl8 = Utils::redirect($url, $parameters3, true);
         $this->assertEquals("http://$hostname/example?alphavalue=a&numvaluelist[]=", $targetUrl8);
@@ -370,10 +362,10 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     public function testisHTTPS()
     {
         $this->assertFalse(Utils::isHTTPS());
-        
+
         $_SERVER['HTTPS'] = 'on';
         $this->assertTrue(Utils::isHTTPS());
-    
+
         unset($_SERVER['HTTPS']);
         $this->assertFalse(Utils::isHTTPS());
         $_SERVER['HTTP_HOST'] = 'example.com:443';
@@ -497,7 +489,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         $expectedUrlNQ2 = 'http://anothersp.example.com:81/example2/route.php';
         $expectedRoutedUrlNQ2 = 'http://anothersp.example.com:81/example2/route.php';
         $expectedUrl2 = 'http://anothersp.example.com:81/example2/route.php?x=test';
-        
+
         $this->assertEquals('http', Utils::getSelfProtocol());
         $this->assertEquals('anothersp.example.com', Utils::getSelfHost());
         $this->assertEquals('81', Utils::getSelfPort());
@@ -568,16 +560,16 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($url, Utils::getSelfURL());
 
         $_SERVER['REQUEST_URI'] = '/index.php';
-        $this->assertEquals($url.'/index.php', Utils::getSelfURL());
+        $this->assertEquals($url . '/index.php', Utils::getSelfURL());
 
         $_SERVER['REQUEST_URI'] = '/test/index.php?testing';
-        $this->assertEquals($url.'/test/index.php?testing', Utils::getSelfURL());
+        $this->assertEquals($url . '/test/index.php?testing', Utils::getSelfURL());
 
         $_SERVER['REQUEST_URI'] = '/test/index.php?testing';
-        $this->assertEquals($url.'/test/index.php?testing', Utils::getSelfURL());
+        $this->assertEquals($url . '/test/index.php?testing', Utils::getSelfURL());
 
         $_SERVER['REQUEST_URI'] = 'https://example.com/testing';
-        $this->assertEquals($url.'/testing', Utils::getSelfURL());
+        $this->assertEquals($url . '/testing', Utils::getSelfURL());
     }
 
     /**
@@ -596,7 +588,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($url, Utils::getSelfURLNoQuery());
 
         $_SERVER['PATH_INFO'] = '/test';
-        $this->assertEquals($url.'/test', Utils::getSelfURLNoQuery());
+        $this->assertEquals($url . '/test', Utils::getSelfURLNoQuery());
     }
 
     /**
@@ -838,8 +830,8 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
 
         $this->assertEquals($nameId, $expectedNameId);
 
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $x509cert = $settingsInfo['idp']['x509cert'];
         $key = Utils::formatCert($x509cert);
@@ -896,8 +888,8 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
 
         $this->assertEquals($nameId, $expectedNameId);
 
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $x509cert = $settingsInfo['idp']['x509cert'];
         $key = Utils::formatCert($x509cert);
@@ -925,7 +917,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
             $this->markTestSkipped("Can't test that on TRAVIS");
         } else {
             if (!isset($_SESSION)) {
-                $_SESSION = array();
+                $_SESSION = [];
             }
             $_SESSION['samltest'] = true;
 
@@ -976,14 +968,14 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
      */
     public function testCalculateX509Fingerprint()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $settings = new Settings($settingsInfo);
         $certPath = $settings->getCertPath();
 
-        $key = file_get_contents($certPath.'sp.key');
-        $cert = file_get_contents($certPath.'sp.crt');
+        $key = file_get_contents($certPath . 'sp.key');
+        $cert = file_get_contents($certPath . 'sp.crt');
 
         $this->assertNull(Utils::calculateX509Fingerprint($key));
 
@@ -1025,13 +1017,13 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
      */
     public function testDecryptElement()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $settings = new Settings($settingsInfo);
 
         $key = $settings->getSPkey();
-        $seckey = new XMLSecurityKey(XMLSecurityKey::RSA_1_5, array('type'=>'private'));
+        $seckey = new XMLSecurityKey(XMLSecurityKey::RSA_1_5, ['type' => 'private']);
         $seckey->loadKey($key);
 
         $xmlNameIdEnc = base64_decode(file_get_contents(TEST_ROOT . '/data/responses/response_encrypted_nameid.xml.base64'));
@@ -1062,14 +1054,14 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         }
 
         $key2 = file_get_contents(TEST_ROOT . '/data/misc/sp2.key');
-        $seckey2 = new XMLSecurityKey(XMLSecurityKey::RSA_1_5, array('type'=>'private'));
+        $seckey2 = new XMLSecurityKey(XMLSecurityKey::RSA_1_5, ['type' => 'private']);
         $seckey2->loadKey($key2);
         $decryptedNameId2 = Utils::decryptElement($encryptedData, $seckey2);
         $this->assertEquals('saml:NameID', $decryptedNameId2->tagName);
         $this->assertEquals('2de11defd199f8d5bb63f9b7deb265ba5c675c10', $decryptedNameId2->nodeValue);
 
         $key3 = file_get_contents(TEST_ROOT . '/data/misc/sp2.key');
-        $seckey3 = new XMLSecurityKey(XMLSecurityKey::RSA_SHA512, array('type'=>'private'));
+        $seckey3 = new XMLSecurityKey(XMLSecurityKey::RSA_SHA512, ['type' => 'private']);
         $seckey3->loadKey($key3);
         try {
             $res = Utils::decryptElement($encryptedData, $seckey3);
@@ -1110,8 +1102,8 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
      */
     public function testAddSign()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $settings = new Settings($settingsInfo);
         $key = $settings->getSPkey();
@@ -1176,8 +1168,8 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
      */
     public function testValidateSign()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $settings = new Settings($settingsInfo);
         $idpData = $settings->getIdPData();

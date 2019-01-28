@@ -25,7 +25,7 @@ class IdPMetadataParser
      */
     public static function parseRemoteXML($url, $entityId = null, $desiredNameIdFormat = null, $desiredSSOBinding = Constants::BINDING_HTTP_REDIRECT, $desiredSLOBinding = Constants::BINDING_HTTP_REDIRECT)
     {
-        $metadataInfo = array();
+        $metadataInfo = [];
 
         try {
             $ch = curl_init($url);
@@ -62,7 +62,7 @@ class IdPMetadataParser
      */
     public static function parseFileXML($filepath, $entityId = null, $desiredNameIdFormat = null, $desiredSSOBinding = Constants::BINDING_HTTP_REDIRECT, $desiredSLOBinding = Constants::BINDING_HTTP_REDIRECT)
     {
-        $metadataInfo = array();
+        $metadataInfo = [];
 
         try {
             if (file_exists($filepath)) {
@@ -92,7 +92,7 @@ class IdPMetadataParser
      */
     public static function parseXML($xml, $entityId = null, $desiredNameIdFormat = null, $desiredSSOBinding = Constants::BINDING_HTTP_REDIRECT, $desiredSLOBinding = Constants::BINDING_HTTP_REDIRECT)
     {
-        $metadataInfo = array();
+        $metadataInfo = [];
 
         $dom = new DOMDocument();
         $dom->preserveWhiteSpace = false;
@@ -112,7 +112,7 @@ class IdPMetadataParser
             $idpDescriptorNodes = Utils::query($dom, $idpDescryptorXPath);
 
             if (isset($idpDescriptorNodes) && $idpDescriptorNodes->length > 0) {
-                $metadataInfo['idp'] = array();
+                $metadataInfo['idp'] = [];
 
                 $idpDescriptor = $idpDescriptorNodes->item(0);
 
@@ -124,26 +124,26 @@ class IdPMetadataParser
                     $metadataInfo['idp']['entityId'] = $entityId;
                 }
 
-                $ssoNodes = Utils::query($dom, './md:SingleSignOnService[@Binding="'.$desiredSSOBinding.'"]', $idpDescriptor);
+                $ssoNodes = Utils::query($dom, './md:SingleSignOnService[@Binding="' . $desiredSSOBinding . '"]', $idpDescriptor);
                 if ($ssoNodes->length < 1) {
                     $ssoNodes = Utils::query($dom, './md:SingleSignOnService', $idpDescriptor);
                 }
                 if ($ssoNodes->length > 0) {
-                    $metadataInfo['idp']['singleSignOnService'] = array(
+                    $metadataInfo['idp']['singleSignOnService'] = [
                         'url' => $ssoNodes->item(0)->getAttribute('Location'),
-                        'binding' => $ssoNodes->item(0)->getAttribute('Binding')
-                    );
+                        'binding' => $ssoNodes->item(0)->getAttribute('Binding'),
+                    ];
                 }
 
-                $sloNodes = Utils::query($dom, './md:SingleLogoutService[@Binding="'.$desiredSLOBinding.'"]', $idpDescriptor);
+                $sloNodes = Utils::query($dom, './md:SingleLogoutService[@Binding="' . $desiredSLOBinding . '"]', $idpDescriptor);
                 if ($sloNodes->length < 1) {
                     $sloNodes = Utils::query($dom, './md:SingleLogoutService', $idpDescriptor);
                 }
                 if ($sloNodes->length > 0) {
-                    $metadataInfo['idp']['singleLogoutService'] = array(
+                    $metadataInfo['idp']['singleLogoutService'] = [
                         'url' => $sloNodes->item(0)->getAttribute('Location'),
-                        'binding' => $sloNodes->item(0)->getAttribute('Binding')
-                    );
+                        'binding' => $sloNodes->item(0)->getAttribute('Binding'),
+                    ];
                 }
 
                 $keyDescriptorCertSigningNodes = Utils::query($dom, './md:KeyDescriptor[not(contains(@use, "encryption"))]/ds:KeyInfo/ds:X509Data/ds:X509Certificate', $idpDescriptor);
@@ -151,24 +151,24 @@ class IdPMetadataParser
                 $keyDescriptorCertEncryptionNodes = Utils::query($dom, './md:KeyDescriptor[not(contains(@use, "signing"))]/ds:KeyInfo/ds:X509Data/ds:X509Certificate', $idpDescriptor);
 
                 if (!empty($keyDescriptorCertSigningNodes) || !empty($keyDescriptorCertEncryptionNodes)) {
-                    $metadataInfo['idp']['x509certMulti'] = array();
+                    $metadataInfo['idp']['x509certMulti'] = [];
                     if (!empty($keyDescriptorCertSigningNodes)) {
-                        $idpInfo['x509certMulti']['signing'] = array();
+                        $idpInfo['x509certMulti']['signing'] = [];
                         foreach ($keyDescriptorCertSigningNodes as $keyDescriptorCertSigningNode) {
                             $metadataInfo['idp']['x509certMulti']['signing'][] = Utils::formatCert($keyDescriptorCertSigningNode->nodeValue, false);
                         }
                     }
                     if (!empty($keyDescriptorCertEncryptionNodes)) {
-                        $idpInfo['x509certMulti']['encryption'] = array();
+                        $idpInfo['x509certMulti']['encryption'] = [];
                         foreach ($keyDescriptorCertEncryptionNodes as $keyDescriptorCertEncryptionNode) {
                             $metadataInfo['idp']['x509certMulti']['encryption'][] = Utils::formatCert($keyDescriptorCertEncryptionNode->nodeValue, false);
                         }
                     }
 
                     $idpCertdata = $metadataInfo['idp']['x509certMulti'];
-                    if ((count($idpCertdata) == 1 and
-                         ((isset($idpCertdata['signing']) and count($idpCertdata['signing']) == 1) or (isset($idpCertdata['encryption']) and count($idpCertdata['encryption']) == 1))) or
-                         ((isset($idpCertdata['signing']) && count($idpCertdata['signing']) == 1) && isset($idpCertdata['encryption']) && count($idpCertdata['encryption']) == 1 && strcmp($idpCertdata['signing'][0], $idpCertdata['encryption'][0]) == 0)) {
+                    if ((count($idpCertdata) === 1 and
+                         ((isset($idpCertdata['signing']) and count($idpCertdata['signing']) === 1) or (isset($idpCertdata['encryption']) and count($idpCertdata['encryption']) === 1))) or
+                         ((isset($idpCertdata['signing']) && count($idpCertdata['signing']) === 1) && isset($idpCertdata['encryption']) && count($idpCertdata['encryption']) === 1 && strcmp($idpCertdata['signing'][0], $idpCertdata['encryption'][0]) === 0)) {
                         if (isset($metadataInfo['idp']['x509certMulti']['signing'][0])) {
                             $metadataInfo['idp']['x509cert'] = $metadataInfo['idp']['x509certMulti']['signing'][0];
                         } else {
@@ -183,7 +183,7 @@ class IdPMetadataParser
                     $metadataInfo['sp']['NameIDFormat'] = $nameIdFormatNodes->item(0)->nodeValue;
                     if (!empty($desiredNameIdFormat)) {
                         foreach ($nameIdFormatNodes as $nameIdFormatNode) {
-                            if (strcmp($nameIdFormatNode->nodeValue, $desiredNameIdFormat) == 0) {
+                            if (strcmp($nameIdFormatNode->nodeValue, $desiredNameIdFormat) === 0) {
                                 $metadataInfo['sp']['NameIDFormat'] = $nameIdFormatNode->nodeValue;
                                 break;
                             }
@@ -192,7 +192,7 @@ class IdPMetadataParser
                 }
             }
         } catch (Exception $e) {
-            throw new Exception('Error parsing metadata. '.$e->getMessage());
+            throw new Exception('Error parsing metadata. ' . $e->getMessage());
         }
 
         return $metadataInfo;

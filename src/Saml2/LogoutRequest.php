@@ -1,10 +1,9 @@
 <?php
 namespace OneLogin\Saml2;
 
-use RobRichards\XMLSecLibs\XMLSecurityKey;
-
 use DOMDocument;
 use Exception;
+use RobRichards\XMLSecLibs\XMLSecurityKey;
 
 /**
  * SAML 2 Logout Request
@@ -82,7 +81,7 @@ class LogoutRequest
 
             if (!empty($nameId)) {
                 if (empty($nameIdFormat)
-                    && $spData['NameIDFormat'] != Constants::NAMEID_UNSPECIFIED) {
+                    && $spData['NameIDFormat'] !== Constants::NAMEID_UNSPECIFIED) {
                     $nameIdFormat = $spData['NameIDFormat'];
                 }
             } else {
@@ -93,13 +92,13 @@ class LogoutRequest
             /* From saml-core-2.0-os 8.3.6, when the entity Format is used:
                "The NameQualifier, SPNameQualifier, and SPProvidedID attributes MUST be omitted.
             */
-            if (!empty($nameIdFormat) && $nameIdFormat == Constants::NAMEID_ENTITY) {
+            if (!empty($nameIdFormat) && $nameIdFormat === Constants::NAMEID_ENTITY) {
                 $nameIdNameQualifier = null;
                 $nameIdSPNameQualifier = null;
             }
 
             // NameID Format UNSPECIFIED omitted
-            if (!empty($nameIdFormat) && $nameIdFormat == Constants::NAMEID_UNSPECIFIED) {
+            if (!empty($nameIdFormat) && $nameIdFormat === Constants::NAMEID_UNSPECIFIED) {
                 $nameIdFormat = null;
             }
 
@@ -131,7 +130,7 @@ LOGOUTREQUEST;
             $decoded = base64_decode($request);
             // We try to inflate
             $inflated = @gzinflate($decoded);
-            if ($inflated != false) {
+            if ($inflated !== false) {
                 $logoutRequest = $inflated;
             } else {
                 $logoutRequest = $decoded;
@@ -181,8 +180,7 @@ LOGOUTREQUEST;
             $dom = Utils::loadXML($dom, $request);
         }
 
-
-        if (false === $dom) {
+        if ($dom === false) {
             throw new Error(
                 "LogoutRequest could not be processed",
                 Error::SAML_LOGOUTREQUEST_INVALID
@@ -216,7 +214,7 @@ LOGOUTREQUEST;
 
         $encryptedEntries = Utils::query($dom, '/samlp:LogoutRequest/saml:EncryptedID');
 
-        if ($encryptedEntries->length == 1) {
+        if ($encryptedEntries->length === 1) {
             $encryptedDataNodes = $encryptedEntries->item(0)->getElementsByTagName('EncryptedData');
             $encryptedData = $encryptedDataNodes->item(0);
 
@@ -227,14 +225,13 @@ LOGOUTREQUEST;
                 );
             }
 
-            $seckey = new XMLSecurityKey(XMLSecurityKey::RSA_1_5, array('type'=>'private'));
+            $seckey = new XMLSecurityKey(XMLSecurityKey::RSA_1_5, ['type' => 'private']);
             $seckey->loadKey($key);
 
             $nameId = Utils::decryptElement($encryptedData, $seckey);
-
         } else {
             $entries = Utils::query($dom, '/samlp:LogoutRequest/saml:NameID');
-            if ($entries->length == 1) {
+            if ($entries->length === 1) {
                 $nameId = $entries->item(0);
             }
         }
@@ -246,9 +243,9 @@ LOGOUTREQUEST;
             );
         }
 
-        $nameIdData = array();
+        $nameIdData = [];
         $nameIdData['Value'] = $nameId->nodeValue;
-        foreach (array('Format', 'SPNameQualifier', 'NameQualifier') as $attr) {
+        foreach (['Format', 'SPNameQualifier', 'NameQualifier'] as $attr) {
             if ($nameId->hasAttribute($attr)) {
                 $nameIdData[$attr] = $nameId->getAttribute($attr);
             }
@@ -295,7 +292,7 @@ LOGOUTREQUEST;
 
         $issuer = null;
         $issuerNodes = Utils::query($dom, '/samlp:LogoutRequest/saml:Issuer');
-        if ($issuerNodes->length == 1) {
+        if ($issuerNodes->length === 1) {
             $issuer = $issuerNodes->item(0)->textContent;
         }
         return $issuer;
@@ -322,7 +319,7 @@ LOGOUTREQUEST;
             $dom = Utils::loadXML($dom, $request);
         }
 
-        $sessionIndexes = array();
+        $sessionIndexes = [];
         $sessionIndexNodes = Utils::query($dom, '/samlp:LogoutRequest/samlp:SessionIndex');
         foreach ($sessionIndexNodes as $sessionIndexNode) {
             $sessionIndexes[] = $sessionIndexNode->textContent;
@@ -391,7 +388,7 @@ LOGOUTREQUEST;
 
                 // Check issuer
                 $issuer = static::getIssuer($dom);
-                if (!empty($issuer) && $issuer != $idPEntityId) {
+                if (!empty($issuer) && $issuer !== $idPEntityId) {
                     throw new ValidationError(
                         "Invalid issuer in the Logout Request",
                         ValidationError::WRONG_ISSUER

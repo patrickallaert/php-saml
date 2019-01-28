@@ -2,16 +2,14 @@
 
 namespace OneLogin\Saml2\Tests;
 
+use Exception;
 use OneLogin\Saml2\Auth;
 use OneLogin\Saml2\Error;
 use OneLogin\Saml2\LogoutRequest;
 use OneLogin\Saml2\Settings;
 use OneLogin\Saml2\Utils;
 use OneLogin\Saml2\ValidationError;
-
 use RobRichards\XMLSecLibs\XMLSecurityKey;
-
-use Exception;
 
 /**
  * Unit tests for Auth class
@@ -26,8 +24,8 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function setUp()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $this->_settingsInfo = $settingsInfo;
         $this->_auth = new Auth($settingsInfo);
@@ -43,8 +41,8 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetSettings()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $settings = new Settings($settingsInfo);
 
@@ -59,11 +57,11 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetLastRequestID()
     {
-        $targetSSOURL = $this->_auth->login(null, array(), false, false, true, false);
+        $targetSSOURL = $this->_auth->login(null, [], false, false, true, false);
         $id1 = $this->_auth->getLastRequestID();
         $this->assertNotNull($id1);
 
-        $targetSLOURL = $this->_auth->logout(null, array(), null, null, true, null);
+        $targetSLOURL = $this->_auth->logout(null, [], null, null, true, null);
         $id2 = $this->_auth->getLastRequestID();
         $this->assertNotNull($id2);
 
@@ -107,7 +105,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
             $this->assertContains('SAML Response not found', $e->getMessage());
         }
 
-        $this->assertEquals($this->_auth->getErrors(), array('invalid_binding'));
+        $this->assertEquals($this->_auth->getErrors(), ['invalid_binding']);
     }
 
     /**
@@ -146,7 +144,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
         $this->assertNull($this->_auth->getSessionIndex());
         $this->assertNull($this->_auth->getSessionExpiration());
         $this->assertNull($this->_auth->getAttribute('uid'));
-        $this->assertEquals($this->_auth->getErrors(), array('invalid_response'));
+        $this->assertEquals($this->_auth->getErrors(), ['invalid_response']);
         $this->assertEquals($this->_auth->getLastErrorReason(), "Reference validation failed");
         $errorException = $this->_auth->getLastErrorException();
         $this->assertEquals("Reference validation failed", $errorException->getMessage());
@@ -293,27 +291,19 @@ class AuthTest extends \PHPUnit\Framework\TestCase
         $response = file_get_contents(TEST_ROOT . '/data/responses/response6.xml.base64');
         $_POST['SAMLResponse'] = $response;
         $auth->processResponse();
-        $expectedAttributes = array(
-            'urn:oid:0.9.2342.19200300.100.1.1' => array(
-                'demo'
-            ),
-            'urn:oid:2.5.4.42' => array(
-                'value'
-            ),
-        );
-        $expectedFriendlyNameAttributes = array(
-            'uid' => array(
-                'demo'
-            ),
-            'givenName' => array(
-                'value'
-            ),
-        );
+        $expectedAttributes = [
+            'urn:oid:0.9.2342.19200300.100.1.1' => ['demo'],
+            'urn:oid:2.5.4.42' => ['value'],
+        ];
+        $expectedFriendlyNameAttributes = [
+            'uid' => ['demo'],
+            'givenName' => ['value'],
+        ];
         $this->assertEquals($expectedAttributes, $auth->getAttributes());
         $this->assertEquals($expectedFriendlyNameAttributes, $auth->getAttributesWithFriendlyName());
         $this->assertNull($auth->getAttribute('givenName'));
-        $this->assertEquals(array('value'), $auth->getAttributeWithFriendlyName('givenName'));
-        $this->assertEquals(array('value'), $auth->getAttribute('urn:oid:2.5.4.42'));
+        $this->assertEquals(['value'], $auth->getAttributeWithFriendlyName('givenName'));
+        $this->assertEquals(['value'], $auth->getAttribute('urn:oid:2.5.4.42'));
         $this->assertNull($auth->getAttributeWithFriendlyName('urn:oid:2.5.4.42'));
         // An assertion that has no attributes should return an empty array when asked for the attributes
         $response2 = file_get_contents(TEST_ROOT . '/data/responses/response2.xml.base64');
@@ -424,7 +414,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
             $this->assertContains('SAML LogoutRequest/LogoutResponse not found', $e->getMessage());
         }
 
-        $this->assertEquals($this->_auth->getErrors(), array('invalid_binding'));
+        $this->assertEquals($this->_auth->getErrors(), ['invalid_binding']);
     }
 
     /**
@@ -444,7 +434,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
         $this->_auth->setStrict(true);
         $this->_auth->processSLO(true);
         // The Destination fails
-        $this->assertEquals($this->_auth->getErrors(), array('invalid_logout_response'));
+        $this->assertEquals($this->_auth->getErrors(), ['invalid_logout_response']);
 
         $this->_auth->setStrict(false);
         $this->_auth->processSLO(true);
@@ -471,7 +461,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
 
         $this->_auth->setStrict(true);
         $this->_auth->processSLO(true);
-        $this->assertEquals($this->_auth->getErrors(), array('logout_not_success'));
+        $this->assertEquals($this->_auth->getErrors(), ['logout_not_success']);
     }
 
     /**
@@ -495,7 +485,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
 
         $this->_auth->setStrict(true);
         $this->_auth->processSLO(true, $requestID);
-        $this->assertEquals($this->_auth->getErrors(), array('invalid_logout_response'));
+        $this->assertEquals($this->_auth->getErrors(), ['invalid_logout_response']);
 
         $requestID = 'ONELOGIN_21584ccdfaca36a145ae990442dcd96bfe60151e';
         $this->_auth->processSLO(true, $requestID);
@@ -521,7 +511,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
         $_GET['SAMLResponse'] = $message;
 
         if (!isset($_SESSION)) {
-            $_SESSION = array();
+            $_SESSION = [];
         }
         $_SESSION['samltest'] = true;
 
@@ -546,7 +536,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
         $message = file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64');
 
         if (!isset($_SESSION)) {
-            $_SESSION = array();
+            $_SESSION = [];
         }
         $_SESSION['samltest'] = true;
 
@@ -577,7 +567,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
         $message = file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64');
 
         if (!isset($_SESSION)) {
-            $_SESSION = array();
+            $_SESSION = [];
         }
         $_SESSION['samltest'] = true;
 
@@ -628,7 +618,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
         $this->_auth->setStrict(true);
         $this->_auth->processSLO(true);
         // Fail due destination missmatch
-        $this->assertEquals($this->_auth->getErrors(), array('invalid_logout_request'));
+        $this->assertEquals($this->_auth->getErrors(), ['invalid_logout_request']);
 
         $this->_auth->setStrict(false);
         $targetUrl = $this->_auth->processSLO(true, null, false, null, true);
@@ -664,7 +654,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
 
         $this->_auth->setStrict(true);
         $this->_auth->processSLO(true);
-        $this->assertEquals($this->_auth->getErrors(), array('invalid_logout_request'));
+        $this->assertEquals($this->_auth->getErrors(), ['invalid_logout_request']);
     }
 
     /**
@@ -690,7 +680,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
         $_GET['SAMLRequest'] = $message;
 
         if (!isset($_SESSION)) {
-            $_SESSION = array();
+            $_SESSION = [];
         }
         $_SESSION['samltest'] = true;
 
@@ -760,7 +750,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
         $_GET['SAMLRequest'] = $message;
 
         if (!isset($_SESSION)) {
-            $_SESSION = array();
+            $_SESSION = [];
         }
         $_SESSION['samltest'] = true;
 
@@ -848,8 +838,8 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testProcessSLORequestSignedResponse()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $settingsInfo['security']['logoutResponseSigned'] = true;
 
@@ -963,7 +953,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     {
         try {
             $relayState = 'http://sp.example.com';
-            $parameters = array('test1' => 'value1', 'test2' => 'value2');
+            $parameters = ['test1' => 'value1', 'test2' => 'value2'];
 
             // The Header of the redirect produces an Exception
             $this->_auth->login($relayState, $parameters);
@@ -998,8 +988,8 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testLoginSigned()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $settingsInfo['security']['authnRequestsSigned'] = true;
 
@@ -1039,8 +1029,8 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testLoginForceAuthN()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $settingsInfo['security']['authnRequestsSigned'] = true;
 
@@ -1071,7 +1061,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
             // The Header of the redirect produces an Exception
             $returnTo = 'http://example.com/returnto';
 
-            $auth->login($returnTo, array(), false, false);
+            $auth->login($returnTo, [], false, false);
             // Do not ever get here
             $this->assertFalse(true);
         } catch (Exception $e) {
@@ -1092,7 +1082,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
         try {
             // The Header of the redirect produces an Exception
             $returnTo = 'http://example.com/returnto';
-            $auth->login($returnTo, array(), true, false);
+            $auth->login($returnTo, [], true, false);
             // Do not ever get here
             $this->assertFalse(true);
         } catch (Exception $e) {
@@ -1109,7 +1099,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
             $request3 = gzinflate($decoded3);
             $this->assertContains('ForceAuthn="true"', $request3);
         }
-
     }
 
     /**
@@ -1123,8 +1112,8 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testLoginIsPassive()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $settingsInfo['security']['authnRequestsSigned'] = true;
 
@@ -1154,7 +1143,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
         try {
             // The Header of the redirect produces an Exception
             $returnTo = 'http://example.com/returnto';
-            $auth->login($returnTo, array(), false, false);
+            $auth->login($returnTo, [], false, false);
             // Do not ever get here
             $this->assertFalse(true);
         } catch (Exception $e) {
@@ -1175,7 +1164,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
         try {
             // The Header of the redirect produces an Exception
             $returnTo = 'http://example.com/returnto';
-            $auth->login($returnTo, array(), false, true);
+            $auth->login($returnTo, [], false, true);
             // Do not ever get here
             $this->assertFalse(true);
         } catch (Exception $e) {
@@ -1205,15 +1194,15 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testLoginNameIDPolicy()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $auth = new Auth($settingsInfo);
 
         try {
             // The Header of the redirect produces an Exception
             $returnTo = 'http://example.com/returnto';
-            $auth->login($returnTo, array(), false, false, false, false);
+            $auth->login($returnTo, [], false, false, false, false);
             // Do not ever get here
             $this->assertFalse(true);
         } catch (Exception $e) {
@@ -1234,7 +1223,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
         try {
             // The Header of the redirect produces an Exception
             $returnTo = 'http://example.com/returnto';
-            $auth->login($returnTo, array(), false, false, false, true);
+            $auth->login($returnTo, [], false, false, false, true);
             // Do not ever get here
             $this->assertFalse(true);
         } catch (Exception $e) {
@@ -1350,7 +1339,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     {
         try {
             $relayState = 'http://sp.example.com';
-            $parameters = array('test1' => 'value1', 'test2' => 'value2');
+            $parameters = ['test1' => 'value1', 'test2' => 'value2'];
 
             // The Header of the redirect produces an Exception
             $this->_auth->logout($relayState, $parameters);
@@ -1391,7 +1380,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
             // The Header of the redirect produces an Exception
             $nameId = 'my_name_id';
             $sessionIndex = '_51be37965feb5579d803141076936dc2e9d1d98ebf';
-            $this->_auth->logout(null, array(), $nameId, $sessionIndex);
+            $this->_auth->logout(null, [], $nameId, $sessionIndex);
             // Do not ever get here
             $this->assertFalse(true);
         } catch (Exception $e) {
@@ -1455,8 +1444,8 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testLogoutSigned()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $settingsInfo['security']['logoutRequestSigned'] = true;
 
@@ -1493,8 +1482,8 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testLogoutNoSLO()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         unset($settingsInfo['idp']['singleLogoutService']);
 
@@ -1516,8 +1505,8 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testSetStrict()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
         $settingsInfo['strict'] = false;
 
         $auth = new Auth($settingsInfo);
@@ -1577,7 +1566,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetLastAuthNRequest()
     {
-        $targetSSOURL = $this->_auth->login(null, array(), false, false, true, false);
+        $targetSSOURL = $this->_auth->login(null, [], false, false, true, false);
         $parsedQuery = getParamsFromUrl($targetSSOURL);
         $decodedSamlRequest = gzinflate(base64_decode($parsedQuery['SAMLRequest']));
         $this->assertEquals($decodedSamlRequest, $this->_auth->getLastRequestXML());
@@ -1591,7 +1580,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetLastLogoutRequestSent()
     {
-        $targetSLOURL = $this->_auth->logout(null, array(), null, null, true, null);
+        $targetSLOURL = $this->_auth->logout(null, [], null, null, true, null);
         $parsedQuery = getParamsFromUrl($targetSLOURL);
         $decodedLogoutRequest = gzinflate(base64_decode($parsedQuery['SAMLRequest']));
         $this->assertEquals($decodedLogoutRequest, $this->_auth->getLastRequestXML());
@@ -1648,8 +1637,8 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetLastLogoutResponseSent()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $_GET['SAMLRequest'] = file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request.xml.base64');
 
@@ -1659,18 +1648,14 @@ class AuthTest extends \PHPUnit\Framework\TestCase
         $decodedLogoutResponse = gzinflate(base64_decode($parsedQuery['SAMLResponse']));
         $this->assertEquals($decodedLogoutResponse, $auth->getLastResponseXML());
 
-        $settingsInfo['compress'] = array(
-            'responses' => true
-        );
+        $settingsInfo['compress'] = ['responses' => true];
         $auth2 = new Auth($settingsInfo);
         $targetSLOURL2 = $auth2->processSLO(false, null, false, null, true);
         $parsedQuery2 = getParamsFromUrl($targetSLOURL2);
         $decodedLogoutResponse2 = gzinflate(base64_decode($parsedQuery2['SAMLResponse']));
         $this->assertEquals($decodedLogoutResponse2, $auth2->getLastResponseXML());
 
-        $settingsInfo['compress'] = array(
-            'responses' => false
-        );
+        $settingsInfo['compress'] = ['responses' => false];
         $auth3 = new Auth($settingsInfo);
         $targetSLOURL3 = $auth3->processSLO(false, null, false, null, true);
         $parsedQuery3 = getParamsFromUrl($targetSLOURL3);
@@ -1726,8 +1711,8 @@ class AuthTest extends \PHPUnit\Framework\TestCase
         // NotOnOrAfter is calculated with strict = true
         // If invalid, response id and assertion id are not obtained
 
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $settingsInfo['strict'] = true;
         $auth = new Auth($settingsInfo);

@@ -17,8 +17,8 @@ class SignedResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function setUp()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $settings = new Settings($settingsInfo);
         $this->_settings = $settings;
@@ -47,8 +47,8 @@ class SignedResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function testResponseAndAssertionSigned()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $settingsInfo['idp']['entityId'] = "https://federate.example.net/saml/saml2/idp/metadata.php";
         $settingsInfo['sp']['entityId'] = "hello.com";

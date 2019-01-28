@@ -2,12 +2,11 @@
 
 namespace OneLogin\Saml2\Tests;
 
+use DOMDocument;
 use OneLogin\Saml2\Response;
 use OneLogin\Saml2\Settings;
 use OneLogin\Saml2\Utils;
 use OneLogin\Saml2\ValidationError;
-
-use DOMDocument;
 
 /**
  * Unit tests for Response messages
@@ -22,8 +21,8 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function setUp()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $settings = new Settings($settingsInfo);
         $this->_settings = $settings;
@@ -41,7 +40,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         $response = new Response($this->_settings, $xml);
 
         $this->assertTrue($response instanceof Response);
-
 
         $xmlEnc = file_get_contents(TEST_ROOT . '/data/responses/valid_encrypted_assertion.xml.base64');
         $responseEnc = new Response($this->_settings, $xmlEnc);
@@ -112,7 +110,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
 
         $this->assertNotEmpty($attributes);
 
-        $this->assertEquals(array('FirstName','LastName'), array_keys($attributes));
+        $this->assertEquals(['FirstName', 'LastName'], array_keys($attributes));
 
         $this->assertEquals('Someone', $attributes['FirstName'][0]);
         $this->assertEquals('Special', $attributes['LastName'][0]);
@@ -136,7 +134,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         $xml3 = file_get_contents(TEST_ROOT . '/data/responses/valid_encrypted_assertion.xml.base64');
         $response3 = new Response($this->_settings, $xml3);
         $this->assertEquals('_68392312d490db6d355555cfbbd8ec95d746516f60', $response3->getNameId());
-        
+
         $xml4 = file_get_contents(TEST_ROOT . '/data/responses/invalids/no_nameid.xml.base64');
         $response4 = new Response($this->_settings, $xml4);
 
@@ -147,8 +145,8 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
             $this->assertContains('NameID not found in the assertion of the Response', $e->getMessage());
         }
 
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $settingsInfo['security']['wantNameId'] = true;
 
@@ -225,7 +223,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         $xml2 = file_get_contents(TEST_ROOT . '/data/responses/response_encrypted_nameid.xml.base64');
         $response2 = new Response($this->_settings, $xml2);
         $this->assertEquals('urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified', $response2->getNameIdFormat());
-    
+
         $xml3 = file_get_contents(TEST_ROOT . '/data/responses/valid_encrypted_assertion.xml.base64');
         $response3 = new Response($this->_settings, $xml3);
         $this->assertEquals('urn:oasis:names:tc:SAML:2.0:nameid-format:transient', $response3->getNameIdFormat());
@@ -305,31 +303,31 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     {
         $xml = file_get_contents(TEST_ROOT . '/data/responses/response1.xml.base64');
         $response = new Response($this->_settings, $xml);
-        $expectedNameIdData = array(
+        $expectedNameIdData = [
             'Value' => 'support@onelogin.com',
             'Format' => 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress',
-            'NameQualifier' => 'https://test.example.com/saml/metadata'
-        );
+            'NameQualifier' => 'https://test.example.com/saml/metadata',
+        ];
         $nameIdData = $response->getNameIdData();
         $this->assertEquals($expectedNameIdData, $nameIdData);
 
         $xml2 = file_get_contents(TEST_ROOT . '/data/responses/response_encrypted_nameid.xml.base64');
         $response2 = new Response($this->_settings, $xml2);
-        $expectedNameIdData2 = array(
+        $expectedNameIdData2 = [
             'Value' => '2de11defd199f8d5bb63f9b7deb265ba5c675c10',
             'Format' => 'urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified',
-            'SPNameQualifier' => 'http://stuff.com/endpoints/metadata.php'
-        );
+            'SPNameQualifier' => 'http://stuff.com/endpoints/metadata.php',
+        ];
         $nameIdData2 = $response2->getNameIdData();
         $this->assertEquals($expectedNameIdData2, $nameIdData2);
 
         $xml3 = file_get_contents(TEST_ROOT . '/data/responses/valid_encrypted_assertion.xml.base64');
         $response3 = new Response($this->_settings, $xml3);
-        $expectedNameIdData3 = array(
+        $expectedNameIdData3 = [
             'Value' => '_68392312d490db6d355555cfbbd8ec95d746516f60',
             'Format' => 'urn:oasis:names:tc:SAML:2.0:nameid-format:transient',
-            'SPNameQualifier' => 'http://stuff.com/endpoints/metadata.php'
-        );
+            'SPNameQualifier' => 'http://stuff.com/endpoints/metadata.php',
+        ];
         $nameIdData3 = $response3->getNameIdData();
         $this->assertEquals($expectedNameIdData3, $nameIdData3);
 
@@ -343,8 +341,8 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
             $this->assertContains('NameID not found in the assertion of the Response', $e->getMessage());
         }
 
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $settingsInfo['security']['wantNameId'] = true;
 
@@ -379,21 +377,21 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         $xml5 = file_get_contents(TEST_ROOT . '/data/responses/wrong_spnamequalifier.xml.base64');
         $response8 = new Response($settings, $xml5);
         $nameIdData8 = $response8->getNameIdData();
-        $expectedNameIdData8 = array(
+        $expectedNameIdData8 = [
             'Value' => "492882615acf31c8096b627245d76ae53036c090",
             'Format' => "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress",
-            'SPNameQualifier' => "https://pitbulk.no-ip.org/newonelogin/demo1/metadata.php"
-        );
+            'SPNameQualifier' => "https://pitbulk.no-ip.org/newonelogin/demo1/metadata.php",
+        ];
         $this->assertEquals($expectedNameIdData8, $nameIdData8);
 
         $xml6 = file_get_contents(TEST_ROOT . '/data/responses/invalids/empty_nameid.xml.base64');
         $response9 = new Response($settings, $xml6);
         $nameIdData9 = $response9->getNameIdData();
-        $expectedNameIdData9 = array(
+        $expectedNameIdData9 = [
             'Value' => "",
             'Format' => "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress",
-            'SPNameQualifier' => "http://stuff.com/endpoints/metadata.php"
-        );
+            'SPNameQualifier' => "http://stuff.com/endpoints/metadata.php",
+        ];
         $this->assertEquals($expectedNameIdData9, $nameIdData9);
 
         $settingsInfo['strict'] = true;
@@ -462,7 +460,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
 
         $xmlEnc = file_get_contents(TEST_ROOT . '/data/responses/valid_encrypted_assertion.xml.base64');
         $responseEnc = new Response($this->_settings, $xmlEnc);
-        
+
         $response->checkStatus();
 
         $xml2 = file_get_contents(TEST_ROOT . '/data/responses/invalids/status_code_responder.xml.base64');
@@ -495,12 +493,12 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         $xml = file_get_contents(TEST_ROOT . '/data/responses/response1.xml.base64');
         $response = new Response($this->_settings, $xml);
 
-        $this->assertEquals(array('{audience}'), $response->getAudiences());
+        $this->assertEquals(['{audience}'], $response->getAudiences());
 
         $xml2 = file_get_contents(TEST_ROOT . '/data/responses/valid_encrypted_assertion.xml.base64');
         $response2 = new Response($this->_settings, $xml2);
 
-        $this->assertEquals(array('http://stuff.com/endpoints/metadata.php'), $response2->getAudiences());
+        $this->assertEquals(['http://stuff.com/endpoints/metadata.php'], $response2->getAudiences());
     }
 
     /**
@@ -511,32 +509,31 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     {
         $xml = file_get_contents(TEST_ROOT . '/data/responses/adfs_response.xml.base64');
         $response = new Response($this->_settings, $xml);
-        $this->assertEquals(array('http://login.example.com/issuer'), $response->getIssuers());
+        $this->assertEquals(['http://login.example.com/issuer'], $response->getIssuers());
 
         $xml2 = file_get_contents(TEST_ROOT . '/data/responses/valid_encrypted_assertion.xml.base64');
         $response2 = new Response($this->_settings, $xml2);
-        $this->assertEquals(array('http://idp.example.com/'), $response2->getIssuers());
+        $this->assertEquals(['http://idp.example.com/'], $response2->getIssuers());
 
         $xml3 = file_get_contents(TEST_ROOT . '/data/responses/double_signed_encrypted_assertion.xml.base64');
         $response3 = new Response($this->_settings, $xml3);
-        $this->assertEquals(array('https://pitbulk.no-ip.org/simplesaml/saml2/idp/metadata.php', 'http://idp.example.com/'), $response3->getIssuers());
+        $this->assertEquals(['https://pitbulk.no-ip.org/simplesaml/saml2/idp/metadata.php', 'http://idp.example.com/'], $response3->getIssuers());
 
         $xml4 = file_get_contents(TEST_ROOT . '/data/responses/double_signed_response.xml.base64');
         $response4 = new Response($this->_settings, $xml4);
-        $this->assertEquals(array('https://pitbulk.no-ip.org/simplesaml/saml2/idp/metadata.php'), $response4->getIssuers());
+        $this->assertEquals(['https://pitbulk.no-ip.org/simplesaml/saml2/idp/metadata.php'], $response4->getIssuers());
 
         $xml5 = file_get_contents(TEST_ROOT . '/data/responses/signed_message_encrypted_assertion.xml.base64');
         $response5 = new Response($this->_settings, $xml5);
-        $this->assertEquals(array('https://pitbulk.no-ip.org/simplesaml/saml2/idp/metadata.php', 'http://idp.example.com/'), $response5->getIssuers());
+        $this->assertEquals(['https://pitbulk.no-ip.org/simplesaml/saml2/idp/metadata.php', 'http://idp.example.com/'], $response5->getIssuers());
 
         $xml6 = file_get_contents(TEST_ROOT . '/data/responses/signed_assertion_response.xml.base64');
         $response6 = new Response($this->_settings, $xml6);
-        $this->assertEquals(array('https://pitbulk.no-ip.org/simplesaml/saml2/idp/metadata.php'), $response6->getIssuers());
+        $this->assertEquals(['https://pitbulk.no-ip.org/simplesaml/saml2/idp/metadata.php'], $response6->getIssuers());
 
         $xml7 = file_get_contents(TEST_ROOT . '/data/responses/signed_encrypted_assertion.xml.base64');
         $response7 = new Response($this->_settings, $xml7);
-        $this->assertEquals(array('http://idp.example.com/'), $response7->getIssuers());
-
+        $this->assertEquals(['http://idp.example.com/'], $response7->getIssuers());
     }
 
     /**
@@ -548,20 +545,20 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     {
         $xml = file_get_contents(TEST_ROOT . '/data/responses/adfs_response.xml.base64');
         $response = new Response($this->_settings, $xml);
-        $this->assertEquals(array('http://login.example.com/issuer'), $response->getIssuers());
+        $this->assertEquals(['http://login.example.com/issuer'], $response->getIssuers());
 
         $xml2 = file_get_contents(TEST_ROOT . '/data/responses/valid_encrypted_assertion.xml.base64');
         $response2 = new Response($this->_settings, $xml2);
-        $this->assertEquals(array('http://idp.example.com/'), $response2->getIssuers());
+        $this->assertEquals(['http://idp.example.com/'], $response2->getIssuers());
 
         $xml3 = file_get_contents(TEST_ROOT . '/data/responses/double_signed_encrypted_assertion.xml.base64');
         $response3 = new Response($this->_settings, $xml3);
-        $this->assertEquals(array('https://pitbulk.no-ip.org/simplesaml/saml2/idp/metadata.php', 'http://idp.example.com/'), $response3->getIssuers());
+        $this->assertEquals(['https://pitbulk.no-ip.org/simplesaml/saml2/idp/metadata.php', 'http://idp.example.com/'], $response3->getIssuers());
 
         $xml4 = file_get_contents(TEST_ROOT . '/data/responses/invalids/no_issuer_response.xml.base64');
         $response4 = new Response($this->_settings, $xml4);
         $issuers = $response4->getIssuers();
-        $this->assertEquals(array('http://idp.example.com/'), $response4->getIssuers());
+        $this->assertEquals(['http://idp.example.com/'], $response4->getIssuers());
 
         $xml5 = file_get_contents(TEST_ROOT . '/data/responses/invalids/no_issuer_assertion.xml.base64');
         $response5 = new Response($this->_settings, $xml5);
@@ -601,14 +598,10 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         $xml = file_get_contents(TEST_ROOT . '/data/responses/response1.xml.base64');
         $response = new Response($this->_settings, $xml);
 
-        $expectedAttributes = array(
-            'uid' => array(
-                'demo'
-            ),
-            'another_value' => array(
-                'value'
-            ),
-        );
+        $expectedAttributes = [
+            'uid' => ['demo'],
+            'another_value' => ['value'],
+        ];
         $this->assertEquals($expectedAttributes, $response->getAttributes());
 
         // An assertion that has no attributes should return an empty array when asked for the attributes
@@ -642,14 +635,10 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     {
         $xml = file_get_contents(TEST_ROOT . '/data/responses/response6.xml.base64');
         $response = new Response($this->_settings, $xml);
-        $expectedAttributes = array(
-            'uid' => array(
-                'demo'
-            ),
-            'givenName' => array(
-                'value'
-            ),
-        );
+        $expectedAttributes = [
+            'uid' => ['demo'],
+            'givenName' => ['value'],
+        ];
         $this->assertEquals($expectedAttributes, $response->getAttributesWithFriendlyName());
         // An assertion that has no attributes should return an empty array when asked for the attributes
         $xml2 = file_get_contents(TEST_ROOT . '/data/responses/response2.xml.base64');
@@ -753,8 +742,8 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
 
     public function testDoesNotAllowSignatureWrappingAttack2()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         unset($settingsInfo['idp']['x509cert']);
         $settingsInfo['strict'] = false;
@@ -803,7 +792,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         $response = new Response($this->_settings, $xml);
 
         $this->assertEquals(1290203857, $response->getSessionNotOnOrAfter());
-        
+
         // An assertion that do not specified Session timeout should return NULL
         $xml2 = file_get_contents(TEST_ROOT . '/data/responses/response2.xml.base64');
         $response2 = new Response($this->_settings, $xml2);
@@ -1000,8 +989,8 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function testIsInValidWrongXML()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $settingsInfo['security']['wantXMLValidation'] = false;
 
@@ -1057,7 +1046,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         $this->assertFalse($response3->isValid());
         $this->assertEquals('The response has an empty Destination value', $response3->getError());
 
-        include TEST_ROOT .'/settings/settings1.php';
+        include TEST_ROOT . '/settings/settings1.php';
         $settingsInfo['security']['relaxDestinationValidation'] = true;
         $settings = new Settings($settingsInfo);
         $response4 = new Response($settings, $xml2);
@@ -1302,7 +1291,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         $response2 = new Response($this->_settings, $message);
         $response2->isValid($requestId);
         $this->assertContains('The InResponseTo of the Response', $response2->getError());
-        
+
         $validRequestId = '_57bcbf70-7b1f-012e-c821-782bcb13bb38';
         $response2->isValid($validRequestId);
         $this->assertContains('No Signature found. SAML Response rejected', $response2->getError());
@@ -1322,8 +1311,8 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         $plainMessage = str_replace('http://stuff.com/endpoints/endpoints/acs.php', $currentURL, $plainMessage);
         $message = base64_encode($plainMessage);
 
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $settingsInfo['security']['wantAssertionsSigned'] = false;
         $settings = new Settings($settingsInfo);
@@ -1395,8 +1384,8 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         $plainMessage = str_replace('http://stuff.com/endpoints/endpoints/acs.php', $currentURL, $plainMessage);
         $message = base64_encode($plainMessage);
 
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $settingsInfo['security']['wantAssertionsEncrypted'] = true;
         $settings = new Settings($settingsInfo);
@@ -1417,7 +1406,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
 
         $this->assertFalse($response3->isValid());
         $this->assertEquals('The assertion of the Response is not encrypted and the SP requires it', $response3->getError());
-        
+
         $settingsInfo['security']['wantAssertionsEncrypted'] = false;
         $settingsInfo['security']['wantNameIdEncrypted'] = true;
         $settingsInfo['strict'] = false;
@@ -1443,8 +1432,8 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     {
         $xml = file_get_contents(TEST_ROOT . '/data/responses/valid_response.xml.base64');
 
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
         $settingsInfo['idp']['x509cert'] = 'NotValidCert';
         $settings = new Settings($settingsInfo);
 
@@ -1464,8 +1453,8 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     {
         $xml = file_get_contents(TEST_ROOT . '/data/responses/valid_response.xml.base64');
 
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
         $settingsInfo['idp']['x509cert'] = 'MIIENjCCAx6gAwIBAgIBATANBgkqhkiG9w0BAQUFADBvMQswCQYDVQQGEwJTRTEU MBIGA1UEChMLQWRkVHJ1c3QgQUIxJjAkBgNVBAsTHUFkZFRydXN0IEV4dGVybmFs IFRUUCBOZXR3b3JrMSIwIAYDVQQDExlBZGRUcnVzdCBFeHRlcm5hbCBDQSBSb290 MB4XDTAwMDUzMDEwNDgzOFoXDTIwMDUzMDEwNDgzOFowbzELMAkGA1UEBhMCU0Ux FDASBgNVBAoTC0FkZFRydXN0IEFCMSYwJAYDVQQLEx1BZGRUcnVzdCBFeHRlcm5h bCBUVFAgTmV0d29yazEiMCAGA1UEAxMZQWRkVHJ1c3QgRXh0ZXJuYWwgQ0EgUm9v dDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALf3GjPm8gAELTngTlvt H7xsD821+iO2zt6bETOXpClMfZOfvUq8k+0DGuOPz+VtUFrWlymUWoCwSXrbLpX9 uMq/NzgtHj6RQa1wVsfwTz/oMp50ysiQVOnGXw94nZpAPA6sYapeFI+eh6FqUNzX mk6vBbOmcZSccbNQYArHE504B4YCqOmoaSYYkKtMsE8jqzpPhNjfzp/haW+710LX a0Tkx63ubUFfclpxCDezeWWkWaCUN/cALw3CknLa0Dhy2xSoRcRdKn23tNbE7qzN E0S3ySvdQwAl+mG5aWpYIxG3pzOPVnVZ9c0p10a3CitlttNCbxWyuHv77+ldU9U0 WicCAwEAAaOB3DCB2TAdBgNVHQ4EFgQUrb2YejS0Jvf6xCZU7wO94CTLVBowCwYD VR0PBAQDAgEGMA8GA1UdEwEB/wQFMAMBAf8wgZkGA1UdIwSBkTCBjoAUrb2YejS0 Jvf6xCZU7wO94CTLVBqhc6RxMG8xCzAJBgNVBAYTAlNFMRQwEgYDVQQKEwtBZGRU cnVzdCBBQjEmMCQGA1UECxMdQWRkVHJ1c3QgRXh0ZXJuYWwgVFRQIE5ldHdvcmsx IjAgBgNVBAMTGUFkZFRydXN0IEV4dGVybmFsIENBIFJvb3SCAQEwDQYJKoZIhvcN AQEFBQADggEBALCb4IUlwtYj4g+WBpKdQZic2YR5gdkeWxQHIzZlj7DYd7usQWxH YINRsPkyPef89iYTx4AWpb9a/IfPeHmJIZriTAcKhjW88t5RxNKWt9x+Tu5w/Rw5 6wwCURQtjr0W4MHfRnXnJK3s9EK0hZNwEGe6nQY1ShjTK3rMUUKhemPR5ruhxSvC Nr4TDea9Y355e6cJDUCrat2PisP29owaQgVR1EX1n6diIWgVIEM8med8vSTYqZEX c4g/VhsxOBi0cQ+azcgOno4uG+GMmIPLHzHxREzGBHNJdmAPx/i9F4BrLunMTA5a mnkPIAou1Z5jJh5VkpTYghdae9C8x49OhgQ=';
         $settings = new Settings($settingsInfo);
 
@@ -1529,8 +1518,8 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     {
         $xml = file_get_contents(TEST_ROOT . '/data/responses/valid_response.xml.base64');
 
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
         $cert = Utils::formatCert($settingsInfo['idp']['x509cert']);
         $settingsInfo['idp']['certFingerprint'] = Utils::calculateX509Fingerprint($cert);
         $settingsInfo['idp']['x509cert'] = null;
@@ -1563,8 +1552,8 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         $response3 = new Response($this->_settings, $xml3);
         $this->assertTrue($response3->isValid());
 
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
         $settingsInfo['strict'] = true;
         $settings = new Settings($settingsInfo);
 
@@ -1592,11 +1581,10 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function testIsValidSign()
     {
-
         $xml = file_get_contents(TEST_ROOT . '/data/responses/signed_message_response.xml.base64');
         $response = new Response($this->_settings, $xml);
         $this->assertTrue($response->isValid());
-        
+
         $xml2 = file_get_contents(TEST_ROOT . '/data/responses/signed_assertion_response.xml.base64');
         $response2 = new Response($this->_settings, $xml2);
         $this->assertTrue($response2->isValid());
@@ -1631,8 +1619,8 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
 
     public function testIsValidSignWithEmptyReferenceURI()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $xml = file_get_contents(TEST_ROOT . '/data/responses/response_without_reference_uri.xml.base64');
 
@@ -1653,9 +1641,9 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function testIsValidSignUsingX509certMulti()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings6.php';
-        
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings6.php';
+
         $settings = new Settings($settingsInfo);
 
         $xml = file_get_contents(TEST_ROOT . '/data/responses/signed_message_response.xml.base64');

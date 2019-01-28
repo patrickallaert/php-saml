@@ -2,20 +2,15 @@
 /**
  * Checks that the file does not end with a closing tag.
  *
- * @author    Greg Sherwood <gsherwood@squiz.net>
- * @copyright 2006-2015 Squiz Pty Ltd (ABN 77 084 670 600)
- * @license   https://github.com/squizlabs/PHP_CodeSniffer/blob/master/licence.txt BSD Licence
  */
 
 namespace PHP_CodeSniffer\Standards\Zend\Sniffs\Files;
 
-use PHP_CodeSniffer\Sniffs\Sniff;
 use PHP_CodeSniffer\Files\File;
+use PHP_CodeSniffer\Sniffs\Sniff;
 
 class ClosingTagSniff implements Sniff
 {
-
-
     /**
      * Returns an array of tokens this test wants to listen for.
      *
@@ -23,8 +18,7 @@ class ClosingTagSniff implements Sniff
      */
     public function register()
     {
-        return array(T_OPEN_TAG);
-
+        return [T_OPEN_TAG];
     }//end register()
 
 
@@ -60,9 +54,6 @@ class ClosingTagSniff implements Sniff
         }
 
         // Ignore the rest of the file.
-        return ($phpcsFile->numTokens + 1);
-
+        return $phpcsFile->numTokens + 1;
     }//end process()
-
-
 }//end class

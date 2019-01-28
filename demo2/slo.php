@@ -8,7 +8,7 @@
 
 session_start();
 
-require_once dirname(__DIR__).'/_toolkit_loader.php';
+require_once dirname(__DIR__) . '/_toolkit_loader.php';
 
 use OneLogin\Saml2\LogoutRequest;
 use OneLogin\Saml2\Settings;
@@ -31,7 +31,7 @@ if (isset($_SESSION['IdPSessionIndex']) && !empty($_SESSION['IdPSessionIndex']))
 
 $samlRequest = $logoutRequest->getRequest();
 
-$parameters = array('SAMLRequest' => $samlRequest);
+$parameters = ['SAMLRequest' => $samlRequest];
 
 $url = Utils::redirect($sloUrl, $parameters, true);
 

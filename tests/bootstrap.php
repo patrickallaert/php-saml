@@ -1,19 +1,19 @@
 <?php
 
-include ('compatibility.php');
+include 'compatibility.php';
 
 ob_start();
 
 $basePath = dirname(__DIR__);
 
-require_once $basePath.'/_toolkit_loader.php';
+require_once $basePath . '/_toolkit_loader.php';
 
 if (!defined('TEST_ROOT')) {
     define('TEST_ROOT', __DIR__);
 }
 
 if (!defined('ONELOGIN_CUSTOMPATH')) {
-    define('ONELOGIN_CUSTOMPATH', __DIR__.'/data/customPath/');
+    define('ONELOGIN_CUSTOMPATH', __DIR__ . '/data/customPath/');
 }
 
 date_default_timezone_set('America/Los_Angeles');

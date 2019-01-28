@@ -1,13 +1,12 @@
 <?php
 namespace OneLogin\Saml2;
 
-use RobRichards\XMLSecLibs\XMLSecurityKey;
-use RobRichards\XMLSecLibs\XMLSecEnc;
-
 use DOMDocument;
 use DOMNodeList;
 use DOMXPath;
 use Exception;
+use RobRichards\XMLSecLibs\XMLSecEnc;
+use RobRichards\XMLSecLibs\XMLSecurityKey;
 
 /**
  * SAML 2 Authentication Response
@@ -116,7 +115,7 @@ class Response
         $this->_error = null;
         try {
             // Check SAML version
-            if ($this->document->documentElement->getAttribute('Version') != '2.0') {
+            if ($this->document->documentElement->getAttribute('Version') !== '2.0') {
                 throw new ValidationError(
                     "Unsupported SAML version",
                     ValidationError::UNSUPPORTED_SAML_VERSION
@@ -147,8 +146,8 @@ class Response
 
             $signedElements = $this->processSignedElements();
 
-            $responseTag = '{'.Constants::NS_SAMLP.'}Response';
-            $assertionTag = '{'.Constants::NS_SAML.'}Assertion';
+            $responseTag = '{' . Constants::NS_SAMLP . '}Response';
+            $assertionTag = '{' . Constants::NS_SAML . '}Assertion';
 
             $hasSignedResponse = in_array($responseTag, $signedElements);
             $hasSignedAssertion = in_array($assertionTag, $signedElements);
@@ -176,7 +175,6 @@ class Response
                             );
                         }
                     }
-
                 }
 
                 $currentURL = Utils::getSelfRoutedURLNoQuery();
@@ -186,7 +184,7 @@ class Response
                 }
 
                 // Check if the InResponseTo of the Response matchs the ID of the AuthNRequest (requestId) if provided
-                if (isset($requestId) && isset($responseInResponseTo) && $requestId != $responseInResponseTo) {
+                if (isset($requestId) && isset($responseInResponseTo) && $requestId !== $responseInResponseTo) {
                     throw new ValidationError(
                         "The InResponseTo of the Response: $responseInResponseTo, does not match the ID of the AuthNRequest sent by the SP: $requestId",
                         ValidationError::WRONG_INRESPONSETO
@@ -202,7 +200,7 @@ class Response
 
                 if ($security['wantNameIdEncrypted']) {
                     $encryptedIdNodes = $this->_queryAssertion('/saml:Subject/saml:EncryptedID/xenc:EncryptedData');
-                    if ($encryptedIdNodes->length != 1) {
+                    if ($encryptedIdNodes->length !== 1) {
                         throw new ValidationError(
                             "The NameID of the Response is not encrypted and the SP requires it",
                             ValidationError::NO_ENCRYPTED_NAMEID
@@ -300,17 +298,17 @@ class Response
                 $anySubjectConfirmation = false;
                 $subjectConfirmationNodes = $this->_queryAssertion('/saml:Subject/saml:SubjectConfirmation');
                 foreach ($subjectConfirmationNodes as $scn) {
-                    if ($scn->hasAttribute('Method') && $scn->getAttribute('Method') != Constants::CM_BEARER) {
+                    if ($scn->hasAttribute('Method') && $scn->getAttribute('Method') !== Constants::CM_BEARER) {
                         continue;
                     }
                     $subjectConfirmationDataNodes = $scn->getElementsByTagName('SubjectConfirmationData');
-                    if ($subjectConfirmationDataNodes->length == 0) {
+                    if ($subjectConfirmationDataNodes->length === 0) {
                         continue;
                     } else {
                         $scnData = $subjectConfirmationDataNodes->item(0);
                         if ($scnData->hasAttribute('InResponseTo')) {
                             $inResponseTo = $scnData->getAttribute('InResponseTo');
-                            if (isset($responseInResponseTo) && $responseInResponseTo != $inResponseTo) {
+                            if (isset($responseInResponseTo) && $responseInResponseTo !== $inResponseTo) {
                                 continue;
                             }
                         }
@@ -444,7 +442,7 @@ class Response
         }
         $assertionNodes = $this->_queryAssertion("");
         $id = null;
-        if ($assertionNodes->length == 1 && $assertionNodes->item(0)->hasAttribute('ID')) {
+        if ($assertionNodes->length === 1 && $assertionNodes->item(0)->hasAttribute('ID')) {
             $id = $assertionNodes->item(0)->getAttribute('ID');
         }
         return $id;
@@ -472,9 +470,9 @@ class Response
             $explodedCode = explode(':', $status['code']);
             $printableCode = array_pop($explodedCode);
 
-            $statusExceptionMsg = 'The status code of the Response was not Success, was '.$printableCode;
+            $statusExceptionMsg = 'The status code of the Response was not Success, was ' . $printableCode;
             if (!empty($status['msg'])) {
-                $statusExceptionMsg .= ' -> '.$status['msg'];
+                $statusExceptionMsg .= ' -> ' . $status['msg'];
             }
             throw new ValidationError(
                 $statusExceptionMsg,
@@ -486,12 +484,12 @@ class Response
     /**
      * Checks that the samlp:Response/saml:Assertion/saml:Conditions element exists and is unique.
      *
-     * @return boolean true if the Conditions element exists and is unique
+     * @return bool true if the Conditions element exists and is unique
      */
     public function checkOneCondition()
     {
         $entries = $this->_queryAssertion("/saml:Conditions");
-        if ($entries->length == 1) {
+        if ($entries->length === 1) {
             return true;
         } else {
             return false;
@@ -501,12 +499,12 @@ class Response
     /**
      * Checks that the samlp:Response/saml:Assertion/saml:AuthnStatement element exists and is unique.
      *
-     * @return boolean true if the AuthnStatement element exists and is unique
+     * @return bool true if the AuthnStatement element exists and is unique
      */
     public function checkOneAuthnStatement()
     {
         $entries = $this->_queryAssertion("/saml:AuthnStatement");
-        if ($entries->length == 1) {
+        if ($entries->length === 1) {
             return true;
         } else {
             return false;
@@ -520,7 +518,7 @@ class Response
      */
     public function getAudiences()
     {
-        $audiences = array();
+        $audiences = [];
 
         $entries = $this->_queryAssertion('/saml:Conditions/saml:AudienceRestriction/saml:Audience');
         foreach ($entries as $entry) {
@@ -542,11 +540,11 @@ class Response
      */
     public function getIssuers()
     {
-        $issuers = array();
+        $issuers = [];
 
         $responseIssuer = Utils::query($this->document, '/samlp:Response/saml:Issuer');
         if ($responseIssuer->length > 0) {
-            if ($responseIssuer->length == 1) {
+            if ($responseIssuer->length === 1) {
                 $issuers[] = $responseIssuer->item(0)->textContent;
             } else {
                 throw new ValidationError(
@@ -557,7 +555,7 @@ class Response
         }
 
         $assertionIssuer = $this->_queryAssertion('/saml:Issuer');
-        if ($assertionIssuer->length == 1) {
+        if ($assertionIssuer->length === 1) {
             $issuers[] = $assertionIssuer->item(0)->textContent;
         } else {
             throw new ValidationError(
@@ -580,23 +578,22 @@ class Response
     {
         $encryptedIdDataEntries = $this->_queryAssertion('/saml:Subject/saml:EncryptedID/xenc:EncryptedData');
 
-        if ($encryptedIdDataEntries->length == 1) {
+        if ($encryptedIdDataEntries->length === 1) {
             $encryptedData = $encryptedIdDataEntries->item(0);
 
             $key = $this->_settings->getSPkey();
-            $seckey = new XMLSecurityKey(XMLSecurityKey::RSA_1_5, array('type'=>'private'));
+            $seckey = new XMLSecurityKey(XMLSecurityKey::RSA_1_5, ['type' => 'private']);
             $seckey->loadKey($key);
 
             $nameId = Utils::decryptElement($encryptedData, $seckey);
-
         } else {
             $entries = $this->_queryAssertion('/saml:Subject/saml:NameID');
-            if ($entries->length == 1) {
+            if ($entries->length === 1) {
                 $nameId = $entries->item(0);
             }
         }
 
-        $nameIdData = array();
+        $nameIdData = [];
 
         if (!isset($nameId)) {
             $security = $this->_settings->getSecurityData();
@@ -615,12 +612,12 @@ class Response
             }
             $nameIdData['Value'] = $nameId->nodeValue;
 
-            foreach (array('Format', 'SPNameQualifier', 'NameQualifier') as $attr) {
+            foreach (['Format', 'SPNameQualifier', 'NameQualifier'] as $attr) {
                 if ($nameId->hasAttribute($attr)) {
-                    if ($this->_settings->isStrict() && $attr == 'SPNameQualifier') {
+                    if ($this->_settings->isStrict() && $attr === 'SPNameQualifier') {
                         $spData = $this->_settings->getSPData();
                         $spEntityId = $spData['entityId'];
-                        if ($spEntityId != $nameId->getAttribute($attr)) {
+                        if ($spEntityId !== $nameId->getAttribute($attr)) {
                             throw new ValidationError(
                                 "The SPNameQualifier value mistmatch the SP entityID value.",
                                 ValidationError::SP_NAME_QUALIFIER_NAME_MISMATCH
@@ -772,9 +769,9 @@ class Response
      */
     private function _getAttributesByKeyName($keyName = "Name")
     {
-        $attributes = array();
+        $attributes = [];
         $entries = $this->_queryAssertion('/saml:AttributeStatement/saml:Attribute');
-        /** @var $entry DOMNode */
+        /** @var DOMNode $entry */
         foreach ($entries as $entry) {
             $attributeKeyNode = $entry->attributes->getNamedItem($keyName);
             if ($attributeKeyNode === null) {
@@ -783,14 +780,14 @@ class Response
             $attributeKeyName = $attributeKeyNode->nodeValue;
             if (in_array($attributeKeyName, array_keys($attributes))) {
                 throw new ValidationError(
-                    "Found an Attribute element with duplicated ".$keyName,
+                    "Found an Attribute element with duplicated " . $keyName,
                     ValidationError::DUPLICATED_ATTRIBUTE_NAME_FOUND
                 );
             }
-            $attributeValues = array();
+            $attributeValues = [];
             foreach ($entry->childNodes as $childNode) {
-                $tagName = ($childNode->prefix ? $childNode->prefix.':' : '') . 'AttributeValue';
-                if ($childNode->nodeType == XML_ELEMENT_NODE && $childNode->tagName === $tagName) {
+                $tagName = ($childNode->prefix ? $childNode->prefix . ':' : '') . 'AttributeValue';
+                if ($childNode->nodeType === XML_ELEMENT_NODE && $childNode->tagName === $tagName) {
                     $attributeValues[] = $childNode->nodeValue;
                 }
             }
@@ -809,11 +806,11 @@ class Response
         $encryptedAssertionNodes = $this->document->getElementsByTagName('EncryptedAssertion');
         $assertionNodes = $this->document->getElementsByTagName('Assertion');
 
-        $valid = $assertionNodes->length + $encryptedAssertionNodes->length == 1;
+        $valid = $assertionNodes->length + $encryptedAssertionNodes->length === 1;
 
         if ($this->encrypted) {
             $assertionNodes = $this->decryptedDocument->getElementsByTagName('Assertion');
-            $valid = $valid && $assertionNodes->length == 1;
+            $valid = $valid && $assertionNodes->length === 1;
         }
 
         return $valid;
@@ -830,9 +827,9 @@ class Response
      */
     public function processSignedElements()
     {
-        $signedElements = array();
-        $verifiedSeis = array();
-        $verifiedIds = array();
+        $signedElements = [];
+        $verifiedSeis = [];
+        $verifiedIds = [];
 
         if ($this->encrypted) {
             $signNodes = $this->decryptedDocument->getElementsByTagName('Signature');
@@ -840,12 +837,12 @@ class Response
             $signNodes = $this->document->getElementsByTagName('Signature');
         }
         foreach ($signNodes as $signNode) {
-            $responseTag = '{'.Constants::NS_SAMLP.'}Response';
-            $assertionTag = '{'.Constants::NS_SAML.'}Assertion';
+            $responseTag = '{' . Constants::NS_SAMLP . '}Response';
+            $assertionTag = '{' . Constants::NS_SAML . '}Assertion';
 
-            $signedElement = '{'.$signNode->parentNode->namespaceURI.'}'.$signNode->parentNode->localName;
+            $signedElement = '{' . $signNode->parentNode->namespaceURI . '}' . $signNode->parentNode->localName;
 
-            if ($signedElement != $responseTag && $signedElement != $assertionTag) {
+            if ($signedElement !== $responseTag && $signedElement !== $assertionTag) {
                 throw new ValidationError(
                     "Invalid Signature Element $signedElement SAML Response rejected",
                     ValidationError::WRONG_SIGNED_ELEMENT
@@ -870,13 +867,13 @@ class Response
             $verifiedIds[] = $idValue;
 
             $ref = $signNode->getElementsByTagName('Reference');
-            if ($ref->length == 1) {
+            if ($ref->length === 1) {
                 $ref = $ref->item(0);
                 $sei = $ref->getAttribute('URI');
                 if (!empty($sei)) {
                     $sei = substr($sei, 1);
 
-                    if ($sei != $idValue) {
+                    if ($sei !== $idValue) {
                         throw new ValidationError(
                             'Found an invalid Signed Element. SAML Response rejected',
                             ValidationError::INVALID_SIGNED_ELEMENT
@@ -961,8 +958,8 @@ class Response
             return false;
         }
 
-        $responseTag = '{'.Constants::NS_SAMLP.'}Response';
-        $assertionTag = '{'.Constants::NS_SAML.'}Assertion';
+        $responseTag = '{' . Constants::NS_SAMLP . '}Response';
+        $assertionTag = '{' . Constants::NS_SAML . '}Assertion';
 
         $ocurrence = array_count_values($signedElements);
         if ((in_array($responseTag, $signedElements) && $ocurrence[$responseTag] > 1)
@@ -976,7 +973,7 @@ class Response
         // by Utils->validateSign()
         if (in_array($responseTag, $signedElements)) {
             $expectedSignatureNodes = Utils::query($this->document, Utils::RESPONSE_SIGNATURE_XPATH);
-            if ($expectedSignatureNodes->length != 1) {
+            if ($expectedSignatureNodes->length !== 1) {
                 throw new ValidationError(
                     "Unexpected number of Response signatures found. SAML Response rejected.",
                     ValidationError::WRONG_NUMBER_OF_SIGNATURES_IN_RESPONSE
@@ -986,7 +983,7 @@ class Response
 
         if (in_array($assertionTag, $signedElements)) {
             $expectedSignatureNodes = $this->_query(Utils::ASSERTION_SIGNATURE_XPATH);
-            if ($expectedSignatureNodes->length != 1) {
+            if ($expectedSignatureNodes->length !== 1) {
                 throw new ValidationError(
                     "Unexpected number of Assertion signatures found. SAML Response rejected.",
                     ValidationError::WRONG_NUMBER_OF_SIGNATURES_IN_ASSERTION
@@ -1042,7 +1039,7 @@ class Response
             } else {
                 $id = substr($assertionReferenceNode->attributes->getNamedItem('URI')->nodeValue, 1);
             }
-            $nameQuery = $assertionNode."[@ID='$id']" . $assertionXpath;
+            $nameQuery = $assertionNode . "[@ID='$id']" . $assertionXpath;
         }
 
         return $xpath->query($nameQuery);
@@ -1141,7 +1138,7 @@ class Response
             ) {
                 if (strpos($encryptedAssertion->tagName, 'saml2:') !== false) {
                     $ns = 'xmlns:saml2';
-                } else if (strpos($encryptedAssertion->tagName, 'saml:') !== false) {
+                } elseif (strpos($encryptedAssertion->tagName, 'saml:') !== false) {
                     $ns = 'xmlns:saml';
                 } else {
                     $ns = 'xmlns';

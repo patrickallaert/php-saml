@@ -62,23 +62,20 @@ class ValidationError extends Exception
     const KEY_ALGORITHM_ERROR = 47;
     const MISSING_ENCRYPTED_ELEMENT = 48;
 
-
     /**
-     * Constructor
-     *
      * @param string     $msg  Describes the error.
      * @param int        $code The code error (defined in the error class).
      * @param array|null $args Arguments used in the message that describes the error.
      */
-    public function __construct($msg, $code = 0, $args = array())
+    public function __construct($msg, $code = 0, $args = [])
     {
         assert(is_string($msg));
         assert(is_int($code));
 
         if (!isset($args)) {
-            $args = array();
+            $args = [];
         }
-        $params = array_merge(array($msg), $args);
+        $params = array_merge([$msg], $args);
         $message = call_user_func_array('sprintf', $params);
 
         parent::__construct($message, $code);

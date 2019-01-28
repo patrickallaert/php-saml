@@ -10,7 +10,7 @@
 
 session_start();
 
-require_once dirname(__DIR__).'/_toolkit_loader.php';
+require_once dirname(__DIR__) . '/_toolkit_loader.php';
 
 use OneLogin\Saml2\AuthnRequest;
 use OneLogin\Saml2\Settings;
@@ -21,7 +21,7 @@ if (!isset($_SESSION['samlUserdata'])) {
     $authRequest = new AuthnRequest($settings);
     $samlRequest = $authRequest->getRequest();
 
-    $parameters = array('SAMLRequest' => $samlRequest);
+    $parameters = ['SAMLRequest' => $samlRequest];
     $parameters['RelayState'] = Utils::getSelfURLNoQuery();
 
     $idpData = $settings->getIdPData();
@@ -43,7 +43,7 @@ if (!isset($_SESSION['samlUserdata'])) {
         }
         echo '</tbody></table>';
         if (!empty($_SESSION['IdPSessionIndex'])) {
-            echo '<p>The SessionIndex of the IdP is: '.$_SESSION['IdPSessionIndex'].'</p>';
+            echo '<p>The SessionIndex of the IdP is: ' . $_SESSION['IdPSessionIndex'] . '</p>';
         }
     } else {
         echo "<p>You don't have any attribute</p>";

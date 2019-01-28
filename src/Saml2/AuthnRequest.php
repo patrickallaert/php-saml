@@ -60,7 +60,6 @@ class AuthnRequest
 NAMEIDPOLICY;
         }
 
-
         $providerNameStr = '';
         $organizationData = $settings->getOrganization();
         if (!empty($organizationData)) {
@@ -109,7 +108,7 @@ REQUESTEDAUTHN;
             } else {
                 $requestedAuthnStr .= "    <samlp:RequestedAuthnContext Comparison=\"$authnComparison\">\n";
                 foreach ($security['requestedAuthnContext'] as $contextValue) {
-                    $requestedAuthnStr .= "        <saml:AuthnContextClassRef>".$contextValue."</saml:AuthnContextClassRef>\n";
+                    $requestedAuthnStr .= "        <saml:AuthnContextClassRef>" . $contextValue . "</saml:AuthnContextClassRef>\n";
                 }
                 $requestedAuthnStr .= '    </samlp:RequestedAuthnContext>';
             }

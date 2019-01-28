@@ -5,6 +5,12 @@
     <config name="installed_paths" value="vendor/slevomat/coding-standard"/>
 
     <file>src/</file>
+    <file>demo1/</file>
+    <file>demo2/</file>
+    <file>tests/</file>
+    <file>advanced_settings_example.php</file>
+    <file>settings_example.php</file>
+    <file>_toolkit_loader.php</file>
 
     <exclude-pattern>*\.(css|js)</exclude-pattern>
     <exclude-pattern>vendor</exclude-pattern>

@@ -1,11 +1,10 @@
 <?php
 namespace OneLogin\Saml2;
 
-use RobRichards\XMLSecLibs\XMLSecurityKey;
-use RobRichards\XMLSecLibs\XMLSecurityDSig;
-
 use DOMDocument;
 use Exception;
+use RobRichards\XMLSecLibs\XMLSecurityDSig;
+use RobRichards\XMLSecLibs\XMLSecurityKey;
 
 /**
  * Configuration of the OneLogin PHP Toolkit
@@ -17,7 +16,7 @@ class Settings
      *
      * @var array
      */
-    private $_paths = array();
+    private $_paths = [];
 
     /**
      * @var string
@@ -45,14 +44,14 @@ class Settings
      *
      * @var array
      */
-    private $_sp = array();
+    private $_sp = [];
 
     /**
      * IdP data.
      *
      * @var array
      */
-    private $_idp = array();
+    private $_idp = [];
 
     /**
      * Compression settings that determine
@@ -60,35 +59,35 @@ class Settings
      *
      * @var array
      */
-    private $_compress = array();
+    private $_compress = [];
 
     /**
      * Security Info related to the SP.
      *
      * @var array
      */
-    private $_security = array();
+    private $_security = [];
 
     /**
      * Setting contacts.
      *
      * @var array
      */
-    private $_contacts = array();
+    private $_contacts = [];
 
     /**
      * Setting organization.
      *
      * @var array
      */
-    private $_organization = array();
+    private $_organization = [];
 
     /**
      * Setting errors.
      *
      * @var array
      */
-    private $_errors = array();
+    private $_errors = [];
 
     /**
      * Valitate SP data only flag
@@ -118,7 +117,7 @@ class Settings
                 throw new Error(
                     'Invalid file settings: %s',
                     Error::SETTINGS_INVALID,
-                    array(implode(', ', $this->_errors))
+                    [implode(', ', $this->_errors)]
                 );
             }
             $this->_addDefaultValues();
@@ -127,7 +126,7 @@ class Settings
                 throw new Error(
                     'Invalid array settings: %s',
                     Error::SETTINGS_INVALID,
-                    array(implode(', ', $this->_errors))
+                    [implode(', ', $this->_errors)]
                 );
             }
         }
@@ -146,12 +145,12 @@ class Settings
     private function _loadPaths()
     {
         $basePath = dirname(dirname(__DIR__)) . '/';
-        $this->_paths = array(
+        $this->_paths = [
             'base' => $basePath,
             'config' => $basePath,
-            'cert' => $basePath.'certs/',
-            'lib' => $basePath.'src/'
-        );
+            'cert' => $basePath . 'certs/',
+            'lib' => $basePath . 'src/',
+        ];
 
         if (defined('ONELOGIN_CUSTOMPATH')) {
             $this->_paths['config'] = ONELOGIN_CUSTOMPATH;
@@ -206,7 +205,7 @@ class Settings
      */
     public function getSchemasPath()
     {
-        return $this->_paths['lib'].'schemas/';
+        return $this->_paths['lib'] . 'schemas/';
     }
 
     /**
@@ -227,7 +226,7 @@ class Settings
 
         $errors = $this->checkSettings($settings);
         if (empty($errors)) {
-            $this->_errors = array();
+            $this->_errors = [];
 
             if (isset($settings['strict'])) {
                 $this->_strict = $settings['strict'];
@@ -275,13 +274,13 @@ class Settings
      */
     private function _loadSettingsFromFile()
     {
-        $filename = $this->getConfigPath().'settings.php';
+        $filename = $this->getConfigPath() . 'settings.php';
 
         if (!file_exists($filename)) {
             throw new Error(
                 'Settings file not found: %s',
                 Error::SETTINGS_FILE_NOT_FOUND,
-                array($filename)
+                [$filename]
             );
         }
 
@@ -289,14 +288,13 @@ class Settings
         include $filename;
 
         // Add advance_settings if exists
-        $advancedFilename = $this->getConfigPath().'advanced_settings.php';
+        $advancedFilename = $this->getConfigPath() . 'advanced_settings.php';
 
         if (file_exists($advancedFilename)) {
             /** @var array $advancedSettings */
             include $advancedFilename;
             $settings = array_merge($settings, $advancedSettings);
         }
-
 
         return $this->_loadSettingsFromArray($settings);
     }
@@ -420,9 +418,9 @@ class Settings
     public function checkSettings(array $settings)
     {
         if (empty($settings)) {
-            $errors = array('invalid_syntax');
+            $errors = ['invalid_syntax'];
         } else {
-            $errors = array();
+            $errors = [];
             if (!$this->_spValidationOnly) {
                 $idpErrors = $this->checkIdPSettings($settings);
                 $errors = array_merge($idpErrors, $errors);
@@ -446,17 +444,17 @@ class Settings
      */
     public function checkCompressionSettings($settings)
     {
-        $errors = array();
+        $errors = [];
 
         if (isset($settings['compress'])) {
             if (!is_array($settings['compress'])) {
                 $errors[] = "invalid_syntax";
-            } else if (isset($settings['compress']['requests'])
+            } elseif (isset($settings['compress']['requests'])
                 && $settings['compress']['requests'] !== true
                 && $settings['compress']['requests'] !== false
             ) {
                 $errors[] = "'compress'=>'requests' values must be true or false.";
-            } else if (isset($settings['compress']['responses'])
+            } elseif (isset($settings['compress']['responses'])
                 && $settings['compress']['responses'] !== true
                 && $settings['compress']['responses'] !== false
             ) {
@@ -476,10 +474,10 @@ class Settings
     public function checkIdPSettings(array $settings)
     {
         if (empty($settings)) {
-            return array('invalid_syntax');
+            return ['invalid_syntax'];
         }
 
-        $errors = array();
+        $errors = [];
 
         if (!isset($settings['idp']) || empty($settings['idp'])) {
             $errors[] = 'idp_not_found';
@@ -494,7 +492,7 @@ class Settings
                 || empty($idp['singleSignOnService']['url'])
             ) {
                 $errors[] = 'idp_sso_not_found';
-            } else if (!filter_var($idp['singleSignOnService']['url'], FILTER_VALIDATE_URL)) {
+            } elseif (!filter_var($idp['singleSignOnService']['url'], FILTER_VALIDATE_URL)) {
                 $errors[] = 'idp_sso_url_invalid';
             }
 
@@ -518,7 +516,7 @@ class Settings
                 ) {
                     $errors[] = 'idp_cert_or_fingerprint_not_found_and_required';
                 }
-                if ((isset($security['nameIdEncrypted']) && $security['nameIdEncrypted'] == true)
+                if ((isset($security['nameIdEncrypted']) && $security['nameIdEncrypted'] === true)
                     && !($existsX509 || $existsMultiX509Enc)
                 ) {
                     $errors[] = 'idp_cert_not_found_and_required';
@@ -539,16 +537,16 @@ class Settings
     public function checkSPSettings(array $settings)
     {
         if (empty($settings)) {
-            return array('invalid_syntax');
+            return ['invalid_syntax'];
         }
 
-        $errors = array();
+        $errors = [];
 
         if (!isset($settings['sp']) || empty($settings['sp'])) {
             $errors[] = 'sp_not_found';
         } else {
             $sp = $settings['sp'];
-            $security = array();
+            $security = [];
             if (isset($settings['security'])) {
                 $security = $settings['security'];
             }
@@ -562,7 +560,7 @@ class Settings
                 || empty($sp['assertionConsumerService']['url'])
             ) {
                 $errors[] = 'sp_acs_not_found';
-            } else if (!filter_var($sp['assertionConsumerService']['url'], FILTER_VALIDATE_URL)) {
+            } elseif (!filter_var($sp['assertionConsumerService']['url'], FILTER_VALIDATE_URL)) {
                 $errors[] = 'sp_acs_url_invalid';
             }
 
@@ -581,11 +579,11 @@ class Settings
                 }
             }
 
-            if (((isset($security['authnRequestsSigned']) && $security['authnRequestsSigned'] == true)
-                || (isset($security['logoutRequestSigned']) && $security['logoutRequestSigned'] == true)
-                || (isset($security['logoutResponseSigned']) && $security['logoutResponseSigned'] == true)
-                || (isset($security['wantAssertionsEncrypted']) && $security['wantAssertionsEncrypted'] == true)
-                || (isset($security['wantNameIdEncrypted']) && $security['wantNameIdEncrypted'] == true))
+            if (((isset($security['authnRequestsSigned']) && $security['authnRequestsSigned'] === true)
+                || (isset($security['logoutRequestSigned']) && $security['logoutRequestSigned'] === true)
+                || (isset($security['logoutResponseSigned']) && $security['logoutResponseSigned'] === true)
+                || (isset($security['wantAssertionsEncrypted']) && $security['wantAssertionsEncrypted'] === true)
+                || (isset($security['wantNameIdEncrypted']) && $security['wantNameIdEncrypted'] === true))
                 && !$this->checkSPCerts()
             ) {
                 $errors[] = 'sp_certs_not_found_and_required';
@@ -594,7 +592,7 @@ class Settings
 
         if (isset($settings['contactPerson'])) {
             $types = array_keys($settings['contactPerson']);
-            $validTypes = array('technical', 'support', 'administrative', 'billing', 'other');
+            $validTypes = ['technical', 'support', 'administrative', 'billing', 'other'];
             foreach ($types as $type) {
                 if (!in_array($type, $validTypes)) {
                     $errors[] = 'contact_type_invalid';
@@ -636,7 +634,7 @@ class Settings
     {
         $key = $this->getSPkey();
         $cert = $this->getSPcert();
-        return (!empty($key) && !empty($cert));
+        return !empty($key) && !empty($cert);
     }
 
     /**
@@ -650,7 +648,7 @@ class Settings
         if (isset($this->_sp['privateKey']) && !empty($this->_sp['privateKey'])) {
             $key = $this->_sp['privateKey'];
         } else {
-            $keyFile = $this->_paths['cert'].'sp.key';
+            $keyFile = $this->_paths['cert'] . 'sp.key';
 
             if (file_exists($keyFile)) {
                 $key = file_get_contents($keyFile);
@@ -671,7 +669,7 @@ class Settings
         if (isset($this->_sp['x509cert']) && !empty($this->_sp['x509cert'])) {
             $cert = $this->_sp['x509cert'];
         } else {
-            $certFile = $this->_paths['cert'].'sp.crt';
+            $certFile = $this->_paths['cert'] . 'sp.crt';
 
             if (file_exists($certFile)) {
                 $cert = file_get_contents($certFile);
@@ -694,7 +692,7 @@ class Settings
         if (isset($this->_sp['x509certNew']) && !empty($this->_sp['x509certNew'])) {
             $cert = $this->_sp['x509certNew'];
         } else {
-            $certFile = $this->_paths['cert'].'sp_new.crt';
+            $certFile = $this->_paths['cert'] . 'sp_new.crt';
 
             if (file_exists($certFile)) {
                 $cert = file_get_contents($certFile);
@@ -841,14 +839,14 @@ class Settings
                 $keyFileName = $this->_security['signMetadata']['keyFileName'];
                 $certFileName = $this->_security['signMetadata']['certFileName'];
 
-                $keyMetadataFile = $this->_paths['cert'].$keyFileName;
-                $certMetadataFile = $this->_paths['cert'].$certFileName;
+                $keyMetadataFile = $this->_paths['cert'] . $keyFileName;
+                $certMetadataFile = $this->_paths['cert'] . $certFileName;
 
                 if (!file_exists($keyMetadataFile)) {
                     throw new Error(
                         'SP Private key file not found: %s',
                         Error::PRIVATE_KEY_FILE_NOT_FOUND,
-                        array($keyMetadataFile)
+                        [$keyMetadataFile]
                     );
                 }
 
@@ -856,7 +854,7 @@ class Settings
                     throw new Error(
                         'SP Public cert file not found: %s',
                         Error::PUBLIC_CERT_FILE_NOT_FOUND,
-                        array($certMetadataFile)
+                        [$certMetadataFile]
                     );
                 }
                 $keyMetadata = file_get_contents($keyMetadataFile);
@@ -883,7 +881,7 @@ class Settings
     {
         assert(is_string($xml));
 
-        $errors = array();
+        $errors = [];
         $res = Utils::validateXML($xml, 'saml-schema-metadata-2.0.xsd', $this->_debug);
         if (!$res instanceof DOMDocument) {
             $errors[] = $res;

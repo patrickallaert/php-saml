@@ -68,7 +68,7 @@ class LogoutResponse
         if ($response) {
             $decoded = base64_decode($response);
             $inflated = @gzinflate($decoded);
-            if ($inflated != false) {
+            if ($inflated !== false) {
                 $this->_logoutResponse = $inflated;
             } else {
                 $this->_logoutResponse = $decoded;
@@ -76,7 +76,7 @@ class LogoutResponse
             $this->document = new DOMDocument();
             $this->document = Utils::loadXML($this->document, $this->_logoutResponse);
 
-            if (false === $this->document) {
+            if ($this->document === false) {
                 throw new Error(
                     "LogoutResponse could not be processed",
                     Error::SAML_LOGOUTRESPONSE_INVALID
@@ -98,7 +98,7 @@ class LogoutResponse
     {
         $issuer = null;
         $issuerNodes = $this->_query('/samlp:LogoutResponse/saml:Issuer');
-        if ($issuerNodes->length == 1) {
+        if ($issuerNodes->length === 1) {
             $issuer = $issuerNodes->item(0)->textContent;
         }
         return $issuer;
@@ -112,7 +112,7 @@ class LogoutResponse
     public function getStatus()
     {
         $entries = $this->_query('/samlp:LogoutResponse/samlp:Status/samlp:StatusCode');
-        if ($entries->length != 1) {
+        if ($entries->length !== 1) {
             return null;
         }
         $status = $entries->item(0)->getAttribute('Value');
@@ -152,7 +152,7 @@ class LogoutResponse
                 // Check if the InResponseTo of the Logout Response matchs the ID of the Logout Request (requestId) if provided
                 if (isset($requestId) && $this->document->documentElement->hasAttribute('InResponseTo')) {
                     $inResponseTo = $this->document->documentElement->getAttribute('InResponseTo');
-                    if ($requestId != $inResponseTo) {
+                    if ($requestId !== $inResponseTo) {
                         throw new ValidationError(
                             "The InResponseTo of the Logout Response: $inResponseTo, does not match the ID of the Logout request sent by the SP: $requestId",
                             ValidationError::WRONG_INRESPONSETO
@@ -162,7 +162,7 @@ class LogoutResponse
 
                 // Check issuer
                 $issuer = $this->getIssuer();
-                if (!empty($issuer) && $issuer != $idPEntityId) {
+                if (!empty($issuer) && $issuer !== $idPEntityId) {
                     throw new ValidationError(
                         "Invalid issuer in the Logout Response",
                         ValidationError::WRONG_ISSUER
@@ -220,7 +220,6 @@ class LogoutResponse
     private function _query($query)
     {
         return Utils::query($this->document, $query);
-
     }
 
     /**
@@ -230,7 +229,6 @@ class LogoutResponse
      */
     public function build($inResponseTo)
     {
-
         $spData = $this->_settings->getSPData();
         $idpData = $this->_settings->getIdPData();
 

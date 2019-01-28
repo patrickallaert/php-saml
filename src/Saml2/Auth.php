@@ -1,9 +1,8 @@
 <?php
 namespace OneLogin\Saml2;
 
-use RobRichards\XMLSecLibs\XMLSecurityKey;
-
 use Exception;
+use RobRichards\XMLSecLibs\XMLSecurityKey;
 
 /**
  * Main class of OneLogin's PHP Toolkit
@@ -22,14 +21,14 @@ class Auth
      *
      * @var array
      */
-    private $_attributes = array();
+    private $_attributes = [];
 
     /**
      * User attributes data with FriendlyName index.
      *
      * @var array
      */
-    private $_attributesWithFriendlyName = array();
+    private $_attributesWithFriendlyName = [];
 
     /**
      * NameID
@@ -110,7 +109,7 @@ class Auth
      *
      * @var array
      */
-    private $_errors = array();
+    private $_errors = [];
 
     /**
      * Last error object.
@@ -202,7 +201,7 @@ class Auth
      */
     public function processResponse($requestId = null)
     {
-        $this->_errors = array();
+        $this->_errors = [];
         $this->_lastError = $this->_lastErrorException = null;
         if (isset($_POST['SAMLResponse'])) {
             // AuthnResponse -- HTTP_POST Binding
@@ -251,7 +250,7 @@ class Auth
      */
     public function processSLO($keepLocalSession = false, $requestId = null, $retrieveParametersFromServer = false, $cbDeleteSession = null, $stay = false)
     {
-        $this->_errors = array();
+        $this->_errors = [];
         $this->_lastError = $this->_lastErrorException = null;
         if (isset($_GET['SAMLResponse'])) {
             $logoutResponse = new LogoutResponse($this->_settings, $_GET['SAMLResponse']);
@@ -260,8 +259,7 @@ class Auth
                 $this->_errors[] = 'invalid_logout_response';
                 $this->_lastErrorException = $logoutResponse->getErrorException();
                 $this->_lastError = $logoutResponse->getError();
-
-            } else if ($logoutResponse->getStatus() !== Constants::STATUS_SUCCESS) {
+            } elseif ($logoutResponse->getStatus() !== Constants::STATUS_SUCCESS) {
                 $this->_errors[] = 'logout_not_success';
             } else {
                 $this->_lastMessageId = $logoutResponse->id;
@@ -273,7 +271,7 @@ class Auth
                     }
                 }
             }
-        } else if (isset($_GET['SAMLRequest'])) {
+        } elseif (isset($_GET['SAMLRequest'])) {
             $logoutRequest = new LogoutRequest($this->_settings, $_GET['SAMLRequest']);
             $this->_lastRequest = $logoutRequest->getXML();
             if (!$logoutRequest->isValid($retrieveParametersFromServer)) {
@@ -296,14 +294,14 @@ class Auth
 
                 $logoutResponse = $responseBuilder->getResponse();
 
-                $parameters = array('SAMLResponse' => $logoutResponse);
+                $parameters = ['SAMLResponse' => $logoutResponse];
                 if (isset($_GET['RelayState'])) {
                     $parameters['RelayState'] = $_GET['RelayState'];
                 }
 
                 $security = $this->_settings->getSecurityData();
                 if (isset($security['logoutResponseSigned']) && $security['logoutResponseSigned']) {
-                    $signature = $this->buildResponseSignature($logoutResponse, isset($parameters['RelayState'])? $parameters['RelayState']: null, $security['signatureAlgorithm']);
+                    $signature = $this->buildResponseSignature($logoutResponse, isset($parameters['RelayState']) ? $parameters['RelayState'] : null, $security['signatureAlgorithm']);
                     $parameters['SigAlg'] = $security['signatureAlgorithm'];
                     $parameters['Signature'] = $signature;
                 }
@@ -329,7 +327,7 @@ class Auth
      *
      * @return string|null
      */
-    public function redirectTo($url = '', array $parameters = array(), $stay = false)
+    public function redirectTo($url = '', array $parameters = [], $stay = false)
     {
         assert(is_string($url));
 
@@ -511,7 +509,7 @@ class Auth
      *
      * @throws Error
      */
-    public function login($returnTo = null, array $parameters = array(), $forceAuthn = false, $isPassive = false, $stay = false, $setNameIdPolicy = true)
+    public function login($returnTo = null, array $parameters = [], $forceAuthn = false, $isPassive = false, $stay = false, $setNameIdPolicy = true)
     {
         $authnRequest = new AuthnRequest($this->_settings, $forceAuthn, $isPassive, $setNameIdPolicy);
 
@@ -551,7 +549,7 @@ class Auth
      *
      * @throws Error
      */
-    public function logout($returnTo = null, array $parameters = array(), $nameId = null, $sessionIndex = null, $stay = false, $nameIdFormat = null, $nameIdNameQualifier = null, $nameIdSPNameQualifier = null)
+    public function logout($returnTo = null, array $parameters = [], $nameId = null, $sessionIndex = null, $stay = false, $nameIdFormat = null, $nameIdNameQualifier = null, $nameIdSPNameQualifier = null)
     {
         $sloUrl = $this->getSLOurl();
         if (empty($sloUrl)) {
@@ -675,11 +673,11 @@ class Auth
      * @throws Exception
      * @throws Error
      */
-    private function buildMessageSignature($samlMessage, $relayState, $signAlgorithm = XMLSecurityKey::RSA_SHA256, $type="SAMLRequest")
+    private function buildMessageSignature($samlMessage, $relayState, $signAlgorithm = XMLSecurityKey::RSA_SHA256, $type = "SAMLRequest")
     {
         $key = $this->_settings->getSPkey();
         if (empty($key)) {
-            if ($type == "SAMLRequest") {
+            if ($type === "SAMLRequest") {
                 $errorMsg = "Trying to sign the SAML Request but can't load the SP private key";
             } else {
                 $errorMsg = "Trying to sign the SAML Response but can't load the SP private key";
@@ -688,20 +686,20 @@ class Auth
             throw new Error($errorMsg, Error::PRIVATE_KEY_NOT_FOUND);
         }
 
-        $objKey = new XMLSecurityKey($signAlgorithm, array('type' => 'private'));
+        $objKey = new XMLSecurityKey($signAlgorithm, ['type' => 'private']);
         $objKey->loadKey($key, false);
 
         $security = $this->_settings->getSecurityData();
         if ($security['lowercaseUrlencoding']) {
-            $msg = $type.'='.rawurlencode($samlMessage);
+            $msg = $type . '=' . rawurlencode($samlMessage);
             if (isset($relayState)) {
-                $msg .= '&RelayState='.rawurlencode($relayState);
+                $msg .= '&RelayState=' . rawurlencode($relayState);
             }
             $msg .= '&SigAlg=' . rawurlencode($signAlgorithm);
         } else {
-            $msg = $type.'='.urlencode($samlMessage);
+            $msg = $type . '=' . urlencode($samlMessage);
             if (isset($relayState)) {
-                $msg .= '&RelayState='.urlencode($relayState);
+                $msg .= '&RelayState=' . urlencode($relayState);
             }
             $msg .= '&SigAlg=' . urlencode($signAlgorithm);
         }

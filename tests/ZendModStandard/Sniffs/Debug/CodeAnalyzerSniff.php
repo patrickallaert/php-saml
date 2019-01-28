@@ -2,23 +2,17 @@
 /**
  * Runs the Zend Code Analyzer (from Zend Studio) on the file.
  *
- * @author    Holger Kral <holger.kral@zend.com>
- * @author    Greg Sherwood <gsherwood@squiz.net>
- * @copyright 2006-2015 Squiz Pty Ltd (ABN 77 084 670 600)
- * @license   https://github.com/squizlabs/PHP_CodeSniffer/blob/master/licence.txt BSD Licence
  */
 
 namespace PHP_CodeSniffer\Standards\Zend\Sniffs\Debug;
 
-use PHP_CodeSniffer\Sniffs\Sniff;
-use PHP_CodeSniffer\Files\File;
 use PHP_CodeSniffer\Config;
 use PHP_CodeSniffer\Exceptions\RuntimeException;
+use PHP_CodeSniffer\Files\File;
+use PHP_CodeSniffer\Sniffs\Sniff;
 
 class CodeAnalyzerSniff implements Sniff
 {
-
-
     /**
      * Returns the token types that this sniff is interested in.
      *
@@ -26,8 +20,7 @@ class CodeAnalyzerSniff implements Sniff
      */
     public function register()
     {
-        return array(T_OPEN_TAG);
-
+        return [T_OPEN_TAG];
     }//end register()
 
 
@@ -52,7 +45,7 @@ class CodeAnalyzerSniff implements Sniff
         // In the command, 2>&1 is important because the code analyzer sends its
         // findings to stderr. $output normally contains only stdout, so using 2>&1
         // will pipe even stderr to stdout.
-        $cmd = escapeshellcmd($analyzerPath).' '.escapeshellarg($fileName).' 2>&1';
+        $cmd = escapeshellcmd($analyzerPath) . ' ' . escapeshellarg($fileName) . ' 2>&1';
 
         // There is the possibility to pass "--ide" as an option to the analyzer.
         // This would result in an output format which would be easier to parse.
@@ -88,9 +81,6 @@ class CodeAnalyzerSniff implements Sniff
         }
 
         // Ignore the rest of the file.
-        return ($phpcsFile->numTokens + 1);
-
+        return $phpcsFile->numTokens + 1;
     }//end process()
-
-
 }//end class

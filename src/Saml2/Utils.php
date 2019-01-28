@@ -1,16 +1,15 @@
 <?php
 namespace OneLogin\Saml2;
 
-use RobRichards\XMLSecLibs\XMLSecurityKey;
-use RobRichards\XMLSecLibs\XMLSecurityDSig;
-use RobRichards\XMLSecLibs\XMLSecEnc;
-
 use DOMDocument;
 use DOMElement;
-use DOMNodeList;
 use DomNode;
+use DOMNodeList;
 use DOMXPath;
 use Exception;
+use RobRichards\XMLSecLibs\XMLSecEnc;
+use RobRichards\XMLSecLibs\XMLSecurityDSig;
+use RobRichards\XMLSecLibs\XMLSecurityKey;
 
 /**
  * Utils of OneLogin PHP Toolkit
@@ -113,7 +112,7 @@ class Utils
         if ($xml instanceof DOMDocument) {
             $dom = $xml;
         } else {
-            $dom = new DOMDocument;
+            $dom = new DOMDocument();
             $dom = self::loadXML($dom, $xml);
             if (!$dom) {
                 return 'unloaded_xml';
@@ -126,11 +125,11 @@ class Utils
         libxml_disable_entity_loader($oldEntityLoader);
         if (!$res) {
             $xmlErrors = libxml_get_errors();
-            syslog(LOG_INFO, 'Error validating the metadata: '.var_export($xmlErrors, true));
+            syslog(LOG_INFO, 'Error validating the metadata: ' . var_export($xmlErrors, true));
 
             if ($debug) {
                 foreach ($xmlErrors as $error) {
-                    echo htmlentities($error->message)."\n";
+                    echo htmlentities($error->message) . "\n";
                 }
             }
             return 'invalid_xml';
@@ -191,16 +190,15 @@ class Utils
      */
     public static function formatCert($cert, $heads = true)
     {
-        $x509cert = str_replace(array("\x0D", "\r", "\n"), "", $cert);
+        $x509cert = str_replace(["\x0D", "\r", "\n"], "", $cert);
         if (!empty($x509cert)) {
             $x509cert = str_replace('-----BEGIN CERTIFICATE-----', "", $x509cert);
             $x509cert = str_replace('-----END CERTIFICATE-----', "", $x509cert);
             $x509cert = str_replace(' ', '', $x509cert);
 
             if ($heads) {
-                $x509cert = "-----BEGIN CERTIFICATE-----\n".chunk_split($x509cert, 64, "\n")."-----END CERTIFICATE-----\n";
+                $x509cert = "-----BEGIN CERTIFICATE-----\n" . chunk_split($x509cert, 64, "\n") . "-----END CERTIFICATE-----\n";
             }
-
         }
         return $x509cert;
     }
@@ -215,27 +213,27 @@ class Utils
      */
     public static function formatPrivateKey($key, $heads = true)
     {
-        $key = str_replace(array("\x0D", "\r", "\n"), "", $key);
+        $key = str_replace(["\x0D", "\r", "\n"], "", $key);
         if (!empty($key)) {
             if (strpos($key, '-----BEGIN PRIVATE KEY-----') !== false) {
-                $key = Utils::getStringBetween($key, '-----BEGIN PRIVATE KEY-----', '-----END PRIVATE KEY-----');
+                $key = self::getStringBetween($key, '-----BEGIN PRIVATE KEY-----', '-----END PRIVATE KEY-----');
                 $key = str_replace(' ', '', $key);
 
                 if ($heads) {
-                    $key = "-----BEGIN PRIVATE KEY-----\n".chunk_split($key, 64, "\n")."-----END PRIVATE KEY-----\n";
+                    $key = "-----BEGIN PRIVATE KEY-----\n" . chunk_split($key, 64, "\n") . "-----END PRIVATE KEY-----\n";
                 }
-            } else if (strpos($key, '-----BEGIN RSA PRIVATE KEY-----') !== false) {
-                $key = Utils::getStringBetween($key, '-----BEGIN RSA PRIVATE KEY-----', '-----END RSA PRIVATE KEY-----');
+            } elseif (strpos($key, '-----BEGIN RSA PRIVATE KEY-----') !== false) {
+                $key = self::getStringBetween($key, '-----BEGIN RSA PRIVATE KEY-----', '-----END RSA PRIVATE KEY-----');
                 $key = str_replace(' ', '', $key);
 
                 if ($heads) {
-                    $key = "-----BEGIN RSA PRIVATE KEY-----\n".chunk_split($key, 64, "\n")."-----END RSA PRIVATE KEY-----\n";
+                    $key = "-----BEGIN RSA PRIVATE KEY-----\n" . chunk_split($key, 64, "\n") . "-----END RSA PRIVATE KEY-----\n";
                 }
             } else {
                 $key = str_replace(' ', '', $key);
 
                 if ($heads) {
-                    $key = "-----BEGIN RSA PRIVATE KEY-----\n".chunk_split($key, 64, "\n")."-----END RSA PRIVATE KEY-----\n";
+                    $key = "-----BEGIN RSA PRIVATE KEY-----\n" . chunk_split($key, 64, "\n") . "-----END RSA PRIVATE KEY-----\n";
                 }
             }
         }
@@ -257,7 +255,7 @@ class Utils
         $str = ' ' . $str;
         $ini = strpos($str, $start);
 
-        if ($ini == 0) {
+        if ($ini === 0) {
             return '';
         }
 
@@ -277,7 +275,7 @@ class Utils
      *
      * @throws Error
      */
-    public static function redirect($url, array $parameters = array(), $stay = false)
+    public static function redirect($url, array $parameters = [], $stay = false)
     {
         assert(is_string($url));
 
@@ -308,10 +306,10 @@ class Utils
         foreach ($parameters as $name => $value) {
             if ($value === null) {
                 $param = urlencode($name);
-            } else if (is_array($value)) {
+            } elseif (is_array($value)) {
                 $param = "";
                 foreach ($value as $val) {
-                    $param .= urlencode($name) . "[]=" . urlencode($val). '&';
+                    $param .= urlencode($name) . "[]=" . urlencode($val) . '&';
                 }
                 if (!empty($param)) {
                     $param = substr($param, 0, -1);
@@ -333,7 +331,7 @@ class Utils
         header('Pragma: no-cache');
         header('Cache-Control: no-cache, must-revalidate');
         header('Location: ' . $url);
-        exit();
+        exit;
     }
 
      /**
@@ -355,21 +353,21 @@ class Utils
     {
         if (!empty($baseurl)) {
             $baseurlpath = '/';
-            $matches = array();
+            $matches = [];
             if (preg_match('#^https?://([^/]*)/?(.*)#i', $baseurl, $matches)) {
                 if (strpos($baseurl, 'https://') === false) {
                     self::setSelfProtocol('http');
-                    $port = '80';
+                    $port = 80;
                 } else {
                     self::setSelfProtocol('https');
-                    $port = '443';
+                    $port = 443;
                 }
 
                 $currentHost = $matches[1];
-                if (false !== strpos($currentHost, ':')) {
+                if (strpos($currentHost, ':') !== false) {
                     list($currentHost, $possiblePort) = explode(':', $matches[1], 2);
                     if (is_numeric($possiblePort)) {
-                        $port = $possiblePort;
+                        $port = (int) $possiblePort;
                     }
                 }
 
@@ -394,7 +392,7 @@ class Utils
      */
     public static function setProxyVars($proxyVars)
     {
-        self::$_proxyVars = (bool)$proxyVars;
+        self::$_proxyVars = (bool) $proxyVars;
     }
 
     /**
@@ -413,23 +411,14 @@ class Utils
      */
     public static function getSelfURLhost()
     {
-        $currenthost = self::getSelfHost();
-
         $port = '';
-
-        if (self::isHTTPS()) {
-            $protocol = 'https';
-        } else {
-            $protocol = 'http';
-        }
-
         $portnumber = self::getSelfPort();
 
-        if (isset($portnumber) && ($portnumber != '80') && ($portnumber != '443')) {
+        if ($portnumber !== null && ($portnumber !== 80) && ($portnumber !== 443)) {
             $port = ':' . $portnumber;
         }
 
-        return $protocol."://" . $currenthost . $port;
+        return (self::isHTTPS() ? 'https' : 'http') . "://" . self::getSelfHost() . $port;
     }
 
     /**
@@ -447,7 +436,7 @@ class Utils
     {
         if (empty($baseurlpath)) {
             self::$_baseurlpath = null;
-        } else if ($baseurlpath == '/') {
+        } elseif ($baseurlpath === '/') {
             self::$_baseurlpath = '/';
         } else {
             self::$_baseurlpath = '/' . trim($baseurlpath, '/') . '/';
@@ -490,7 +479,7 @@ class Utils
      */
     public static function setSelfPort($port)
     {
-        self::$_port = $port;
+        self::$_port = (int) $port;
     }
 
     /**
@@ -509,7 +498,7 @@ class Utils
         $protocol = 'http';
         if (self::$_protocol) {
             $protocol = self::$_protocol;
-        } elseif (self::getSelfPort() == 443) {
+        } elseif (self::getSelfPort() === 443) {
             $protocol = 'https';
         } elseif (self::getProxyVars() && isset($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
             $protocol = $_SERVER['HTTP_X_FORWARDED_PROTO'];
@@ -529,7 +518,7 @@ class Utils
         $currentHost = self::getRawHost();
 
         // strip the port
-        if (false !== strpos($currentHost, ':')) {
+        if (strpos($currentHost, ':') !== false) {
             list($currentHost, $port) = explode(':', $currentHost, 2);
         }
 
@@ -537,29 +526,30 @@ class Utils
     }
 
     /**
-     * @return null|string The port number used for the request
+     * @return null|int The port number used for the request
      */
     public static function getSelfPort()
     {
-        $portnumber = null;
         if (self::$_port) {
-            $portnumber = self::$_port;
-        } else if (self::getProxyVars() && isset($_SERVER["HTTP_X_FORWARDED_PORT"])) {
-            $portnumber = $_SERVER["HTTP_X_FORWARDED_PORT"];
-        } else if (isset($_SERVER["SERVER_PORT"])) {
-            $portnumber = $_SERVER["SERVER_PORT"];
-        } else {
-            $currentHost = self::getRawHost();
+            return self::$_port;
+        }
+        if (self::getProxyVars() && isset($_SERVER["HTTP_X_FORWARDED_PORT"])) {
+            return (int) $_SERVER["HTTP_X_FORWARDED_PORT"];
+        }
+        if (isset($_SERVER["SERVER_PORT"])) {
+            return (int) $_SERVER["SERVER_PORT"];
+        }
 
-            // strip the port
-            if (false !== strpos($currentHost, ':')) {
-                list($currentHost, $port) = explode(':', $currentHost, 2);
-                if (is_numeric($port)) {
-                    $portnumber = $port;
-                }
+        $currentHost = self::getRawHost();
+
+        // strip the port
+        if (strpos($currentHost, ':') !== false) {
+            list($currentHost, $port) = explode(':', $currentHost, 2);
+            if (is_numeric($port)) {
+                return (int) $port;
             }
         }
-        return $portnumber;
+        return null;
     }
 
     /**
@@ -569,7 +559,7 @@ class Utils
      */
     public static function isHTTPS()
     {
-        return self::getSelfProtocol() == 'https';
+        return self::getSelfProtocol() === 'https';
     }
 
     /**
@@ -609,7 +599,7 @@ class Utils
             $route = $_SERVER['REQUEST_URI'];
             if (!empty($_SERVER['QUERY_STRING'])) {
                 $route = str_replace($_SERVER['QUERY_STRING'], '', $route);
-                if (substr($route, -1) == '?') {
+                if (substr($route, -1) === '?') {
                     $route = substr($route, 0, -1);
                 }
             }
@@ -636,7 +626,7 @@ class Utils
         $requestURI = '';
         if (!empty($_SERVER['REQUEST_URI'])) {
             $requestURI = $_SERVER['REQUEST_URI'];
-            $matches = array();
+            $matches = [];
             if ($requestURI[0] !== '/' && preg_match('#^https?://[^/]*(/.*)#i', $requestURI, $matches)) {
                 $requestURI = $matches[1];
             }
@@ -683,7 +673,7 @@ class Utils
      */
     public static function extractOriginalQueryParam($name)
     {
-        $index = strpos($_SERVER['QUERY_STRING'], $name.'=');
+        $index = strpos($_SERVER['QUERY_STRING'], $name . '=');
         $substring = substr($_SERVER['QUERY_STRING'], $index + strlen($name) + 1);
         $end = strpos($substring, '&');
         return $end ? substr($substring, 0, strpos($substring, '&')) : $substring;
@@ -696,7 +686,7 @@ class Utils
      */
     public static function generateUniqueID()
     {
-        return 'ONELOGIN_' . sha1(uniqid((string)mt_rand(), true));
+        return 'ONELOGIN_' . sha1(uniqid((string) mt_rand(), true));
     }
 
     /**
@@ -726,12 +716,12 @@ class Utils
      */
     public static function parseSAML2Time($time)
     {
-        $matches = array();
+        $matches = [];
 
         /* We use a very strict regex to parse the timestamp. */
         $exp1 = '/^(\\d\\d\\d\\d)-(\\d\\d)-(\\d\\d)';
         $exp2 = 'T(\\d\\d):(\\d\\d):(\\d\\d)(?:\\.\\d+)?Z$/D';
-        if (preg_match($exp1 . $exp2, $time, $matches) == 0) {
+        if (preg_match($exp1 . $exp2, $time, $matches) === 0) {
             throw new Exception(
                 'Invalid SAML2 timestamp passed to' .
                 ' parseSAML2Time: ' . $time
@@ -775,7 +765,7 @@ class Utils
         assert(is_string($duration));
         assert(is_null($timestamp) || is_int($timestamp));
 
-        $matches = array();
+        $matches = [];
 
         /* Parse the duration. We use a very strict pattern. */
         $durationRegEx = '#^(-?)P(?:(?:(?:(\\d+)Y)?(?:(\\d+)M)?(?:(\\d+)D)?(?:T(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?)?)|(?:(\\d+)W))$#D';
@@ -783,13 +773,13 @@ class Utils
             throw new Exception('Invalid ISO 8601 duration: ' . $duration);
         }
 
-        $durYears = (empty($matches[2]) ? 0 : (int)$matches[2]);
-        $durMonths = (empty($matches[3]) ? 0 : (int)$matches[3]);
-        $durDays = (empty($matches[4]) ? 0 : (int)$matches[4]);
-        $durHours = (empty($matches[5]) ? 0 : (int)$matches[5]);
-        $durMinutes = (empty($matches[6]) ? 0 : (int)$matches[6]);
-        $durSeconds = (empty($matches[7]) ? 0 : (int)$matches[7]);
-        $durWeeks = (empty($matches[8]) ? 0 : (int)$matches[8]);
+        $durYears = (empty($matches[2]) ? 0 : (int) $matches[2]);
+        $durMonths = (empty($matches[3]) ? 0 : (int) $matches[3]);
+        $durDays = (empty($matches[4]) ? 0 : (int) $matches[4]);
+        $durHours = (empty($matches[5]) ? 0 : (int) $matches[5]);
+        $durMinutes = (empty($matches[6]) ? 0 : (int) $matches[6]);
+        $durSeconds = (empty($matches[7]) ? 0 : (int) $matches[7]);
+        $durWeeks = (empty($matches[8]) ? 0 : (int) $matches[8]);
 
         if (!empty($matches[1])) {
             /* Negative */
@@ -815,8 +805,8 @@ class Utils
              * gmtime function. Instead we use the gmdate function, and split the result.
              */
             $yearmonth = explode(':', gmdate('Y:n', $timestamp));
-            $year = (int)$yearmonth[0];
-            $month = (int)$yearmonth[1];
+            $year = (int) $yearmonth[0];
+            $month = (int) $yearmonth[1];
 
             /* Remove the year and month from the timestamp. */
             $timestamp -= gmmktime(0, 0, 0, $month, 1, $year);
@@ -927,8 +917,7 @@ class Utils
      */
     public static function deleteLocalSession()
     {
-
-        if (Utils::isSessionStarted()) {
+        if (self::isSessionStarted()) {
             session_destroy();
         }
 
@@ -953,14 +942,14 @@ class Utils
 
         foreach ($arCert as $curData) {
             if (! $inData) {
-                if (strncmp($curData, '-----BEGIN CERTIFICATE', 22) == 0) {
+                if (strncmp($curData, '-----BEGIN CERTIFICATE', 22) === 0) {
                     $inData = true;
-                } elseif ((strncmp($curData, '-----BEGIN PUBLIC KEY', 21) == 0) || (strncmp($curData, '-----BEGIN RSA PRIVATE KEY', 26) == 0)) {
+                } elseif ((strncmp($curData, '-----BEGIN PUBLIC KEY', 21) === 0) || (strncmp($curData, '-----BEGIN RSA PRIVATE KEY', 26) === 0)) {
                     /* This isn't an X509 certificate. */
                     return null;
                 }
             } else {
-                if (strncmp($curData, '-----END CERTIFICATE', 20) == 0) {
+                if (strncmp($curData, '-----END CERTIFICATE', 20) === 0) {
                     break;
                 }
                 $data .= trim($curData);
@@ -1016,7 +1005,6 @@ class Utils
      */
     public static function generateNameId($value, $spnq, $format = null, $cert = null, $nq = null)
     {
-
         $doc = new DOMDocument();
 
         $nameId = $doc->createElement('saml:NameID');
@@ -1034,7 +1022,7 @@ class Utils
         $doc->appendChild($nameId);
 
         if (!empty($cert)) {
-            $seckey = new XMLSecurityKey(XMLSecurityKey::RSA_1_5, array('type'=>'public'));
+            $seckey = new XMLSecurityKey(XMLSecurityKey::RSA_1_5, ['type' => 'public']);
             $seckey->loadKey($cert);
 
             $enc = new XMLSecEnc();
@@ -1073,10 +1061,10 @@ class Utils
      */
     public static function getStatus(DOMDocument $dom)
     {
-        $status = array();
+        $status = [];
 
         $statusEntry = self::query($dom, '/samlp:Response/samlp:Status');
-        if ($statusEntry->length != 1) {
+        if ($statusEntry->length !== 1) {
             throw new ValidationError(
                 "Missing Status on response",
                 ValidationError::MISSING_STATUS
@@ -1084,7 +1072,7 @@ class Utils
         }
 
         $codeEntry = self::query($dom, '/samlp:Response/samlp:Status/samlp:StatusCode', $statusEntry->item(0));
-        if ($codeEntry->length != 1) {
+        if ($codeEntry->length !== 1) {
             throw new ValidationError(
                 "Missing Status Code on response",
                 ValidationError::MISSING_STATUS_CODE
@@ -1095,12 +1083,12 @@ class Utils
 
         $status['msg'] = '';
         $messageEntry = self::query($dom, '/samlp:Response/samlp:Status/samlp:StatusMessage', $statusEntry->item(0));
-        if ($messageEntry->length == 0) {
+        if ($messageEntry->length === 0) {
             $subCodeEntry = self::query($dom, '/samlp:Response/samlp:Status/samlp:StatusCode/samlp:StatusCode', $statusEntry->item(0));
-            if ($subCodeEntry->length == 1) {
+            if ($subCodeEntry->length === 1) {
                 $status['msg'] = $subCodeEntry->item(0)->getAttribute('Value');
             }
-        } else if ($messageEntry->length == 1) {
+        } elseif ($messageEntry->length === 1) {
             $msg = $messageEntry->item(0)->textContent;
             $status['msg'] = $msg;
         }
@@ -1121,7 +1109,6 @@ class Utils
      */
     public static function decryptElement(DOMElement $encryptedData, XMLSecurityKey $inputKey, $formatOutput = true)
     {
-
         $enc = new XMLSecEnc();
 
         $enc->setNode($encryptedData);
@@ -1173,7 +1160,7 @@ class Utils
             }
 
             $key = $encKey->decryptKey($symmetricKeyInfo);
-            if (strlen($key) != $keySize) {
+            if (strlen($key) !== $keySize) {
                 $encryptedKey = $encKey->getCipherValue();
                 $pkey = openssl_pkey_get_details($symmetricKeyInfo->key);
                 $pkey = sha1(serialize($pkey), true);
@@ -1202,7 +1189,7 @@ class Utils
 
         $decrypted = $enc->decryptNode($symmetricKey, false);
 
-        $xml = '<root xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">'.$decrypted.'</root>';
+        $xml = '<root xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' . $decrypted . '</root>';
         $newDoc = new DOMDocument();
         if ($formatOutput) {
             $newDoc->preserveWhiteSpace = false;
@@ -1248,7 +1235,7 @@ class Utils
             return $key;
         }
 
-        if (!Utils::isSupportedSigningAlgorithm($algorithm)) {
+        if (!self::isSupportedSigningAlgorithm($algorithm)) {
             throw new Exception('Unsupported signing algorithm.');
         }
 
@@ -1259,7 +1246,7 @@ class Utils
         if (!isset($keyInfo['key'])) {
             throw new Exception('Missing key in public key details.');
         }
-        $newKey = new XMLSecurityKey($algorithm, array('type'=>$type));
+        $newKey = new XMLSecurityKey($algorithm, ['type' => $type]);
         $newKey->loadKey($keyInfo['key']);
         return $newKey;
     }
@@ -1273,13 +1260,13 @@ class Utils
     {
         return in_array(
             $algorithm,
-            array(
+            [
                 XMLSecurityKey::RSA_1_5,
                 XMLSecurityKey::RSA_SHA1,
                 XMLSecurityKey::RSA_SHA256,
                 XMLSecurityKey::RSA_SHA384,
-                XMLSecurityKey::RSA_SHA512
-            )
+                XMLSecurityKey::RSA_SHA512,
+            ]
         );
     }
 
@@ -1309,7 +1296,7 @@ class Utils
         }
 
         /* Load the private key. */
-        $objKey = new XMLSecurityKey($signAlgorithm, array('type' => 'private'));
+        $objKey = new XMLSecurityKey($signAlgorithm, ['type' => 'private']);
         $objKey->loadKey($key, false);
 
         /* Get the EntityDescriptor node we should sign. */
@@ -1320,10 +1307,10 @@ class Utils
         $objXMLSecDSig->setCanonicalMethod(XMLSecurityDSig::EXC_C14N);
 
         $objXMLSecDSig->addReferenceList(
-            array($rootNode),
+            [$rootNode],
             $digestAlgorithm,
-            array('http://www.w3.org/2000/09/xmldsig#enveloped-signature', XMLSecurityDSig::EXC_C14N),
-            array('id_name' => 'ID')
+            ['http://www.w3.org/2000/09/xmldsig#enveloped-signature', XMLSecurityDSig::EXC_C14N],
+            ['id_name' => 'ID']
         );
 
         $objXMLSecDSig->sign($objKey);
@@ -1332,10 +1319,10 @@ class Utils
         $objXMLSecDSig->add509Cert($cert, true);
 
         $insertBefore = $rootNode->firstChild;
-        $messageTypes = array('AuthnRequest', 'Response', 'LogoutRequest','LogoutResponse');
+        $messageTypes = ['AuthnRequest', 'Response', 'LogoutRequest','LogoutResponse'];
         if (in_array($rootNode->localName, $messageTypes)) {
-            $issuerNodes = self::query($dom, '/'.$rootNode->tagName.'/saml:Issuer');
-            if ($issuerNodes->length == 1) {
+            $issuerNodes = self::query($dom, '/' . $rootNode->tagName . '/saml:Issuer');
+            if ($issuerNodes->length === 1) {
                 $insertBefore = $issuerNodes->item(0)->nextSibling;
             }
         }
@@ -1367,7 +1354,7 @@ class Utils
     {
         if ($xml instanceof DOMDocument) {
             $dom = clone $xml;
-        } else if ($xml instanceof DOMElement) {
+        } elseif ($xml instanceof DOMElement) {
             $dom = clone $xml->ownerDocument;
         } else {
             $dom = new DOMDocument();
@@ -1375,10 +1362,10 @@ class Utils
         }
 
         $objXMLSecDSig = new XMLSecurityDSig();
-        $objXMLSecDSig->idKeys = array('ID');
+        $objXMLSecDSig->idKeys = ['ID'];
 
         if ($xpath) {
-            $nodeset = Utils::query($dom, $xpath);
+            $nodeset = self::query($dom, $xpath);
             $objDSig = $nodeset->item(0);
             $objXMLSecDSig->sigNode = $objDSig;
         } else {
@@ -1394,7 +1381,7 @@ class Utils
             throw new Exception('We have no idea about the key');
         }
 
-        if (!Utils::isSupportedSigningAlgorithm($objKey->type)) {
+        if (!self::isSupportedSigningAlgorithm($objKey->type)) {
             throw new Exception('Unsupported signing algorithm.');
         }
 
@@ -1417,7 +1404,7 @@ class Utils
             // else I add the cert to the array in order to check
             // validate signatures with it and the with it and the
             // $fingerprint value
-            $multiCerts = array($cert);
+            $multiCerts = [$cert];
         }
 
         $valid = false;
@@ -1431,8 +1418,8 @@ class Utils
             } else {
                 if (!empty($fingerprint)) {
                     $domCert = $objKey->getX509Certificate();
-                    $domCertFingerprint = Utils::calculateX509Fingerprint($domCert, $fingerprintalg);
-                    if (Utils::formatFingerPrint($fingerprint) == $domCertFingerprint) {
+                    $domCertFingerprint = self::calculateX509Fingerprint($domCert, $fingerprintalg);
+                    if (self::formatFingerPrint($fingerprint) === $domCertFingerprint) {
                         $objKey->loadKey($domCert, false, true);
                         if ($objXMLSecDSig->verify($objKey) === 1) {
                             $valid = true;
@@ -1466,20 +1453,20 @@ class Utils
         }
 
         if ($retrieveParametersFromServer) {
-            $signedQuery = $messageType.'='.Utils::extractOriginalQueryParam($messageType);
+            $signedQuery = $messageType . '=' . self::extractOriginalQueryParam($messageType);
             if (isset($getData['RelayState'])) {
-                $signedQuery .= '&RelayState='.Utils::extractOriginalQueryParam('RelayState');
+                $signedQuery .= '&RelayState=' . self::extractOriginalQueryParam('RelayState');
             }
-            $signedQuery .= '&SigAlg='.Utils::extractOriginalQueryParam('SigAlg');
+            $signedQuery .= '&SigAlg=' . self::extractOriginalQueryParam('SigAlg');
         } else {
-            $signedQuery = $messageType.'='.urlencode($getData[$messageType]);
+            $signedQuery = $messageType . '=' . urlencode($getData[$messageType]);
             if (isset($getData['RelayState'])) {
-                $signedQuery .= '&RelayState='.urlencode($getData['RelayState']);
+                $signedQuery .= '&RelayState=' . urlencode($getData['RelayState']);
             }
-            $signedQuery .= '&SigAlg='.urlencode($signAlg);
+            $signedQuery .= '&SigAlg=' . urlencode($signAlg);
         }
 
-        if ($messageType == "SAMLRequest") {
+        if ($messageType === "SAMLRequest") {
             $strMessageType = "Logout Request";
         } else {
             $strMessageType = "Logout Response";
@@ -1487,7 +1474,7 @@ class Utils
         $existsMultiX509Sign = isset($idpData['x509certMulti']) && isset($idpData['x509certMulti']['signing']) && !empty($idpData['x509certMulti']['signing']);
         if ((!isset($idpData['x509cert']) || empty($idpData['x509cert'])) && !$existsMultiX509Sign) {
             throw new Error(
-                "In order to validate the sign on the ".$strMessageType.", the x509cert of the IdP is required",
+                "In order to validate the sign on the " . $strMessageType . ", the x509cert of the IdP is required",
                 Error::CERT_NOT_FOUND
             );
         }
@@ -1495,23 +1482,23 @@ class Utils
         if ($existsMultiX509Sign) {
             $multiCerts = $idpData['x509certMulti']['signing'];
         } else {
-            $multiCerts = array($idpData['x509cert']);
+            $multiCerts = [$idpData['x509cert']];
         }
 
         $signatureValid = false;
         foreach ($multiCerts as $cert) {
-            $objKey = new XMLSecurityKey(XMLSecurityKey::RSA_SHA1, array('type' => 'public'));
+            $objKey = new XMLSecurityKey(XMLSecurityKey::RSA_SHA1, ['type' => 'public']);
             $objKey->loadKey($cert, false, true);
 
-            if ($signAlg != XMLSecurityKey::RSA_SHA1) {
+            if ($signAlg !== XMLSecurityKey::RSA_SHA1) {
                 try {
-                    $objKey = Utils::castKey($objKey, $signAlg, 'public');
+                    $objKey = self::castKey($objKey, $signAlg, 'public');
                 } catch (Exception $e) {
                     $ex = new ValidationError(
-                        "Invalid signAlg in the recieved ".$strMessageType,
+                        "Invalid signAlg in the recieved " . $strMessageType,
                         ValidationError::INVALID_SIGNATURE
                     );
-                    if (count($multiCerts) == 1) {
+                    if (count($multiCerts) === 1) {
                         throw $ex;
                     }
                 }

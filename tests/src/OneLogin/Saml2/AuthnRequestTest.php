@@ -18,8 +18,8 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function setUp()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $settings = new Settings($settingsInfo);
         $this->_settings = $settings;
@@ -34,7 +34,7 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
     public function testCreateDeflatedSAMLRequestURLParameter()
     {
         $authnRequest = new AuthnRequest($this->_settings);
-        $parameters = array('SAMLRequest' => $authnRequest->getRequest());
+        $parameters = ['SAMLRequest' => $authnRequest->getRequest()];
         $authUrl = Utils::redirect('http://idp.example.com/SSOService.php', $parameters, true);
         $this->assertRegExp('#^http://idp\.example\.com\/SSOService\.php\?SAMLRequest=#', $authUrl);
         parse_str(parse_url($authUrl, PHP_URL_QUERY), $exploded);
@@ -53,8 +53,8 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testAuthNContext()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $settings = new Settings($settingsInfo);
         $authnRequest = new AuthnRequest($settings);
@@ -64,7 +64,7 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
         $this->assertContains('<samlp:RequestedAuthnContext Comparison="exact">', $request);
         $this->assertContains('<saml:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport</saml:AuthnContextClassRef>', $request);
 
-        $settingsInfo['security']['requestedAuthnContext']= true;
+        $settingsInfo['security']['requestedAuthnContext'] = true;
         $settings2 = new Settings($settingsInfo);
         $authnRequest2 = new AuthnRequest($settings2);
         $encodedRequest2 = $authnRequest2->getRequest();
@@ -82,7 +82,7 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
         $this->assertNotContains('<samlp:RequestedAuthnContext Comparison="exact">', $request3);
         $this->assertNotContains('<saml:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport</saml:AuthnContextClassRef>', $request3);
 
-        $settingsInfo['security']['requestedAuthnContext']= array('urn:oasis:names:tc:SAML:2.0:ac:classes:Password', 'urn:oasis:names:tc:SAML:2.0:ac:classes:X509');
+        $settingsInfo['security']['requestedAuthnContext'] = ['urn:oasis:names:tc:SAML:2.0:ac:classes:Password', 'urn:oasis:names:tc:SAML:2.0:ac:classes:X509'];
         $settings4 = new Settings($settingsInfo);
         $authnRequest4 = new AuthnRequest($settings4);
         $encodedRequest4 = $authnRequest4->getRequest();
@@ -110,8 +110,8 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testForceAuthN()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $settings = new Settings($settingsInfo);
         $authnRequest = new AuthnRequest($settings);
@@ -141,8 +141,8 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testIsPassive()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $settings = new Settings($settingsInfo);
         $authnRequest = new AuthnRequest($settings);
@@ -172,8 +172,8 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testNameIDPolicy()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $settings = new Settings($settingsInfo);
         $authnRequest = new AuthnRequest($settings, false, false, false);
@@ -203,22 +203,22 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testCreateEncSAMLRequest()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
-        $settingsInfo['organization'] = array(
-            'es' => array(
+        $settingsInfo['organization'] = [
+            'es' => [
                 'name' => 'sp_prueba',
                 'displayname' => 'SP prueba',
-                'url' => 'http://sp.example.com'
-            )
-        );
+                'url' => 'http://sp.example.com',
+            ],
+        ];
         $settingsInfo['security']['wantNameIdEncrypted'] = true;
 
         $settings = new Settings($settingsInfo);
 
         $authnRequest = new AuthnRequest($settings);
-        $parameters = array('SAMLRequest' => $authnRequest->getRequest());
+        $parameters = ['SAMLRequest' => $authnRequest->getRequest()];
         $authUrl = Utils::redirect('http://idp.example.com/SSOService.php', $parameters, true);
         $this->assertRegExp('#^http://idp\.example\.com\/SSOService\.php\?SAMLRequest=#', $authUrl);
         parse_str(parse_url($authUrl, PHP_URL_QUERY), $exploded);
@@ -242,8 +242,8 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
     public function testWeCanChooseToCompressARequest()
     {
         //Test that we can compress.
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $settings = new Settings($settingsInfo);
         $authnRequest = new AuthnRequest($settings);
@@ -262,8 +262,8 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
     public function testWeCanChooseNotToCompressARequest()
     {
         //Test that we can choose not to compress the request payload.
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings2.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings2.php';
 
         $settings = new Settings($settingsInfo);
         $authnRequest = new AuthnRequest($settings);
@@ -282,8 +282,8 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
     public function testWeCanChooseToDeflateARequestBody()
     {
         //Test that we can choose not to compress the request payload.
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         //Compression is currently turned on in settings.
         $settings = new Settings($settingsInfo);
@@ -293,8 +293,8 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
         $this->assertRegExp('#^<samlp:AuthnRequest#', $decoded);
 
         //Test that we can choose not to compress the request payload.
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings2.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings2.php';
 
         //Compression is currently turned off in settings.
         $settings = new Settings($settingsInfo);
@@ -313,8 +313,8 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetXML()
     {
-        $settingsDir = TEST_ROOT .'/settings/';
-        include $settingsDir.'settings1.php';
+        $settingsDir = TEST_ROOT . '/settings/';
+        include $settingsDir . 'settings1.php';
 
         $settings = new Settings($settingsInfo);
         $authnRequest = new AuthnRequest($settings);
