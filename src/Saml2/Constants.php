@@ -1,11 +1,6 @@
 <?php
 namespace OneLogin\Saml2;
 
-/**
- * Constants of OneLogin PHP Toolkit
- *
- * Defines all required constants
- */
 class Constants
 {
     // Value added to the current time in time condition validations
@@ -30,7 +25,6 @@ class Constants
     // Namespaces
     const NS_SAML = 'urn:oasis:names:tc:SAML:2.0:assertion';
     const NS_SAMLP = 'urn:oasis:names:tc:SAML:2.0:protocol';
-    const NS_SOAP = 'http://schemas.xmlsoap.org/soap/envelope/';
     const NS_MD = 'urn:oasis:names:tc:SAML:2.0:metadata';
     const NS_XS = 'http://www.w3.org/2001/XMLSchema';
     const NS_XSI = 'http://www.w3.org/2001/XMLSchema-instance';
@@ -43,16 +37,6 @@ class Constants
     const BINDING_HTTP_ARTIFACT = 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Artifact';
     const BINDING_SOAP = 'urn:oasis:names:tc:SAML:2.0:bindings:SOAP';
     const BINDING_DEFLATE = 'urn:oasis:names:tc:SAML:2.0:bindings:URL-Encoding:DEFLATE';
-
-    // Auth Context Class
-    const AC_UNSPECIFIED = 'urn:oasis:names:tc:SAML:2.0:ac:classes:unspecified';
-    const AC_PASSWORD = 'urn:oasis:names:tc:SAML:2.0:ac:classes:Password';
-    const AC_PASSWORD_PROTECTED = 'urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport';
-    const AC_X509 = 'urn:oasis:names:tc:SAML:2.0:ac:classes:X509';
-    const AC_SMARTCARD = 'urn:oasis:names:tc:SAML:2.0:ac:classes:Smartcard';
-    const AC_KERBEROS = 'urn:oasis:names:tc:SAML:2.0:ac:classes:Kerberos';
-    const AC_WINDOWS = 'urn:federation:authentication:windows';
-    const AC_TLS = 'urn:oasis:names:tc:SAML:2.0:ac:classes:TLSClient';
 
     // Subject Confirmation
     const CM_BEARER = 'urn:oasis:names:tc:SAML:2.0:cm:bearer';

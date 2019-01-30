@@ -2,13 +2,11 @@
 namespace OneLogin\Saml2;
 
 use DOMDocument;
+use DOMElement;
 use Exception;
 use RobRichards\XMLSecLibs\XMLSecurityDSig;
 use RobRichards\XMLSecLibs\XMLSecurityKey;
 
-/**
- * Metadata lib of OneLogin PHP Toolkit
- */
 class Metadata
 {
     const TIME_VALID = 172800;  // 2 days
@@ -18,17 +16,16 @@ class Metadata
      * Generates the metadata of the SP based on the settings
      *
      * @param array         $sp            The SP data
-     * @param bool|string   $authnsign     authnRequestsSigned attribute
-     * @param bool|string   $wsign         wantAssertionsSigned attribute
+     * @param bool          $authnsign     authnRequestsSigned attribute
+     * @param bool          $wsign         wantAssertionsSigned attribute
      * @param int|null      $validUntil    Metadata's valid time
      * @param int|null      $cacheDuration Duration of the cache in seconds
      * @param array         $contacts      Contacts info
      * @param array         $organization  Organization ingo
-     * @param array         $attributes
      *
      * @return string SAML Metadata XML
      */
-    public static function builder($sp, $authnsign = false, $wsign = false, $validUntil = null, $cacheDuration = null, $contacts = [], $organization = [], $attributes = [])
+    public static function builder(array $sp, bool $authnsign = false, bool $wsign = false, ?int $validUntil = null, ?int $cacheDuration = null, array $contacts = [], array $organization = [])
     {
         if (!isset($validUntil)) {
             $validUntil =  time() + self::TIME_VALID;
@@ -113,6 +110,9 @@ CONTACT;
             }
             if (!isset($sp['attributeConsumingService']['serviceName'])) {
                 $sp['attributeConsumingService']['serviceName'] = 'Service';
+            }
+            if (!isset($sp['attributeConsumingService']['requestedAttributes'])) {
+                $sp['attributeConsumingService']['requestedAttributes'] = [];
             }
             $requestedAttributeData = [];
             foreach ($sp['attributeConsumingService']['requestedAttributes'] as $attribute) {
@@ -236,11 +236,13 @@ METADATA_TEMPLATE;
         }
 
         $signing = $xml->getElementsByTagName('KeyDescriptor')->item(0);
+        assert($signing instanceof DOMElement);
         $signing->setAttribute('use', 'signing');
         $signing->appendChild($keyInfo);
 
         if ($wantsEncrypted === true) {
             $encryption = $xml->getElementsByTagName('KeyDescriptor')->item(1);
+            assert($encryption instanceof DOMElement);
             $encryption->setAttribute('use', 'encryption');
 
             $encryption->appendChild($keyInfo->cloneNode(true));

@@ -4,8 +4,6 @@ namespace OneLogin\Saml2;
 use Exception;
 
 /**
- * ValidationError class of OneLogin PHP Toolkit
- *
  * This class implements another custom Exception handler,
  * related to exceptions that happens during validation process.
  */
@@ -34,7 +32,6 @@ class ValidationError extends Exception
     const ASSERTION_TOO_EARLY = 19;
     const ASSERTION_EXPIRED = 20;
     const WRONG_NUMBER_OF_AUTHSTATEMENTS = 21;
-    const NO_ATTRIBUTESTATEMENT = 22;
     const ENCRYPTED_ATTRIBUTES = 23;
     const WRONG_DESTINATION = 24;
     const EMPTY_DESTINATION = 25;
@@ -48,14 +45,11 @@ class ValidationError extends Exception
     const NO_SIGNED_ASSERTION = 33;
     const NO_SIGNATURE_FOUND = 34;
     const KEYINFO_NOT_FOUND_IN_ENCRYPTED_DATA = 35;
-    const CHILDREN_NODE_NOT_FOUND_IN_KEYINFO = 36;
-    const UNSUPPORTED_RETRIEVAL_METHOD = 37;
     const NO_NAMEID = 38;
     const EMPTY_NAMEID = 39;
     const SP_NAME_QUALIFIER_NAME_MISMATCH = 40;
     const DUPLICATED_ATTRIBUTE_NAME_FOUND = 41;
     const INVALID_SIGNATURE = 42;
-    const WRONG_NUMBER_OF_SIGNATURES = 43;
     const RESPONSE_EXPIRED = 44;
     const UNEXPECTED_REFERENCE = 45;
     const NOT_SUPPORTED = 46;
@@ -63,21 +57,13 @@ class ValidationError extends Exception
     const MISSING_ENCRYPTED_ELEMENT = 48;
 
     /**
-     * @param string     $msg  Describes the error.
-     * @param int        $code The code error (defined in the error class).
      * @param array|null $args Arguments used in the message that describes the error.
      */
-    public function __construct($msg, $code = 0, $args = [])
+    public function __construct(string $msg, int $code = 0, $args = [])
     {
-        assert(is_string($msg));
-        assert(is_int($code));
-
         if (!isset($args)) {
             $args = [];
         }
-        $params = array_merge([$msg], $args);
-        $message = call_user_func_array('sprintf', $params);
-
-        parent::__construct($message, $code);
+        parent::__construct(call_user_func_array('sprintf', array_merge([$msg], $args)), $code);
     }
 }

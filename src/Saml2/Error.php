@@ -3,11 +3,6 @@ namespace OneLogin\Saml2;
 
 use Exception;
 
-/**
- * Error class of OneLogin PHP Toolkit
- *
- * Defines the Error class
- */
 class Error extends Exception
 {
     // Errors
@@ -15,8 +10,6 @@ class Error extends Exception
     const SETTINGS_INVALID_SYNTAX = 1;
     const SETTINGS_INVALID = 2;
     const METADATA_SP_INVALID = 3;
-    const SP_CERTS_NOT_FOUND = 4;
-    // SP_CERTS_NOT_FOUND is deprecated, use CERT_NOT_FOUND instead
     const CERT_NOT_FOUND = 4;
     const REDIRECT_INVALID_URL = 5;
     const PUBLIC_CERT_FILE_NOT_FOUND = 6;
@@ -27,24 +20,17 @@ class Error extends Exception
     const SAML_LOGOUTRESPONSE_INVALID  = 11;
     const SAML_SINGLE_LOGOUT_NOT_SUPPORTED = 12;
     const PRIVATE_KEY_NOT_FOUND = 13;
-    const UNSUPPORTED_SETTINGS_OBJECT = 14;
 
     /**
      * @param string     $msg  Describes the error.
      * @param int        $code The code error (defined in the error class).
      * @param array|null $args Arguments used in the message that describes the error.
      */
-    public function __construct($msg, $code = 0, $args = [])
+    public function __construct(string $msg, int $code = 0, array $args = [])
     {
-        assert(is_string($msg));
-        assert(is_int($code));
-
         if (!isset($args)) {
             $args = [];
         }
-        $params = array_merge([$msg], $args);
-        $message = call_user_func_array('sprintf', $params);
-
-        parent::__construct($message, $code);
+        parent::__construct(call_user_func_array('sprintf', array_merge([$msg], $args)), $code);
     }
 }

@@ -11,18 +11,14 @@ use OneLogin\Saml2\Utils;
  */
 class AuthnRequestTest extends \PHPUnit\Framework\TestCase
 {
-    private $_settings;
+    private $settings;
 
-    /**
-     * Initializes the Test Suite
-     */
+
     public function setUp()
     {
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
+        include TEST_ROOT . '/settings/settings1.php';
 
-        $settings = new Settings($settingsInfo);
-        $this->_settings = $settings;
+        $this->settings = new Settings($settingsInfo);
     }
 
     /**
@@ -33,16 +29,11 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testCreateDeflatedSAMLRequestURLParameter()
     {
-        $authnRequest = new AuthnRequest($this->_settings);
-        $parameters = ['SAMLRequest' => $authnRequest->getRequest()];
-        $authUrl = Utils::redirect('http://idp.example.com/SSOService.php', $parameters, true);
+        $authUrl = Utils::redirect('http://idp.example.com/SSOService.php', ['SAMLRequest' => (new AuthnRequest($this->settings))->getRequest()], true);
         $this->assertRegExp('#^http://idp\.example\.com\/SSOService\.php\?SAMLRequest=#', $authUrl);
         parse_str(parse_url($authUrl, PHP_URL_QUERY), $exploded);
         // parse_url already urldecode de params so is not required.
-        $payload = $exploded['SAMLRequest'];
-        $decoded = base64_decode($payload);
-        $inflated = gzinflate($decoded);
-        $this->assertRegExp('#^<samlp:AuthnRequest#', $inflated);
+        $this->assertRegExp('#^<samlp:AuthnRequest#', gzinflate(base64_decode($exploded['SAMLRequest'])));
     }
 
     /**
@@ -53,53 +44,38 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testAuthNContext()
     {
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
+        include TEST_ROOT . '/settings/settings1.php';
 
-        $settings = new Settings($settingsInfo);
-        $authnRequest = new AuthnRequest($settings);
-        $encodedRequest = $authnRequest->getRequest();
-        $decoded = base64_decode($encodedRequest);
-        $request = gzinflate($decoded);
+        $request = gzinflate(base64_decode((new AuthnRequest(new Settings($settingsInfo)))->getRequest()));
         $this->assertContains('<samlp:RequestedAuthnContext Comparison="exact">', $request);
         $this->assertContains('<saml:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport</saml:AuthnContextClassRef>', $request);
 
         $settingsInfo['security']['requestedAuthnContext'] = true;
-        $settings2 = new Settings($settingsInfo);
-        $authnRequest2 = new AuthnRequest($settings2);
-        $encodedRequest2 = $authnRequest2->getRequest();
-        $decoded2 = base64_decode($encodedRequest2);
-        $request2 = gzinflate($decoded2);
+        $request2 = gzinflate(base64_decode((new AuthnRequest(new Settings($settingsInfo)))->getRequest()));
         $this->assertContains('<samlp:RequestedAuthnContext Comparison="exact">', $request2);
         $this->assertContains('<saml:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport</saml:AuthnContextClassRef>', $request2);
 
         $settingsInfo['security']['requestedAuthnContext'] = false;
-        $settings3 = new Settings($settingsInfo);
-        $authnRequest3 = new AuthnRequest($settings3);
-        $encodedRequest3 = $authnRequest3->getRequest();
-        $decoded3 = base64_decode($encodedRequest3);
-        $request3 = gzinflate($decoded3);
+        $request3 = gzinflate(base64_decode((new AuthnRequest(new Settings($settingsInfo)))->getRequest()));
         $this->assertNotContains('<samlp:RequestedAuthnContext Comparison="exact">', $request3);
         $this->assertNotContains('<saml:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport</saml:AuthnContextClassRef>', $request3);
 
         $settingsInfo['security']['requestedAuthnContext'] = ['urn:oasis:names:tc:SAML:2.0:ac:classes:Password', 'urn:oasis:names:tc:SAML:2.0:ac:classes:X509'];
-        $settings4 = new Settings($settingsInfo);
-        $authnRequest4 = new AuthnRequest($settings4);
-        $encodedRequest4 = $authnRequest4->getRequest();
-        $decoded4 = base64_decode($encodedRequest4);
-        $request4 = gzinflate($decoded4);
+        $request4 = gzinflate(base64_decode((new AuthnRequest(new Settings($settingsInfo)))->getRequest()));
         $this->assertContains('<samlp:RequestedAuthnContext Comparison="exact">', $request4);
         $this->assertNotContains('<saml:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport</saml:AuthnContextClassRef>', $request4);
         $this->assertContains('<saml:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:Password</saml:AuthnContextClassRef>', $request4);
         $this->assertContains('<saml:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:X509</saml:AuthnContextClassRef>', $request4);
 
         $settingsInfo['security']['requestedAuthnContextComparison'] = 'minimum';
-        $settings5 = new Settings($settingsInfo);
-        $authnRequest5 = new AuthnRequest($settings5);
-        $encodedRequest5 = $authnRequest5->getRequest();
-        $decoded5 = base64_decode($encodedRequest5);
-        $request5 = gzinflate($decoded5);
-        $this->assertContains('<samlp:RequestedAuthnContext Comparison="minimum">', $request5);
+        $this->assertContains(
+            '<samlp:RequestedAuthnContext Comparison="minimum">',
+            gzinflate(
+                base64_decode(
+                    (new AuthnRequest(new Settings($settingsInfo)))->getRequest()
+                )
+            )
+        );
     }
 
     /**
@@ -110,27 +86,12 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testForceAuthN()
     {
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
+        include TEST_ROOT . '/settings/settings1.php';
 
         $settings = new Settings($settingsInfo);
-        $authnRequest = new AuthnRequest($settings);
-        $encodedRequest = $authnRequest->getRequest();
-        $decoded = base64_decode($encodedRequest);
-        $request = gzinflate($decoded);
-        $this->assertNotContains('ForceAuthn="true"', $request);
-
-        $authnRequest2 = new AuthnRequest($settings, false, false);
-        $encodedRequest2 = $authnRequest2->getRequest();
-        $decoded2 = base64_decode($encodedRequest2);
-        $request2 = gzinflate($decoded2);
-        $this->assertNotContains('ForceAuthn="true"', $request2);
-
-        $authnRequest3 = new AuthnRequest($settings, true, false);
-        $encodedRequest3 = $authnRequest3->getRequest();
-        $decoded3 = base64_decode($encodedRequest3);
-        $request3 = gzinflate($decoded3);
-        $this->assertContains('ForceAuthn="true"', $request3);
+        $this->assertNotContains('ForceAuthn="true"', gzinflate(base64_decode((new AuthnRequest($settings))->getRequest())));
+        $this->assertNotContains('ForceAuthn="true"', gzinflate(base64_decode((new AuthnRequest($settings, false, false))->getRequest())));
+        $this->assertContains('ForceAuthn="true"', gzinflate(base64_decode((new AuthnRequest($settings, true, false))->getRequest())));
     }
 
     /**
@@ -141,27 +102,12 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testIsPassive()
     {
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
+        include TEST_ROOT . '/settings/settings1.php';
 
         $settings = new Settings($settingsInfo);
-        $authnRequest = new AuthnRequest($settings);
-        $encodedRequest = $authnRequest->getRequest();
-        $decoded = base64_decode($encodedRequest);
-        $request = gzinflate($decoded);
-        $this->assertNotContains('IsPassive="true"', $request);
-
-        $authnRequest2 = new AuthnRequest($settings, false, false);
-        $encodedRequest2 = $authnRequest2->getRequest();
-        $decoded2 = base64_decode($encodedRequest2);
-        $request2 = gzinflate($decoded2);
-        $this->assertNotContains('IsPassive="true"', $request2);
-
-        $authnRequest3 = new AuthnRequest($settings, false, true);
-        $encodedRequest3 = $authnRequest3->getRequest();
-        $decoded3 = base64_decode($encodedRequest3);
-        $request3 = gzinflate($decoded3);
-        $this->assertContains('IsPassive="true"', $request3);
+        $this->assertNotContains('IsPassive="true"', gzinflate(base64_decode((new AuthnRequest($settings))->getRequest())));
+        $this->assertNotContains('IsPassive="true"', gzinflate(base64_decode((new AuthnRequest($settings, false, false))->getRequest())));
+        $this->assertContains('IsPassive="true"', gzinflate(base64_decode((new AuthnRequest($settings, false, true))->getRequest())));
     }
 
     /**
@@ -172,27 +118,12 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testNameIDPolicy()
     {
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
+        include TEST_ROOT . '/settings/settings1.php';
 
         $settings = new Settings($settingsInfo);
-        $authnRequest = new AuthnRequest($settings, false, false, false);
-        $encodedRequest = $authnRequest->getRequest();
-        $decoded = base64_decode($encodedRequest);
-        $request = gzinflate($decoded);
-        $this->assertNotContains('<samlp:NameIDPolicy', $request);
-
-        $authnRequest2 = new AuthnRequest($settings, false, false, true);
-        $encodedRequest2 = $authnRequest2->getRequest();
-        $decoded2 = base64_decode($encodedRequest2);
-        $request2 = gzinflate($decoded2);
-        $this->assertContains('<samlp:NameIDPolicy', $request2);
-
-        $authnRequest3 = new AuthnRequest($settings);
-        $encodedRequest3 = $authnRequest3->getRequest();
-        $decoded3 = base64_decode($encodedRequest3);
-        $request3 = gzinflate($decoded3);
-        $this->assertContains('<samlp:NameIDPolicy', $request3);
+        $this->assertNotContains('<samlp:NameIDPolicy', gzinflate(base64_decode((new AuthnRequest($settings, false, false, false))->getRequest())));
+        $this->assertContains('<samlp:NameIDPolicy', gzinflate(base64_decode((new AuthnRequest($settings, false, false, true))->getRequest())));
+        $this->assertContains('<samlp:NameIDPolicy', gzinflate(base64_decode((new AuthnRequest($settings))->getRequest())));
     }
 
     /**
@@ -203,8 +134,7 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testCreateEncSAMLRequest()
     {
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
+        include TEST_ROOT . '/settings/settings1.php';
 
         $settingsInfo['organization'] = [
             'es' => [
@@ -215,17 +145,15 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
         ];
         $settingsInfo['security']['wantNameIdEncrypted'] = true;
 
-        $settings = new Settings($settingsInfo);
-
-        $authnRequest = new AuthnRequest($settings);
-        $parameters = ['SAMLRequest' => $authnRequest->getRequest()];
-        $authUrl = Utils::redirect('http://idp.example.com/SSOService.php', $parameters, true);
+        $authUrl = Utils::redirect(
+            'http://idp.example.com/SSOService.php',
+            ['SAMLRequest' => (new AuthnRequest(new Settings($settingsInfo)))->getRequest()],
+            true
+        );
         $this->assertRegExp('#^http://idp\.example\.com\/SSOService\.php\?SAMLRequest=#', $authUrl);
         parse_str(parse_url($authUrl, PHP_URL_QUERY), $exploded);
         // parse_url already urldecode de params so is not required.
-        $payload = $exploded['SAMLRequest'];
-        $decoded = base64_decode($payload);
-        $message = gzinflate($decoded);
+        $message = gzinflate(base64_decode($exploded['SAMLRequest']));
         $this->assertRegExp('#^<samlp:AuthnRequest#', $message);
         $this->assertRegExp('#AssertionConsumerServiceURL="http://stuff.com/endpoints/endpoints/acs.php">#', $message);
         $this->assertRegExp('#<saml:Issuer>http://stuff.com/endpoints/metadata.php</saml:Issuer>#', $message);
@@ -242,15 +170,9 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
     public function testWeCanChooseToCompressARequest()
     {
         //Test that we can compress.
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
+        include TEST_ROOT . '/settings/settings1.php';
 
-        $settings = new Settings($settingsInfo);
-        $authnRequest = new AuthnRequest($settings);
-        $payload = $authnRequest->getRequest();
-        $decoded = base64_decode($payload);
-        $decompressed = gzinflate($decoded);
-        $this->assertRegExp('#^<samlp:AuthnRequest#', $decompressed);
+        $this->assertRegExp('#^<samlp:AuthnRequest#', gzinflate(base64_decode((new AuthnRequest(new Settings($settingsInfo)))->getRequest())));
     }
 
     /**
@@ -262,14 +184,9 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
     public function testWeCanChooseNotToCompressARequest()
     {
         //Test that we can choose not to compress the request payload.
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings2.php';
+        include TEST_ROOT . '/settings/settings2.php';
 
-        $settings = new Settings($settingsInfo);
-        $authnRequest = new AuthnRequest($settings);
-        $payload = $authnRequest->getRequest();
-        $decoded = base64_decode($payload);
-        $this->assertRegExp('#^<samlp:AuthnRequest#', $decoded);
+        $this->assertRegExp('#^<samlp:AuthnRequest#', base64_decode((new AuthnRequest(new Settings($settingsInfo)))->getRequest()));
     }
 
     /**
@@ -282,27 +199,16 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
     public function testWeCanChooseToDeflateARequestBody()
     {
         //Test that we can choose not to compress the request payload.
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
+        include TEST_ROOT . '/settings/settings1.php';
 
         //Compression is currently turned on in settings.
-        $settings = new Settings($settingsInfo);
-        $authnRequest = new AuthnRequest($settings);
-        $payload = $authnRequest->getRequest(false);
-        $decoded = base64_decode($payload);
-        $this->assertRegExp('#^<samlp:AuthnRequest#', $decoded);
+        $this->assertRegExp('#^<samlp:AuthnRequest#', base64_decode((new AuthnRequest(new Settings($settingsInfo)))->getRequest(false)));
 
         //Test that we can choose not to compress the request payload.
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings2.php';
+        include TEST_ROOT . '/settings/settings2.php';
 
         //Compression is currently turned off in settings.
-        $settings = new Settings($settingsInfo);
-        $authnRequest = new AuthnRequest($settings);
-        $payload = $authnRequest->getRequest(true);
-        $decoded = base64_decode($payload);
-        $decompressed = gzinflate($decoded);
-        $this->assertRegExp('#^<samlp:AuthnRequest#', $decompressed);
+        $this->assertRegExp('#^<samlp:AuthnRequest#', gzinflate(base64_decode((new AuthnRequest(new Settings($settingsInfo)))->getRequest(true))));
     }
 
     /**
@@ -313,13 +219,8 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetXML()
     {
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
+        include TEST_ROOT . '/settings/settings1.php';
 
-        $settings = new Settings($settingsInfo);
-        $authnRequest = new AuthnRequest($settings);
-
-        $xml = $authnRequest->getXML();
-        $this->assertRegExp('#^<samlp:AuthnRequest#', $xml);
+        $this->assertRegExp('#^<samlp:AuthnRequest#', (new AuthnRequest(new Settings($settingsInfo)))->getXML());
     }
 }

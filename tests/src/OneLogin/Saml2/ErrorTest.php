@@ -17,7 +17,6 @@ class ErrorTest extends \PHPUnit\Framework\TestCase
      */
     public function testError()
     {
-        $samlException = new Error('test');
-        $this->assertEquals('test', $samlException->getMessage());
+        $this->assertEquals('test', (new Error('test'))->getMessage());
     }
 }

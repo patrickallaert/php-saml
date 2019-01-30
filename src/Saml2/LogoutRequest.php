@@ -2,6 +2,7 @@
 namespace OneLogin\Saml2;
 
 use DOMDocument;
+use DOMElement;
 use Exception;
 use RobRichards\XMLSecLibs\XMLSecurityKey;
 
@@ -11,36 +12,30 @@ use RobRichards\XMLSecLibs\XMLSecurityKey;
 class LogoutRequest
 {
     /**
-     * Contains the ID of the Logout Request
-     *
      * @var string
      */
     public $id;
 
     /**
-     * Object that represents the setting info
-     *
      * @var Settings
      */
-    protected $_settings;
+    protected $settings;
 
     /**
      * SAML Logout Request
      *
      * @var string
      */
-    protected $_logoutRequest;
+    protected $logoutRequest;
 
     /**
      * After execute a validation process, this var contains the cause
      *
      * @var Exception
      */
-    private $_error;
+    private $error;
 
     /**
-     * Constructs the Logout Request object.
-     *
      * @param Settings $settings            Settings
      * @param string|null             $request             A UUEncoded Logout Request.
      * @param string|null             $nameId              The NameID that will be set in the LogoutRequest.
@@ -49,19 +44,19 @@ class LogoutRequest
      * @param string|null             $nameIdNameQualifier The NameID NameQualifier will be set in the LogoutRequest.
      * @param string|null             $nameIdSPNameQualifier The NameID SP NameQualifier will be set in the LogoutRequest.
      */
-    public function __construct(\OneLogin\Saml2\Settings $settings, $request = null, $nameId = null, $sessionIndex = null, $nameIdFormat = null, $nameIdNameQualifier = null, $nameIdSPNameQualifier = null)
+    public function __construct(Settings $settings, ?string $request = null, ?string $nameId = null, ?string $sessionIndex = null, ?string $nameIdFormat = null, ?string $nameIdNameQualifier = null, ?string $nameIdSPNameQualifier = null)
     {
-        $this->_settings = $settings;
+        $this->settings = $settings;
 
-        $baseURL = $this->_settings->getBaseURL();
+        $baseURL = $this->settings->getBaseURL();
         if (!empty($baseURL)) {
             Utils::setBaseURL($baseURL);
         }
 
         if (!isset($request) || empty($request)) {
-            $spData = $this->_settings->getSPData();
-            $idpData = $this->_settings->getIdPData();
-            $security = $this->_settings->getSecurityData();
+            $spData = $this->settings->getSPData();
+            $idpData = $this->settings->getIdPData();
+            $security = $this->settings->getSecurityData();
 
             $id = Utils::generateUniqueID();
             $this->id = $id;
@@ -137,7 +132,7 @@ LOGOUTREQUEST;
             }
             $this->id = static::getID($logoutRequest);
         }
-        $this->_logoutRequest = $logoutRequest;
+        $this->logoutRequest = $logoutRequest;
     }
 
     /**
@@ -149,14 +144,14 @@ LOGOUTREQUEST;
      */
     public function getRequest($deflate = null)
     {
-        $subject = $this->_logoutRequest;
+        $subject = $this->logoutRequest;
 
-        if (is_null($deflate)) {
-            $deflate = $this->_settings->shouldCompressRequests();
+        if ($deflate === null) {
+            $deflate = $this->settings->shouldCompressRequests();
         }
 
         if ($deflate) {
-            $subject = gzdeflate($this->_logoutRequest);
+            $subject = gzdeflate($this->logoutRequest);
         }
 
         return base64_encode($subject);
@@ -176,8 +171,7 @@ LOGOUTREQUEST;
         if ($request instanceof DOMDocument) {
             $dom = $request;
         } else {
-            $dom = new DOMDocument();
-            $dom = Utils::loadXML($dom, $request);
+            $dom = Utils::loadXML(new DOMDocument(), $request);
         }
 
         if ($dom === false) {
@@ -187,8 +181,7 @@ LOGOUTREQUEST;
             );
         }
 
-        $id = $dom->documentElement->getAttribute('ID');
-        return $id;
+        return $dom->documentElement->getAttribute('ID');
     }
 
     /**
@@ -215,9 +208,6 @@ LOGOUTREQUEST;
         $encryptedEntries = Utils::query($dom, '/samlp:LogoutRequest/saml:EncryptedID');
 
         if ($encryptedEntries->length === 1) {
-            $encryptedDataNodes = $encryptedEntries->item(0)->getElementsByTagName('EncryptedData');
-            $encryptedData = $encryptedDataNodes->item(0);
-
             if (empty($key)) {
                 throw new Error(
                     "Private Key is required in order to decrypt the NameID, check settings",
@@ -228,6 +218,10 @@ LOGOUTREQUEST;
             $seckey = new XMLSecurityKey(XMLSecurityKey::RSA_1_5, ['type' => 'private']);
             $seckey->loadKey($key);
 
+            $encryptedEntry = $encryptedEntries->item(0);
+            assert($encryptedEntry instanceof DOMElement);
+            $encryptedData = $encryptedEntry->getElementsByTagName('EncryptedData')->item(0);
+            assert($encryptedData instanceof DOMElement);
             $nameId = Utils::decryptElement($encryptedData, $seckey);
         } else {
             $entries = Utils::query($dom, '/samlp:LogoutRequest/saml:NameID');
@@ -255,10 +249,7 @@ LOGOUTREQUEST;
     }
 
     /**
-     * Gets the NameID of the Logout Request.
-     *
      * @param string|DOMDocument $request Logout Request Message
-     * @param string|null        $key     The SP key
      *
      * @return string Name ID Value
      *
@@ -266,7 +257,7 @@ LOGOUTREQUEST;
      * @throws Exception
      * @throws ValidationError
      */
-    public static function getNameId($request, $key = null)
+    public static function getNameId($request, ?string $key = null)
     {
         $nameId = self::getNameIdData($request, $key);
         return $nameId['Value'];
@@ -286,8 +277,7 @@ LOGOUTREQUEST;
         if ($request instanceof DOMDocument) {
             $dom = $request;
         } else {
-            $dom = new DOMDocument();
-            $dom = Utils::loadXML($dom, $request);
+            $dom = Utils::loadXML(new DOMDocument(), $request);
         }
 
         $issuer = null;
@@ -306,17 +296,14 @@ LOGOUTREQUEST;
      *
      * @param string|DOMDocument $request Logout Request Message
      *
-     * @return array The SessionIndex value
-     *
      * @throws Exception
      */
-    public static function getSessionIndexes($request)
+    public static function getSessionIndexes($request): array
     {
         if ($request instanceof DOMDocument) {
             $dom = $request;
         } else {
-            $dom = new DOMDocument();
-            $dom = Utils::loadXML($dom, $request);
+            $dom = Utils::loadXML(new DOMDocument(), $request);
         }
 
         $sessionIndexes = [];
@@ -337,21 +324,21 @@ LOGOUTREQUEST;
      * @throws Exception
      * @throws ValidationError
      */
-    public function isValid($retrieveParametersFromServer = false)
+    public function isValid(bool $retrieveParametersFromServer = false)
     {
-        $this->_error = null;
+        $this->error = null;
         try {
             $dom = new DOMDocument();
-            $dom = Utils::loadXML($dom, $this->_logoutRequest);
+            $dom = Utils::loadXML($dom, $this->logoutRequest);
 
-            $idpData = $this->_settings->getIdPData();
+            $idpData = $this->settings->getIdPData();
             $idPEntityId = $idpData['entityId'];
 
-            if ($this->_settings->isStrict()) {
-                $security = $this->_settings->getSecurityData();
+            if ($this->settings->isStrict()) {
+                $security = $this->settings->getSecurityData();
 
                 if ($security['wantXMLValidation']) {
-                    $res = Utils::validateXML($dom, 'saml-schema-protocol-2.0.xsd', $this->_settings->isDebugActive());
+                    $res = Utils::validateXML($dom, 'saml-schema-protocol-2.0.xsd', $this->settings->isDebugActive());
                     if (!$res instanceof DOMDocument) {
                         throw new ValidationError(
                             "Invalid SAML Logout Request. Not match the saml-schema-protocol-2.0.xsd",
@@ -384,8 +371,6 @@ LOGOUTREQUEST;
                     }
                 }
 
-                $nameId = static::getNameId($dom, $this->_settings->getSPkey());
-
                 // Check issuer
                 $issuer = static::getIssuer($dom);
                 if (!empty($issuer) && $issuer !== $idPEntityId) {
@@ -404,8 +389,7 @@ LOGOUTREQUEST;
             }
 
             if (isset($_GET['Signature'])) {
-                $signatureValid = Utils::validateBinarySign("SAMLRequest", $_GET, $idpData, $retrieveParametersFromServer);
-                if (!$signatureValid) {
+                if (!Utils::validateBinarySign("SAMLRequest", $_GET, $idpData, $retrieveParametersFromServer)) {
                     throw new ValidationError(
                         "Signature validation failed. Logout Request rejected",
                         ValidationError::INVALID_SIGNATURE
@@ -415,10 +399,9 @@ LOGOUTREQUEST;
 
             return true;
         } catch (Exception $e) {
-            $this->_error = $e;
-            $debug = $this->_settings->isDebugActive();
-            if ($debug) {
-                echo htmlentities($this->_error->getMessage());
+            $this->error = $e;
+            if ($this->settings->isDebugActive()) {
+                echo htmlentities($this->error->getMessage());
             }
             return false;
         }
@@ -431,7 +414,7 @@ LOGOUTREQUEST;
      */
     public function getErrorException()
     {
-        return $this->_error;
+        return $this->error;
     }
 
     /**
@@ -442,8 +425,8 @@ LOGOUTREQUEST;
     public function getError()
     {
         $errorMsg = null;
-        if (isset($this->_error)) {
-            $errorMsg = htmlentities($this->_error->getMessage());
+        if (isset($this->error)) {
+            $errorMsg = htmlentities($this->error->getMessage());
         }
         return $errorMsg;
     }
@@ -456,6 +439,6 @@ LOGOUTREQUEST;
      */
     public function getXML()
     {
-        return $this->_logoutRequest;
+        return $this->logoutRequest;
     }
 }

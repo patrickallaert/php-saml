@@ -2,28 +2,24 @@
 namespace OneLogin\Saml2;
 
 use DOMDocument;
+use DOMElement;
 use Exception;
 
-/**
- * IdP Metadata Parser of OneLogin PHP Toolkit
- */
 class IdPMetadataParser
 {
     /**
      * Get IdP Metadata Info from URL
      *
      * @param string $url                 URL where the IdP metadata is published
-     * @param string $entityId            Entity Id of the desired IdP, if no
+     * @param ?string $entityId           Entity Id of the desired IdP, if no
      *                                    entity Id is provided and the XML
      *                                    metadata contains more than one
      *                                    IDPSSODescriptor, the first is returned
-     * @param string $desiredNameIdFormat If available on IdP metadata, use that nameIdFormat
-     * @param string $desiredSSOBinding   Parse specific binding SSO endpoint
-     * @param string $desiredSLOBinding   Parse specific binding SLO endpoint
+     * @param ?string $desiredNameIdFormat If available on IdP metadata, use that nameIdFormat
      *
      * @return array metadata info in php-saml settings format
      */
-    public static function parseRemoteXML($url, $entityId = null, $desiredNameIdFormat = null, $desiredSSOBinding = Constants::BINDING_HTTP_REDIRECT, $desiredSLOBinding = Constants::BINDING_HTTP_REDIRECT)
+    public static function parseRemoteXML(string $url, ?string $entityId = null, ?string $desiredNameIdFormat = null, string $desiredSSOBinding = Constants::BINDING_HTTP_REDIRECT, string $desiredSLOBinding = Constants::BINDING_HTTP_REDIRECT)
     {
         $metadataInfo = [];
 
@@ -50,17 +46,13 @@ class IdPMetadataParser
      * Get IdP Metadata Info from File
      *
      * @param string $filepath            File path
-     * @param string $entityId            Entity Id of the desired IdP, if no
+     * @param ?string $entityId           Entity Id of the desired IdP, if no
      *                                    entity Id is provided and the XML
      *                                    metadata contains more than one
      *                                    IDPSSODescriptor, the first is returned
-     * @param string $desiredNameIdFormat If available on IdP metadata, use that nameIdFormat
-     * @param string $desiredSSOBinding   Parse specific binding SSO endpoint
-     * @param string $desiredSLOBinding   Parse specific binding SLO endpoint
-     *
-     * @return array metadata info in php-saml settings format
+     * @param ?string $desiredNameIdFormat If available on IdP metadata, use that nameIdFormat
      */
-    public static function parseFileXML($filepath, $entityId = null, $desiredNameIdFormat = null, $desiredSSOBinding = Constants::BINDING_HTTP_REDIRECT, $desiredSLOBinding = Constants::BINDING_HTTP_REDIRECT)
+    public static function parseFileXML(string $filepath, ?string $entityId = null, ?string $desiredNameIdFormat = null, string $desiredSSOBinding = Constants::BINDING_HTTP_REDIRECT, string $desiredSLOBinding = Constants::BINDING_HTTP_REDIRECT): array
     {
         $metadataInfo = [];
 
@@ -86,11 +78,9 @@ class IdPMetadataParser
      * @param string $desiredSSOBinding   Parse specific binding SSO endpoint
      * @param string $desiredSLOBinding   Parse specific binding SLO endpoint
      *
-     * @return array metadata info in php-saml settings format
-     *
      * @throws Exception
      */
-    public static function parseXML($xml, $entityId = null, $desiredNameIdFormat = null, $desiredSSOBinding = Constants::BINDING_HTTP_REDIRECT, $desiredSLOBinding = Constants::BINDING_HTTP_REDIRECT)
+    public static function parseXML($xml, $entityId = null, $desiredNameIdFormat = null, $desiredSSOBinding = Constants::BINDING_HTTP_REDIRECT, $desiredSLOBinding = Constants::BINDING_HTTP_REDIRECT): array
     {
         $metadataInfo = [];
 
@@ -107,17 +97,16 @@ class IdPMetadataParser
             if (!empty($entityId)) {
                 $customIdPStr = '[@entityID="' . $entityId . '"]';
             }
-            $idpDescryptorXPath = '//md:EntityDescriptor' . $customIdPStr . '/md:IDPSSODescriptor';
-
-            $idpDescriptorNodes = Utils::query($dom, $idpDescryptorXPath);
+            $idpDescriptorNodes = Utils::query($dom, '//md:EntityDescriptor' . $customIdPStr . '/md:IDPSSODescriptor');
 
             if (isset($idpDescriptorNodes) && $idpDescriptorNodes->length > 0) {
                 $metadataInfo['idp'] = [];
 
                 $idpDescriptor = $idpDescriptorNodes->item(0);
+                $parent = $idpDescriptor->parentNode;
 
-                if (empty($entityId) && $idpDescriptor->parentNode->hasAttribute('entityID')) {
-                    $entityId = $idpDescriptor->parentNode->getAttribute('entityID');
+                if (empty($entityId) && $parent instanceof DOMElement && $parent->hasAttribute('entityID')) {
+                    $entityId = $parent->getAttribute('entityID');
                 }
 
                 if (!empty($entityId)) {
@@ -129,10 +118,13 @@ class IdPMetadataParser
                     $ssoNodes = Utils::query($dom, './md:SingleSignOnService', $idpDescriptor);
                 }
                 if ($ssoNodes->length > 0) {
-                    $metadataInfo['idp']['singleSignOnService'] = [
-                        'url' => $ssoNodes->item(0)->getAttribute('Location'),
-                        'binding' => $ssoNodes->item(0)->getAttribute('Binding'),
-                    ];
+                    $firstSSONode = $ssoNodes->item(0);
+                    if ($firstSSONode instanceof DOMElement) {
+                        $metadataInfo['idp']['singleSignOnService'] = [
+                            'url' => $firstSSONode->getAttribute('Location'),
+                            'binding' => $firstSSONode->getAttribute('Binding'),
+                        ];
+                    }
                 }
 
                 $sloNodes = Utils::query($dom, './md:SingleLogoutService[@Binding="' . $desiredSLOBinding . '"]', $idpDescriptor);
@@ -140,10 +132,13 @@ class IdPMetadataParser
                     $sloNodes = Utils::query($dom, './md:SingleLogoutService', $idpDescriptor);
                 }
                 if ($sloNodes->length > 0) {
-                    $metadataInfo['idp']['singleLogoutService'] = [
-                        'url' => $sloNodes->item(0)->getAttribute('Location'),
-                        'binding' => $sloNodes->item(0)->getAttribute('Binding'),
-                    ];
+                    $firstSLONode = $sloNodes->item(0);
+                    if ($firstSLONode instanceof DOMElement) {
+                        $metadataInfo['idp']['singleLogoutService'] = [
+                            'url' => $firstSLONode->getAttribute('Location'),
+                            'binding' => $firstSLONode->getAttribute('Binding'),
+                        ];
+                    }
                 }
 
                 $keyDescriptorCertSigningNodes = Utils::query($dom, './md:KeyDescriptor[not(contains(@use, "encryption"))]/ds:KeyInfo/ds:X509Data/ds:X509Certificate', $idpDescriptor);
@@ -166,8 +161,8 @@ class IdPMetadataParser
                     }
 
                     $idpCertdata = $metadataInfo['idp']['x509certMulti'];
-                    if ((count($idpCertdata) === 1 and
-                         ((isset($idpCertdata['signing']) and count($idpCertdata['signing']) === 1) or (isset($idpCertdata['encryption']) and count($idpCertdata['encryption']) === 1))) or
+                    if ((count($idpCertdata) === 1 &&
+                         ((isset($idpCertdata['signing']) && count($idpCertdata['signing']) === 1) || (isset($idpCertdata['encryption']) && count($idpCertdata['encryption']) === 1))) ||
                          ((isset($idpCertdata['signing']) && count($idpCertdata['signing']) === 1) && isset($idpCertdata['encryption']) && count($idpCertdata['encryption']) === 1 && strcmp($idpCertdata['signing'][0], $idpCertdata['encryption'][0]) === 0)) {
                         if (isset($metadataInfo['idp']['x509certMulti']['signing'][0])) {
                             $metadataInfo['idp']['x509cert'] = $metadataInfo['idp']['x509certMulti']['signing'][0];

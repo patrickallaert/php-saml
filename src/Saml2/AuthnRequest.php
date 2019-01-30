@@ -7,41 +7,27 @@ namespace OneLogin\Saml2;
 class AuthnRequest
 {
     /**
-     * Object that represents the setting info
-     *
      * @var Settings
      */
-    protected $_settings;
+    protected $settings;
 
     /**
-     * SAML AuthNRequest string
-     *
      * @var string
      */
-    private $_authnRequest;
+    private $authnRequest;
 
     /**
-     * SAML AuthNRequest ID.
-     *
      * @var string
      */
-    private $_id;
+    private $id;
 
-    /**
-     * Constructs the AuthnRequest object.
-     *
-     * @param Settings $settings        SAML Toolkit Settings
-     * @param bool                    $forceAuthn      When true the AuthNReuqest will set the ForceAuthn='true'
-     * @param bool                    $isPassive       When true the AuthNReuqest will set the Ispassive='true'
-     * @param bool                    $setNameIdPolicy When true the AuthNReuqest will set a nameIdPolicy
-     */
-    public function __construct(\OneLogin\Saml2\Settings $settings, $forceAuthn = false, $isPassive = false, $setNameIdPolicy = true)
+    public function __construct(Settings $settings, bool $forceAuthn = false, bool $isPassive = false, bool $setNameIdPolicy = true)
     {
-        $this->_settings = $settings;
+        $this->settings = $settings;
 
-        $spData = $this->_settings->getSPData();
-        $idpData = $this->_settings->getIdPData();
-        $security = $this->_settings->getSecurityData();
+        $spData = $this->settings->getSPData();
+        $idpData = $this->settings->getIdPData();
+        $security = $this->settings->getSecurityData();
 
         $id = Utils::generateUniqueID();
         $issueInstant = Utils::parseTime2SAML(time());
@@ -133,8 +119,8 @@ REQUESTEDAUTHN;
 </samlp:AuthnRequest>
 AUTHNREQUEST;
 
-        $this->_id = $id;
-        $this->_authnRequest = $request;
+        $this->id = $id;
+        $this->authnRequest = $request;
     }
 
     /**
@@ -146,37 +132,27 @@ AUTHNREQUEST;
      */
     public function getRequest($deflate = null)
     {
-        $subject = $this->_authnRequest;
+        $subject = $this->authnRequest;
 
-        if (is_null($deflate)) {
-            $deflate = $this->_settings->shouldCompressRequests();
+        if ($deflate === null) {
+            $deflate = $this->settings->shouldCompressRequests();
         }
 
         if ($deflate) {
-            $subject = gzdeflate($this->_authnRequest);
+            $subject = gzdeflate($this->authnRequest);
         }
 
         $base64Request = base64_encode($subject);
         return $base64Request;
     }
 
-    /**
-     * Returns the AuthNRequest ID.
-     *
-     * @return string
-     */
-    public function getId()
+    public function getId(): string
     {
-        return $this->_id;
+        return $this->id;
     }
 
-    /**
-     * Returns the XML that will be sent as part of the request
-     *
-     * @return string
-     */
-    public function getXML()
+    public function getXML(): string
     {
-        return $this->_authnRequest;
+        return $this->authnRequest;
     }
 }

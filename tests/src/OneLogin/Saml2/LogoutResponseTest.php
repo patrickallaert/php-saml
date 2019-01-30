@@ -12,18 +12,14 @@ use OneLogin\Saml2\Utils;
  */
 class LogoutResponseTest extends \PHPUnit\Framework\TestCase
 {
-    private $_settings;
+    private $settings;
 
-    /**
-     * Initializes the Test Suite
-     */
+
     public function setUp()
     {
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
+        include TEST_ROOT . '/settings/settings1.php';
 
-        $settings = new Settings($settingsInfo);
-        $this->_settings = $settings;
+        $this->settings = new Settings($settingsInfo);
     }
 
     /**
@@ -33,9 +29,13 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function testConstructor()
     {
-        $message = file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64');
-        $response = new LogoutResponse($this->_settings, $message);
-        $this->assertRegExp('#<samlp:LogoutResponse#', $response->document->saveXML());
+        $this->assertRegExp(
+            '#<samlp:LogoutResponse#',
+            (new LogoutResponse(
+                $this->settings,
+                file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64')
+            ))->document->saveXML()
+        );
     }
 
     /**
@@ -46,20 +46,14 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function testCreateDeflatedSAMLLogoutResponseURLParameter()
     {
-        $inResponseTo = 'ONELOGIN_21584ccdfaca36a145ae990442dcd96bfe60151e';
-        $responseBuilder = new LogoutResponse($this->_settings);
-        $responseBuilder->build($inResponseTo);
-        $parameters = ['SAMLResponse' => $responseBuilder->getResponse()];
-
-        $logoutUrl = Utils::redirect('http://idp.example.com/SingleLogoutService.php', $parameters, true);
+        $responseBuilder = new LogoutResponse($this->settings);
+        $responseBuilder->build('ONELOGIN_21584ccdfaca36a145ae990442dcd96bfe60151e');
+        $logoutUrl = Utils::redirect('http://idp.example.com/SingleLogoutService.php', ['SAMLResponse' => $responseBuilder->getResponse()], true);
 
         $this->assertRegExp('#^http://idp\.example\.com\/SingleLogoutService\.php\?SAMLResponse=#', $logoutUrl);
         parse_str(parse_url($logoutUrl, PHP_URL_QUERY), $exploded);
         // parse_url already urldecode de params so is not required.
-        $payload = $exploded['SAMLResponse'];
-        $decoded = base64_decode($payload);
-        $inflated = gzinflate($decoded);
-        $this->assertRegExp('#^<samlp:LogoutResponse#', $inflated);
+        $this->assertRegExp('#^<samlp:LogoutResponse#', gzinflate(base64_decode($exploded['SAMLResponse'])));
     }
 
     /**
@@ -69,14 +63,14 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetStatus()
     {
-        $message = file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64');
-        $response = new LogoutResponse($this->_settings, $message);
-        $status = $response->getStatus();
-        $this->assertEquals($status, Constants::STATUS_SUCCESS);
+        $this->assertEquals(
+            (new LogoutResponse($this->settings, file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64')))->getStatus(),
+            Constants::STATUS_SUCCESS
+        );
 
-        $message2 = file_get_contents(TEST_ROOT . '/data/logout_responses/invalids/no_status.xml.base64');
-        $response2 = new LogoutResponse($this->_settings, $message2);
-        $this->assertNULL($response2->getStatus());
+        $this->assertNULL(
+            (new LogoutResponse($this->settings, file_get_contents(TEST_ROOT . '/data/logout_responses/invalids/no_status.xml.base64')))->getStatus()
+        );
     }
 
     /**
@@ -86,11 +80,9 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetIssuer()
     {
-        $message = file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64');
-        $response = new LogoutResponse($this->_settings, $message);
+        $response = new LogoutResponse($this->settings, file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64'));
 
-        $issuer = $response->getIssuer($response);
-        $this->assertEquals('http://idp.example.com/', $issuer);
+        $this->assertEquals('http://idp.example.com/', $response->getIssuer($response));
     }
 
     /**
@@ -100,11 +92,9 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function testQuery()
     {
-        $message = file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64');
-        $response = new LogoutResponse($this->_settings, $message);
+        $response = new LogoutResponse($this->settings, file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64'));
 
-        $issuer = $response->getIssuer($response);
-        $this->assertEquals('http://idp.example.com/', $issuer);
+        $this->assertEquals('http://idp.example.com/', $response->getIssuer($response));
     }
 
     /**
@@ -114,11 +104,9 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetError()
     {
-        $message = file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64');
-        $requestId = 'invalid_request_id';
-        $response = new LogoutResponse($this->_settings, $message);
-        $this->_settings->setStrict(true);
-        $this->assertFalse($response->isValid($requestId));
+        $response = new LogoutResponse($this->settings, file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64'));
+        $this->settings->setStrict(true);
+        $this->assertFalse($response->isValid('invalid_request_id'));
         $this->assertEquals($response->getError(), 'The InResponseTo of the Logout Response: ONELOGIN_21584ccdfaca36a145ae990442dcd96bfe60151e, does not match the ID of the Logout request sent by the SP: invalid_request_id');
     }
 
@@ -130,11 +118,9 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetErrorException()
     {
-        $message = file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64');
-        $requestId = 'invalid_request_id';
-        $response = new LogoutResponse($this->_settings, $message);
-        $this->_settings->setStrict(true);
-        $this->assertFalse($response->isValid($requestId));
+        $response = new LogoutResponse($this->settings, file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64'));
+        $this->settings->setStrict(true);
+        $this->assertFalse($response->isValid('invalid_request_id'));
         $errorException = $response->getErrorException();
         $this->assertEquals('The InResponseTo of the Logout Response: ONELOGIN_21584ccdfaca36a145ae990442dcd96bfe60151e, does not match the ID of the Logout request sent by the SP: invalid_request_id', $errorException->getMessage());
         $this->assertEquals($errorException->getMessage(), $response->getError());
@@ -151,21 +137,23 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function testIsInValidRequestId()
     {
-        $message = file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64');
-
-        $plainMessage = gzinflate(base64_decode($message));
-        $currentURL = Utils::getSelfURLNoQuery();
-        $plainMessage = str_replace('http://stuff.com/endpoints/endpoints/sls.php', $currentURL, $plainMessage);
-        $message = base64_encode(gzdeflate($plainMessage));
+        $message = base64_encode(
+            gzdeflate(
+                str_replace(
+                    'http://stuff.com/endpoints/endpoints/sls.php',
+                    Utils::getSelfURLNoQuery(),
+                    gzinflate(base64_decode(file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64')))
+                )
+            )
+        );
 
         $requestId = 'invalid_request_id';
 
-        $this->_settings->setStrict(false);
-        $response = new LogoutResponse($this->_settings, $message);
-        $this->assertTrue($response->isValid($requestId));
+        $this->settings->setStrict(false);
+        $this->assertTrue((new LogoutResponse($this->settings, $message))->isValid($requestId));
 
-        $this->_settings->setStrict(true);
-        $response2 = new LogoutResponse($this->_settings, $message);
+        $this->settings->setStrict(true);
+        $response2 = new LogoutResponse($this->settings, $message);
 
         $this->assertTrue($response2->isValid());
 
@@ -184,20 +172,25 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function testIsInValidIssuer()
     {
-        $message = file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64');
+        $message = base64_encode(
+            gzdeflate(
+                str_replace(
+                    'http://idp.example.com/',
+                    'http://invalid.issuer.example.com',
+                    str_replace(
+                        'http://stuff.com/endpoints/endpoints/sls.php',
+                        Utils::getSelfURLNoQuery(),
+                        gzinflate(base64_decode(file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64')))
+                    )
+                )
+            )
+        );
 
-        $plainMessage = gzinflate(base64_decode($message));
-        $currentURL = Utils::getSelfURLNoQuery();
-        $plainMessage = str_replace('http://stuff.com/endpoints/endpoints/sls.php', $currentURL, $plainMessage);
-        $plainMessage = str_replace('http://idp.example.com/', 'http://invalid.issuer.example.com', $plainMessage);
-        $message = base64_encode(gzdeflate($plainMessage));
+        $this->settings->setStrict(false);
+        $this->assertTrue((new LogoutResponse($this->settings, $message))->isValid());
 
-        $this->_settings->setStrict(false);
-        $response = new LogoutResponse($this->_settings, $message);
-        $this->assertTrue($response->isValid());
-
-        $this->_settings->setStrict(true);
-        $response2 = new LogoutResponse($this->_settings, $message);
+        $this->settings->setStrict(true);
+        $response2 = new LogoutResponse($this->settings, $message);
 
         $this->assertFalse($response2->isValid());
         $this->assertEquals('Invalid issuer in the Logout Response', $response2->getError());
@@ -214,8 +207,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function testIsInValidWrongXML()
     {
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
+        include TEST_ROOT . '/settings/settings1.php';
 
         $settingsInfo['security']['wantXMLValidation'] = false;
 
@@ -224,9 +216,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
 
         $message = file_get_contents(TEST_ROOT . '/data/logout_responses/invalids/invalid_xml.xml.base64');
 
-        $response = new LogoutResponse($settings, $message);
-
-        $this->assertTrue($response->isValid());
+        $this->assertTrue((new LogoutResponse($settings, $message))->isValid());
 
         $settings->setStrict(true);
         $response2 = new LogoutResponse($settings, $message);
@@ -236,8 +226,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
         $settingsInfo['security']['wantXMLValidation'] = true;
         $settings2 = new Settings($settingsInfo);
         $settings2->setStrict(false);
-        $response3 = new LogoutResponse($settings2, $message);
-        $this->assertTrue($response3->isValid());
+        $this->assertTrue((new LogoutResponse($settings2, $message))->isValid());
 
         $settings2->setStrict(true);
         $response4 = new LogoutResponse($settings2, $message);
@@ -258,12 +247,11 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
     {
         $message = file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64');
 
-        $this->_settings->setStrict(false);
-        $response = new LogoutResponse($this->_settings, $message);
-        $this->assertTrue($response->isValid());
+        $this->settings->setStrict(false);
+        $this->assertTrue((new LogoutResponse($this->settings, $message))->isValid());
 
-        $this->_settings->setStrict(true);
-        $response2 = new LogoutResponse($this->_settings, $message);
+        $this->settings->setStrict(true);
+        $response2 = new LogoutResponse($this->settings, $message);
         $this->assertFalse($response2->isValid());
         $this->assertContains('The LogoutResponse was received at', $response2->getError());
     }
@@ -275,9 +263,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function testIsInValidSign()
     {
-        $currentURL = Utils::getSelfURLNoQuery();
-
-        $this->_settings->setStrict(false);
+        $this->settings->setStrict(false);
         $_GET = [
             'SAMLResponse' => 'fZJva8IwEMa/Ssl7TZrW/gnqGHMMwSlM8cXeyLU9NaxNQi9lfvxVZczB5ptwSe733MPdjQma2qmFPdjOvyE5awiDU1MbUpevCetaoyyQJmWgQVK+VOvH14WSQ6Fca70tbc1ukPsEEGHrtTUsmM8mbDfKUhnFci8gliGINI/yXIAAiYnsw6JIRgWWAKlkwRZb6skJ64V6nKjDuSEPxvdPIowHIhpIsQkTFaYqSt9ZMEPy2oC/UEfvHSnOnfZFV38MjR1oN7TtgRv8tAZre9CGV9jYkGtT4Wnoju6Bauprme/ebOyErZbPi9XLfLnDoohwhHGc5WVSVhjCKM6rBMpYQpWJrIizfZ4IZNPxuTPqYrmd/m+EdONqPOfy8yG5rhxv0EMFHs52xvxWaHyd3tqD7+j37clWGGyh7vD+POiSrdZdWSIR49NrhR9R/teGTL8A',
             'RelayState' => 'https://pitbulk.no-ip.org/newonelogin/demo1/index.php',
@@ -285,18 +271,17 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
             'Signature' => 'vfWbbc47PkP3ejx4bjKsRX7lo9Ml1WRoE5J5owF/0mnyKHfSY6XbhO1wwjBV5vWdrUVX+xp6slHyAf4YoAsXFS0qhan6txDiZY4Oec6yE+l10iZbzvie06I4GPak4QrQ4gAyXOSzwCrRmJu4gnpeUxZ6IqKtdrKfAYRAcVfNKGA=',
         ];
 
-        $response = new LogoutResponse($this->_settings, $_GET['SAMLResponse']);
-        $this->assertTrue($response->isValid());
+        $this->assertTrue((new LogoutResponse($this->settings, $_GET['SAMLResponse']))->isValid());
 
-        $this->_settings->setStrict(true);
-        $response2 = new LogoutResponse($this->_settings, $_GET['SAMLResponse']);
+        $this->settings->setStrict(true);
+        $response2 = new LogoutResponse($this->settings, $_GET['SAMLResponse']);
         $this->assertFalse($response2->isValid());
         $this->assertContains('Invalid issuer in the Logout Response', $response2->getError());
 
-        $this->_settings->setStrict(false);
+        $this->settings->setStrict(false);
         $oldSignature = $_GET['Signature'];
         $_GET['Signature'] = 'vfWbbc47PkP3ejx4bjKsRX7lo9Ml1WRoE5J5owF/0mnyKHfSY6XbhO1wwjBV5vWdrUVX+xp6slHyAf4YoAsXFS0qhan6txDiZY4Oec6yE+l10iZbzvie06I4GPak4QrQ4gAyXOSzwCrRmJu4gnpeUxZ6IqKtdrKfAYRAcVf3333=';
-        $response3 = new LogoutResponse($this->_settings, $_GET['SAMLResponse']);
+        $response3 = new LogoutResponse($this->settings, $_GET['SAMLResponse']);
 
         $this->assertFalse($response3->isValid());
         $this->assertEquals('Signature validation failed. Logout Response rejected', $response3->getError());
@@ -304,48 +289,64 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
         $_GET['Signature'] = $oldSignature;
         $oldSigAlg = $_GET['SigAlg'];
         unset($_GET['SigAlg']);
-        $response4 = new LogoutResponse($this->_settings, $_GET['SAMLResponse']);
-        $this->assertTrue($response4->isValid());
+        $this->assertTrue((new LogoutResponse($this->settings, $_GET['SAMLResponse']))->isValid());
 
-        $oldRelayState = $_GET['RelayState'];
         $_GET['RelayState'] = 'http://example.com/relaystate';
-        $response5 = new LogoutResponse($this->_settings, $_GET['SAMLResponse']);
+        $response5 = new LogoutResponse($this->settings, $_GET['SAMLResponse']);
         $this->assertFalse($response5->isValid());
         $this->assertEquals('Signature validation failed. Logout Response rejected', $response5->getError());
 
-        $this->_settings->setStrict(true);
+        $this->settings->setStrict(true);
 
-        $plainMessage6 = gzinflate(base64_decode($_GET['SAMLResponse']));
-        $plainMessage6 = str_replace('https://pitbulk.no-ip.org/newonelogin/demo1/index.php?sls', $currentURL, $plainMessage6);
-        $plainMessage6 = str_replace('https://pitbulk.no-ip.org/simplesaml/saml2/idp/metadata.php', 'http://idp.example.com/', $plainMessage6);
-        $_GET['SAMLResponse'] = base64_encode(gzdeflate($plainMessage6));
+        $_GET['SAMLResponse'] = base64_encode(
+            gzdeflate(
+                str_replace(
+                    'https://pitbulk.no-ip.org/simplesaml/saml2/idp/metadata.php',
+                    'http://idp.example.com/',
+                    str_replace(
+                        'https://pitbulk.no-ip.org/newonelogin/demo1/index.php?sls',
+                        Utils::getSelfURLNoQuery(),
+                        gzinflate(base64_decode($_GET['SAMLResponse']))
+                    )
+                )
+            )
+        );
 
-        $response6 = new LogoutResponse($this->_settings, $_GET['SAMLResponse']);
+        $response6 = new LogoutResponse($this->settings, $_GET['SAMLResponse']);
         $this->assertFalse($response6->isValid());
         $this->assertEquals('Signature validation failed. Logout Response rejected', $response6->getError());
 
-        $this->_settings->setStrict(false);
-        $response7 = new LogoutResponse($this->_settings, $_GET['SAMLResponse']);
+        $this->settings->setStrict(false);
+        $response7 = new LogoutResponse($this->settings, $_GET['SAMLResponse']);
         $this->assertFalse($response7->isValid());
         $this->assertEquals('Signature validation failed. Logout Response rejected', $response7->getError());
 
         $_GET['SigAlg'] = 'http://www.w3.org/2000/09/xmldsig#dsa-sha1';
-        $response8 = new LogoutResponse($this->_settings, $_GET['SAMLResponse']);
+        $response8 = new LogoutResponse($this->settings, $_GET['SAMLResponse']);
         $this->assertFalse($response8->isValid());
         $this->assertEquals('Invalid signAlg in the recieved Logout Response', $response8->getError());
 
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
+        include TEST_ROOT . '/settings/settings1.php';
         $settingsInfo['strict'] = true;
         $settingsInfo['security']['wantMessagesSigned'] = true;
-
-        $settings = new Settings($settingsInfo);
 
         $_GET['SigAlg'] = $oldSigAlg;
         $oldSignature = $_GET['Signature'];
         unset($_GET['Signature']);
-        $_GET['SAMLResponse'] = base64_encode(gzdeflate($plainMessage6));
-        $response9 = new LogoutResponse($settings, $_GET['SAMLResponse']);
+        $_GET['SAMLResponse'] = base64_encode(
+            gzdeflate(
+                str_replace(
+                    'https://pitbulk.no-ip.org/simplesaml/saml2/idp/metadata.php',
+                    'http://idp.example.com/',
+                    str_replace(
+                        'https://pitbulk.no-ip.org/newonelogin/demo1/index.php?sls',
+                        Utils::getSelfURLNoQuery(),
+                        gzinflate(base64_decode($_GET['SAMLResponse']))
+                    )
+                )
+            )
+        );
+        $response9 = new LogoutResponse(new Settings($settingsInfo), $_GET['SAMLResponse']);
         $this->assertFalse($response9->isValid());
         $this->assertEquals('The Message of the Logout Response is not signed and the SP requires it', $response9->getError());
 
@@ -353,9 +354,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
 
         $settingsInfo['idp']['certFingerprint'] = 'afe71c28ef740bc87425be13a2263d37971da1f9';
         unset($settingsInfo['idp']['x509cert']);
-        $settings2 = new Settings($settingsInfo);
-
-        $response10 = new LogoutResponse($settings2, $_GET['SAMLResponse']);
+        $response10 = new LogoutResponse(new Settings($settingsInfo), $_GET['SAMLResponse']);
         $this->assertFalse($response10->isValid());
         $this->assertEquals('In order to validate the sign on the Logout Response, the x509cert of the IdP is required', $response10->getError());
     }
@@ -375,16 +374,13 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
             'Signature' => 'OV9c4R0COSjN69fAKCpV7Uj/yx6/KFxvbluVCzdK3UuortpNMpgHFF2wYNlMSG9GcYGk6p3I8nB7Z+1TQchMWZOlO/StjAqgtZhtpiwPcWryNuq8vm/6hnJ3zMDhHTS7F8KG4qkCXmJ9sQD3Y31UNcuygBwIbNakvhDT5Qo9Nsw=',
         ];
 
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings6.php';
+        include TEST_ROOT . '/settings/settings6.php';
         $settingsInfo['strict'] = true;
         $settingsInfo['security']['wantMessagesSigned'] = true;
-        $encodedResponse = $_GET['SAMLResponse'];
         $settings = new Settings($settingsInfo);
         $settings->setBaseURL("http://stuff.com/endpoints/endpoints/");
         $_SERVER['REQUEST_URI'] = "/endpoints/endpoints/sls.php";
-        $logoutResponse = new LogoutResponse($settings, $_GET['SAMLResponse']);
-        $valid = $logoutResponse->isValid();
+        $valid = (new LogoutResponse($settings, $_GET['SAMLResponse']))->isValid();
         unset($_SERVER['REQUEST_URI']);
         Utils::setBaseURL(null);
         $this->assertTrue($valid);
@@ -398,22 +394,22 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
     public function testIsValid()
     {
         $message = file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64');
-        $response = new LogoutResponse($this->_settings, $message);
+        $this->assertTrue((new LogoutResponse($this->settings, $message))->isValid());
 
-        $this->assertTrue($response->isValid());
-
-        $this->_settings->setStrict(true);
-        $response2 = new LogoutResponse($this->_settings, $message);
+        $this->settings->setStrict(true);
+        $response2 = new LogoutResponse($this->settings, $message);
         $this->assertFalse($response2->isValid());
         $this->assertContains('The LogoutResponse was received at', $response2->getError());
 
-        $plainMessage = gzinflate(base64_decode($message));
-        $currentURL = Utils::getSelfURLNoQuery();
-        $plainMessage = str_replace('http://stuff.com/endpoints/endpoints/sls.php', $currentURL, $plainMessage);
-        $message3 = base64_encode(gzdeflate($plainMessage));
-
-        $response3 = new LogoutResponse($this->_settings, $message3);
-        $this->assertTrue($response3->isValid());
+        $this->assertTrue(
+            (new LogoutResponse(
+                $this->settings, base64_encode(
+                    gzdeflate(
+                        str_replace('http://stuff.com/endpoints/endpoints/sls.php', Utils::getSelfURLNoQuery(), gzinflate(base64_decode($message)))
+                    )
+                )
+            ))->isValid()
+        );
     }
 
     /**
@@ -425,19 +421,19 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
     public function testWeCanChooseToCompressAResponse()
     {
         //Test that we can compress.
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
+        include TEST_ROOT . '/settings/settings1.php';
 
-        $message = file_get_contents(
-            TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64'
+        $this->assertRegExp('#^<samlp:LogoutResponse#',
+            gzinflate(
+                base64_decode(
+                    (new LogoutResponse(
+                        new Settings($settingsInfo), file_get_contents(
+                            TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64'
+                        )
+                    ))->getResponse()
+                )
+            )
         );
-
-        $settings = new Settings($settingsInfo);
-        $logoutResponse = new LogoutResponse($settings, $message);
-        $payload = $logoutResponse->getResponse();
-        $decoded = base64_decode($payload);
-        $decompressed = gzinflate($decoded);
-        $this->assertRegExp('#^<samlp:LogoutResponse#', $decompressed);
     }
 
     /**
@@ -449,18 +445,18 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
     public function testWeCanChooseNotToCompressAResponse()
     {
         //Test that we can choose not to compress the request payload.
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings2.php';
+        include TEST_ROOT . '/settings/settings2.php';
 
-        $message = file_get_contents(
-            TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64'
+        $this->assertRegExp(
+            '#^<samlp:LogoutResponse#',
+            base64_decode(
+                (new LogoutResponse(
+                    new Settings($settingsInfo), file_get_contents(
+                        TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64'
+                    )
+                ))->getResponse()
+            )
         );
-
-        $settings = new Settings($settingsInfo);
-        $logoutResponse = new LogoutResponse($settings, $message);
-        $payload = $logoutResponse->getResponse();
-        $decoded = base64_decode($payload);
-        $this->assertRegExp('#^<samlp:LogoutResponse#', $decoded);
     }
 
     /**
@@ -475,24 +471,15 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
             TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64'
         );
 
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
+        include TEST_ROOT . '/settings/settings1.php';
 
-        $settings = new Settings($settingsInfo);
-        $logoutResponse = new LogoutResponse($settings, $message);
-        $payload = $logoutResponse->getResponse(false);
-        $decoded = base64_decode($payload);
-        $this->assertRegExp('#^<samlp:LogoutResponse#', $decoded);
+        $this->assertRegExp('#^<samlp:LogoutResponse#', base64_decode((new LogoutResponse(new Settings($settingsInfo), $message))->getResponse(false)));
 
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings2.php';
+        include TEST_ROOT . '/settings/settings2.php';
 
-        $settings = new Settings($settingsInfo);
-        $logoutResponse = new LogoutResponse($settings, $message);
-        $payload = $logoutResponse->getResponse(true);
-        $decoded = base64_decode($payload);
-        $decompressed = gzinflate($decoded);
-        $this->assertRegExp('#^<samlp:LogoutResponse#', $decompressed);
+        $this->assertRegExp('#^<samlp:LogoutResponse#',
+            gzinflate(base64_decode((new LogoutResponse(new Settings($settingsInfo), $message))->getResponse(true)))
+        );
     }
 
     /**
@@ -503,8 +490,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetXML()
     {
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
+        include TEST_ROOT . '/settings/settings1.php';
 
         $settings = new Settings($settingsInfo);
         $logoutResponse = new LogoutResponse($settings);
@@ -512,9 +498,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
         $xml = $logoutResponse->getXML();
         $this->assertRegExp('#^<samlp:LogoutResponse#', $xml);
 
-        $processedLogoutResponse = new LogoutResponse($settings, base64_encode($xml));
-        $xml2 = $processedLogoutResponse->getXML();
-        $this->assertRegExp('#^<samlp:LogoutResponse#', $xml2);
+        $this->assertRegExp('#^<samlp:LogoutResponse#', (new LogoutResponse($settings, base64_encode($xml)))->getXML());
     }
 
     /**
@@ -524,20 +508,16 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetID()
     {
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
+        include TEST_ROOT . '/settings/settings1.php';
 
         $settings = new Settings($settingsInfo);
         $logoutResponse = new LogoutResponse($settings);
         $logoutResponse->build('jhgvsadja');
 
-        $xml = $logoutResponse->getXML();
         $id1 = $logoutResponse->getID();
         $this->assertNotNull($id1);
 
-        $processedLogoutResponse = new LogoutResponse($settings, base64_encode($xml));
-        $id2 = $processedLogoutResponse->getID();
-        $this->assertEquals($id1, $id2);
+        $this->assertEquals($id1, (new LogoutResponse($settings, base64_encode($logoutResponse->getXML())))->getID());
     }
 
     /**
@@ -550,9 +530,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetIDException()
     {
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
-        $settings = new Settings($settingsInfo);
-        $logoutResponse = new LogoutResponse($settings, '<garbage>');
+        include TEST_ROOT . '/settings/settings1.php';
+        new LogoutResponse(new Settings($settingsInfo), '<garbage>');
     }
 }

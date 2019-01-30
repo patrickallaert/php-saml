@@ -16,19 +16,23 @@ use RobRichards\XMLSecLibs\XMLSecurityKey;
  */
 class AuthTest extends \PHPUnit\Framework\TestCase
 {
-    private $_auth;
-    private $_settingsInfo;
+    /**
+     * @var Auth
+     */
+    private $auth;
 
     /**
-     * Initializes the Test Suite
+     * @var array
      */
+    private $settingsInfo;
+
+
     public function setUp()
     {
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
+        include TEST_ROOT . '/settings/settings1.php';
 
-        $this->_settingsInfo = $settingsInfo;
-        $this->_auth = new Auth($settingsInfo);
+        $this->settingsInfo = $settingsInfo;
+        $this->auth = new Auth($settingsInfo);
     }
 
     /**
@@ -41,13 +45,9 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetSettings()
     {
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
+        include TEST_ROOT . '/settings/settings1.php';
 
-        $settings = new Settings($settingsInfo);
-
-        $authSettings = $this->_auth->getSettings();
-        $this->assertEquals($authSettings, $settings);
+        $this->assertEquals($this->auth->getSettings(), new Settings($settingsInfo));
     }
 
     /**
@@ -57,12 +57,12 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetLastRequestID()
     {
-        $targetSSOURL = $this->_auth->login(null, [], false, false, true, false);
-        $id1 = $this->_auth->getLastRequestID();
+        $this->auth->login(null, [], false, false, true, false);
+        $id1 = $this->auth->getLastRequestID();
         $this->assertNotNull($id1);
 
-        $targetSLOURL = $this->_auth->logout(null, [], null, null, true, null);
-        $id2 = $this->_auth->getLastRequestID();
+        $this->auth->logout(null, [], null, null, true, null);
+        $id2 = $this->auth->getLastRequestID();
         $this->assertNotNull($id2);
 
         $this->assertNotEquals($id1, $id2);
@@ -75,8 +75,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetSSOurl()
     {
-        $ssoUrl = $this->_settingsInfo['idp']['singleSignOnService']['url'];
-        $this->assertEquals($this->_auth->getSSOurl(), $ssoUrl);
+        $this->assertEquals($this->auth->getSSOurl(), $this->settingsInfo['idp']['singleSignOnService']['url']);
     }
 
     /**
@@ -86,8 +85,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetSLOurl()
     {
-        $sloUrl = $this->_settingsInfo['idp']['singleLogoutService']['url'];
-        $this->assertEquals($this->_auth->getSLOurl(), $sloUrl);
+        $this->assertEquals($this->auth->getSLOurl(), $this->settingsInfo['idp']['singleLogoutService']['url']);
     }
 
     /**
@@ -99,13 +97,13 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     public function testProcessNoResponse()
     {
         try {
-            $this->_auth->processResponse();
+            $this->auth->processResponse();
             $this->fail('Error was not raised');
         } catch (Error $e) {
             $this->assertContains('SAML Response not found', $e->getMessage());
         }
 
-        $this->assertEquals($this->_auth->getErrors(), ['invalid_binding']);
+        $this->assertEquals($this->auth->getErrors(), ['invalid_binding']);
     }
 
     /**
@@ -130,24 +128,22 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testProcessResponseInvalid()
     {
-        $message = file_get_contents(TEST_ROOT . '/data/responses/response1.xml.base64');
-        $_POST['SAMLResponse'] = $message;
+        $_POST['SAMLResponse'] = file_get_contents(TEST_ROOT . '/data/responses/response1.xml.base64');
 
-        $this->_auth->processResponse();
+        $this->auth->processResponse();
 
-        $this->assertFalse($this->_auth->isAuthenticated());
-        $this->assertEmpty($this->_auth->getAttributes());
-        $this->assertNull($this->_auth->getNameId());
-        $this->assertNull($this->_auth->getNameIdFormat());
-        $this->assertNull($this->_auth->getNameIdNameQualifier());
-        $this->assertNull($this->_auth->getNameIdSPNameQualifier());
-        $this->assertNull($this->_auth->getSessionIndex());
-        $this->assertNull($this->_auth->getSessionExpiration());
-        $this->assertNull($this->_auth->getAttribute('uid'));
-        $this->assertEquals($this->_auth->getErrors(), ['invalid_response']);
-        $this->assertEquals($this->_auth->getLastErrorReason(), "Reference validation failed");
-        $errorException = $this->_auth->getLastErrorException();
-        $this->assertEquals("Reference validation failed", $errorException->getMessage());
+        $this->assertFalse($this->auth->isAuthenticated());
+        $this->assertEmpty($this->auth->getAttributes());
+        $this->assertNull($this->auth->getNameId());
+        $this->assertNull($this->auth->getNameIdFormat());
+        $this->assertNull($this->auth->getNameIdNameQualifier());
+        $this->assertNull($this->auth->getNameIdSPNameQualifier());
+        $this->assertNull($this->auth->getSessionIndex());
+        $this->assertNull($this->auth->getSessionExpiration());
+        $this->assertNull($this->auth->getAttribute('uid'));
+        $this->assertEquals($this->auth->getErrors(), ['invalid_response']);
+        $this->assertEquals($this->auth->getLastErrorReason(), "Reference validation failed");
+        $this->assertEquals("Reference validation failed", $this->auth->getLastErrorException()->getMessage());
     }
 
     /**
@@ -158,28 +154,26 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testProcessResponseInvalidRequestId()
     {
-        $message = file_get_contents(TEST_ROOT . '/data/responses/unsigned_response.xml.base64');
-
-        $plainMessage = base64_decode($message);
-        $currentURL = Utils::getSelfURLNoQuery();
-        $plainMessage = str_replace('http://stuff.com/endpoints/endpoints/acs.php', $currentURL, $plainMessage);
-
-        $_POST['SAMLResponse'] = base64_encode($plainMessage);
+        $_POST['SAMLResponse'] = base64_encode(
+            str_replace(
+                'http://stuff.com/endpoints/endpoints/acs.php',
+                Utils::getSelfURLNoQuery(),
+                base64_decode(file_get_contents(TEST_ROOT . '/data/responses/unsigned_response.xml.base64'))
+            )
+        );
 
         $requestId = 'invalid';
-        $this->_auth->processResponse($requestId);
+        $this->auth->processResponse($requestId);
 
-        $this->assertEquals("No Signature found. SAML Response rejected", $this->_auth->getLastErrorReason());
-        $errorException = $this->_auth->getLastErrorException();
-        $this->assertEquals("No Signature found. SAML Response rejected", $errorException->getMessage());
+        $this->assertEquals("No Signature found. SAML Response rejected", $this->auth->getLastErrorReason());
+        $this->assertEquals("No Signature found. SAML Response rejected", $this->auth->getLastErrorException()->getMessage());
 
-        $this->_auth->setStrict(true);
-        $this->_auth->processResponse($requestId);
-        $this->assertEquals("The InResponseTo of the Response: _57bcbf70-7b1f-012e-c821-782bcb13bb38, does not match the ID of the AuthNRequest sent by the SP: invalid", $this->_auth->getLastErrorReason());
+        $this->auth->setStrict(true);
+        $this->auth->processResponse($requestId);
+        $this->assertEquals("The InResponseTo of the Response: _57bcbf70-7b1f-012e-c821-782bcb13bb38, does not match the ID of the AuthNRequest sent by the SP: invalid", $this->auth->getLastErrorReason());
 
-        $validRequestId = '_57bcbf70-7b1f-012e-c821-782bcb13bb38';
-        $this->_auth->processResponse($validRequestId);
-        $this->assertEquals("No Signature found. SAML Response rejected", $this->_auth->getLastErrorReason());
+        $this->auth->processResponse('_57bcbf70-7b1f-012e-c821-782bcb13bb38');
+        $this->assertEquals("No Signature found. SAML Response rejected", $this->auth->getLastErrorReason());
     }
 
     /**
@@ -200,22 +194,17 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testProcessResponseValid()
     {
-        $message = file_get_contents(TEST_ROOT . '/data/responses/valid_response.xml.base64');
-        $_POST['SAMLResponse'] = $message;
+        $_POST['SAMLResponse'] = file_get_contents(TEST_ROOT . '/data/responses/valid_response.xml.base64');
 
-        $this->_auth->processResponse();
-        $this->assertTrue($this->_auth->isAuthenticated());
-        $this->assertEquals('492882615acf31c8096b627245d76ae53036c090', $this->_auth->getNameId());
-        $this->assertEquals('urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress', $this->_auth->getNameIdFormat());
-        $attributes = $this->_auth->getAttributes();
+        $this->auth->processResponse();
+        $this->assertTrue($this->auth->isAuthenticated());
+        $this->assertEquals('492882615acf31c8096b627245d76ae53036c090', $this->auth->getNameId());
+        $this->assertEquals('urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress', $this->auth->getNameIdFormat());
+        $attributes = $this->auth->getAttributes();
         $this->assertNotEmpty($attributes);
-        $this->assertEquals($this->_auth->getAttribute('mail'), $attributes['mail']);
-        $sessionIndex = $this->_auth->getSessionIndex();
-        $this->assertNotNull($sessionIndex);
-        $this->assertEquals('_6273d77b8cde0c333ec79d22a9fa0003b9fe2d75cb', $sessionIndex);
-        $sessionExpiration = $this->_auth->getSessionExpiration();
-        $this->assertNotNull($sessionExpiration);
-        $this->assertEquals('2655106621', $sessionExpiration);
+        $this->assertEquals($this->auth->getAttribute('mail'), $attributes['mail']);
+        $this->assertEquals('_6273d77b8cde0c333ec79d22a9fa0003b9fe2d75cb', $this->auth->getSessionIndex());
+        $this->assertEquals('2655106621', $this->auth->getSessionExpiration());
     }
 
     /**
@@ -225,12 +214,11 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetNameIdNameQualifier()
     {
-        $message = file_get_contents(TEST_ROOT . '/data/responses/valid_response_with_namequalifier.xml.base64');
-        $_POST['SAMLResponse'] = $message;
-        $this->assertNull($this->_auth->getNameIdNameQualifier());
-        $this->_auth->processResponse();
-        $this->assertTrue($this->_auth->isAuthenticated());
-        $this->assertEquals('https://test.example.com/saml/metadata', $this->_auth->getNameIdNameQualifier());
+        $_POST['SAMLResponse'] = file_get_contents(TEST_ROOT . '/data/responses/valid_response_with_namequalifier.xml.base64');
+        $this->assertNull($this->auth->getNameIdNameQualifier());
+        $this->auth->processResponse();
+        $this->assertTrue($this->auth->isAuthenticated());
+        $this->assertEquals('https://test.example.com/saml/metadata', $this->auth->getNameIdNameQualifier());
     }
 
     /**
@@ -240,12 +228,11 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetNameIdNameQualifier2()
     {
-        $message = file_get_contents(TEST_ROOT . '/data/responses/valid_response.xml.base64');
-        $_POST['SAMLResponse'] = $message;
-        $this->assertNull($this->_auth->getNameIdNameQualifier());
-        $this->_auth->processResponse();
-        $this->assertTrue($this->_auth->isAuthenticated());
-        $this->assertNull($this->_auth->getNameIdNameQualifier());
+        $_POST['SAMLResponse'] = file_get_contents(TEST_ROOT . '/data/responses/valid_response.xml.base64');
+        $this->assertNull($this->auth->getNameIdNameQualifier());
+        $this->auth->processResponse();
+        $this->assertTrue($this->auth->isAuthenticated());
+        $this->assertNull($this->auth->getNameIdNameQualifier());
     }
 
     /**
@@ -255,12 +242,11 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetNameIdSPNameQualifier()
     {
-        $message = file_get_contents(TEST_ROOT . '/data/responses/valid_response_with_namequalifier.xml.base64');
-        $_POST['SAMLResponse'] = $message;
-        $this->assertNull($this->_auth->getNameIdSPNameQualifier());
-        $this->_auth->processResponse();
-        $this->assertTrue($this->_auth->isAuthenticated());
-        $this->assertNull($this->_auth->getNameIdSPNameQualifier());
+        $_POST['SAMLResponse'] = file_get_contents(TEST_ROOT . '/data/responses/valid_response_with_namequalifier.xml.base64');
+        $this->assertNull($this->auth->getNameIdSPNameQualifier());
+        $this->auth->processResponse();
+        $this->assertTrue($this->auth->isAuthenticated());
+        $this->assertNull($this->auth->getNameIdSPNameQualifier());
     }
 
     /**
@@ -270,12 +256,11 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetNameIdSPNameQualifier2()
     {
-        $message = file_get_contents(TEST_ROOT . '/data/responses/valid_response.xml.base64');
-        $_POST['SAMLResponse'] = $message;
-        $this->assertNull($this->_auth->getNameIdSPNameQualifier());
-        $this->_auth->processResponse();
-        $this->assertTrue($this->_auth->isAuthenticated());
-        $this->assertEquals('http://stuff.com/endpoints/metadata.php', $this->_auth->getNameIdSPNameQualifier());
+        $_POST['SAMLResponse'] = file_get_contents(TEST_ROOT . '/data/responses/valid_response.xml.base64');
+        $this->assertNull($this->auth->getNameIdSPNameQualifier());
+        $this->auth->processResponse();
+        $this->assertTrue($this->auth->isAuthenticated());
+        $this->assertEquals('http://stuff.com/endpoints/metadata.php', $this->auth->getNameIdSPNameQualifier());
     }
 
     /**
@@ -287,53 +272,51 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetAttributes()
     {
-        $auth = new Auth($this->_settingsInfo);
-        $response = file_get_contents(TEST_ROOT . '/data/responses/response6.xml.base64');
-        $_POST['SAMLResponse'] = $response;
+        $auth = new Auth($this->settingsInfo);
+        $_POST['SAMLResponse'] = file_get_contents(TEST_ROOT . '/data/responses/response6.xml.base64');
         $auth->processResponse();
-        $expectedAttributes = [
-            'urn:oid:0.9.2342.19200300.100.1.1' => ['demo'],
-            'urn:oid:2.5.4.42' => ['value'],
-        ];
-        $expectedFriendlyNameAttributes = [
-            'uid' => ['demo'],
-            'givenName' => ['value'],
-        ];
-        $this->assertEquals($expectedAttributes, $auth->getAttributes());
-        $this->assertEquals($expectedFriendlyNameAttributes, $auth->getAttributesWithFriendlyName());
+        $this->assertEquals(
+            [
+                'urn:oid:0.9.2342.19200300.100.1.1' => ['demo'],
+                'urn:oid:2.5.4.42' => ['value'],
+            ],
+            $auth->getAttributes()
+        );
+        $this->assertEquals(
+            [
+                'uid' => ['demo'],
+                'givenName' => ['value'],
+            ],
+            $auth->getAttributesWithFriendlyName()
+        );
         $this->assertNull($auth->getAttribute('givenName'));
         $this->assertEquals(['value'], $auth->getAttributeWithFriendlyName('givenName'));
         $this->assertEquals(['value'], $auth->getAttribute('urn:oid:2.5.4.42'));
         $this->assertNull($auth->getAttributeWithFriendlyName('urn:oid:2.5.4.42'));
         // An assertion that has no attributes should return an empty array when asked for the attributes
-        $response2 = file_get_contents(TEST_ROOT . '/data/responses/response2.xml.base64');
-        $_POST['SAMLResponse'] = $response2;
-        $auth2 = new Auth($this->_settingsInfo);
+        $_POST['SAMLResponse'] = file_get_contents(TEST_ROOT . '/data/responses/response2.xml.base64');
+        $auth2 = new Auth($this->settingsInfo);
         $auth2->processResponse();
         $this->assertEmpty($auth2->getAttributes());
         $this->assertEmpty($auth2->getAttributesWithFriendlyName());
         // Encrypted Attributes are not supported
-        $response3 = file_get_contents(TEST_ROOT . '/data/responses/invalids/encrypted_attrs.xml.base64');
-        $_POST['SAMLResponse'] = $response3;
-        $auth3 = new Auth($this->_settingsInfo);
+        $_POST['SAMLResponse'] = file_get_contents(TEST_ROOT . '/data/responses/invalids/encrypted_attrs.xml.base64');
+        $auth3 = new Auth($this->settingsInfo);
         $auth3->processResponse();
         $this->assertEmpty($auth3->getAttributes());
         $this->assertEmpty($auth3->getAttributesWithFriendlyName());
         // Duplicated Attribute names
-        $response4 = file_get_contents(TEST_ROOT . '/data/responses/invalids/duplicated_attributes_with_friendly_names.xml.base64');
-        $_POST['SAMLResponse'] = $response4;
-        $auth4 = new Auth($this->_settingsInfo);
+        $_POST['SAMLResponse'] = file_get_contents(TEST_ROOT . '/data/responses/invalids/duplicated_attributes_with_friendly_names.xml.base64');
+        $auth4 = new Auth($this->settingsInfo);
         try {
             $auth4->processResponse();
             $this->fail('OneLogin\Saml2\ValidationError was not raised');
         } catch (ValidationError $e) {
             $this->assertContains('Found an Attribute element with duplicated FriendlyName', $e->getMessage());
         }
-        $response5 = file_get_contents(TEST_ROOT . '/data/responses/invalids/duplicated_attributes.xml.base64');
-        $_POST['SAMLResponse'] = $response5;
-        $auth5 = new Auth($this->_settingsInfo);
+        $_POST['SAMLResponse'] = file_get_contents(TEST_ROOT . '/data/responses/invalids/duplicated_attributes.xml.base64');
         try {
-            $auth5->processResponse();
+            (new Auth($this->settingsInfo))->processResponse();
             $this->fail('OneLogin\Saml2\ValidationError was not raised');
         } catch (ValidationError $e) {
             $this->assertContains('Found an Attribute element with duplicated Name', $e->getMessage());
@@ -357,15 +340,12 @@ class AuthTest extends \PHPUnit\Framework\TestCase
             $relayState = 'http://sp.example.com';
             $_REQUEST['RelayState'] = $relayState;
             // The Header of the redirect produces an Exception
-            $this->_auth->redirectTo();
+            $this->auth->redirectTo();
             // Do not ever get here
             $this->assertFalse(true);
         } catch (Exception $e) {
             $this->assertContains('Cannot modify header information', $e->getMessage());
-            $trace = $e->getTrace();
-            $targetUrl = getUrlFromRedirect($trace);
-
-            $this->assertEquals($targetUrl, $relayState);
+            $this->assertEquals(getUrlFromRedirect($e->getTrace()), $relayState);
         }
     }
 
@@ -383,19 +363,15 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     public function testRedirectTowithUrl()
     {
         try {
-            $relayState = 'http://sp.example.com';
             $url2 = 'http://sp2.example.com';
-            $_REQUEST['RelayState'] = $relayState;
+            $_REQUEST['RelayState'] = 'http://sp.example.com';
             // The Header of the redirect produces an Exception
-            $this->_auth->redirectTo($url2);
+            $this->auth->redirectTo($url2);
             // Do not ever get here
             $this->assertFalse(true);
         } catch (Exception $e) {
             $this->assertContains('Cannot modify header information', $e->getMessage());
-            $trace = $e->getTrace();
-            $targetUrl = getUrlFromRedirect($trace);
-
-            $this->assertEquals($targetUrl, $url2);
+            $this->assertEquals(getUrlFromRedirect($e->getTrace()), $url2);
         }
     }
 
@@ -408,13 +384,13 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     public function testProcessNoSLO()
     {
         try {
-            $this->_auth->processSLO(true);
+            $this->auth->processSLO(true);
             $this->fail('Error was not raised');
         } catch (Error $e) {
             $this->assertContains('SAML LogoutRequest/LogoutResponse not found', $e->getMessage());
         }
 
-        $this->assertEquals($this->_auth->getErrors(), ['invalid_binding']);
+        $this->assertEquals($this->auth->getErrors(), ['invalid_binding']);
     }
 
     /**
@@ -425,20 +401,19 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testProcessSLOResponseInvalid()
     {
-        $message = file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64');
-        $_GET['SAMLResponse'] = $message;
+        $_GET['SAMLResponse'] = file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64');
 
-        $this->_auth->processSLO(true);
-        $this->assertEmpty($this->_auth->getErrors());
+        $this->auth->processSLO(true);
+        $this->assertEmpty($this->auth->getErrors());
 
-        $this->_auth->setStrict(true);
-        $this->_auth->processSLO(true);
+        $this->auth->setStrict(true);
+        $this->auth->processSLO(true);
         // The Destination fails
-        $this->assertEquals($this->_auth->getErrors(), ['invalid_logout_response']);
+        $this->assertEquals($this->auth->getErrors(), ['invalid_logout_response']);
 
-        $this->_auth->setStrict(false);
-        $this->_auth->processSLO(true);
-        $this->assertEmpty($this->_auth->getErrors());
+        $this->auth->setStrict(false);
+        $this->auth->processSLO(true);
+        $this->assertEmpty($this->auth->getErrors());
     }
 
     /**
@@ -449,19 +424,20 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testProcessSLOResponseNoSucess()
     {
-        $message = file_get_contents(TEST_ROOT . '/data/logout_responses/invalids/status_code_responder.xml.base64');
-
         // In order to avoid the destination problem
-        $plainMessage = gzinflate(base64_decode($message));
-        $currentURL = Utils::getSelfURLNoQuery();
-        $plainMessage = str_replace('http://stuff.com/endpoints/endpoints/sls.php', $currentURL, $plainMessage);
-        $message = base64_encode(gzdeflate($plainMessage));
+        $_GET['SAMLResponse'] = base64_encode(
+            gzdeflate(
+                str_replace(
+                    'http://stuff.com/endpoints/endpoints/sls.php',
+                    Utils::getSelfURLNoQuery(),
+                    gzinflate(base64_decode(file_get_contents(TEST_ROOT . '/data/logout_responses/invalids/status_code_responder.xml.base64')))
+                )
+            )
+        );
 
-        $_GET['SAMLResponse'] = $message;
-
-        $this->_auth->setStrict(true);
-        $this->_auth->processSLO(true);
-        $this->assertEquals($this->_auth->getErrors(), ['logout_not_success']);
+        $this->auth->setStrict(true);
+        $this->auth->processSLO(true);
+        $this->assertEquals($this->auth->getErrors(), ['logout_not_success']);
     }
 
     /**
@@ -472,24 +448,22 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testProcessSLOResponseRequestId()
     {
-        $message = file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64');
-
         // In order to avoid the destination problem
-        $plainMessage = gzinflate(base64_decode($message));
-        $currentURL = Utils::getSelfURLNoQuery();
-        $plainMessage = str_replace('http://stuff.com/endpoints/endpoints/sls.php', $currentURL, $plainMessage);
-        $message = base64_encode(gzdeflate($plainMessage));
+        $_GET['SAMLResponse'] = base64_encode(
+            gzdeflate(
+                str_replace(
+                    'http://stuff.com/endpoints/endpoints/sls.php',
+                    Utils::getSelfURLNoQuery(),
+                    gzinflate(base64_decode(file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64')))
+                )
+            )
+        );
+        $this->auth->setStrict(true);
+        $this->auth->processSLO(true, 'wrongID');
+        $this->assertEquals($this->auth->getErrors(), ['invalid_logout_response']);
 
-        $_GET['SAMLResponse'] = $message;
-        $requestID = 'wrongID';
-
-        $this->_auth->setStrict(true);
-        $this->_auth->processSLO(true, $requestID);
-        $this->assertEquals($this->_auth->getErrors(), ['invalid_logout_response']);
-
-        $requestID = 'ONELOGIN_21584ccdfaca36a145ae990442dcd96bfe60151e';
-        $this->_auth->processSLO(true, $requestID);
-        $this->assertEmpty($this->_auth->getErrors());
+        $this->auth->processSLO(true, 'ONELOGIN_21584ccdfaca36a145ae990442dcd96bfe60151e');
+        $this->assertEmpty($this->auth->getErrors());
     }
 
     /**
@@ -500,25 +474,26 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testProcessSLOResponseValid()
     {
-        $message = file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64');
-
         // In order to avoid the destination problem
-        $plainMessage = gzinflate(base64_decode($message));
-        $currentURL = Utils::getSelfURLNoQuery();
-        $plainMessage = str_replace('http://stuff.com/endpoints/endpoints/sls.php', $currentURL, $plainMessage);
-        $message = base64_encode(gzdeflate($plainMessage));
-
-        $_GET['SAMLResponse'] = $message;
+        $_GET['SAMLResponse'] = base64_encode(
+            gzdeflate(
+                str_replace(
+                    'http://stuff.com/endpoints/endpoints/sls.php',
+                    Utils::getSelfURLNoQuery(),
+                    gzinflate(base64_decode(file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64')))
+                )
+            )
+        );
 
         if (!isset($_SESSION)) {
             $_SESSION = [];
         }
         $_SESSION['samltest'] = true;
 
-        $this->_auth->setStrict(true);
-        $this->_auth->processSLO(true);
+        $this->auth->setStrict(true);
+        $this->auth->processSLO(true);
 
-        $this->assertEmpty($this->_auth->getErrors());
+        $this->assertEmpty($this->auth->getErrors());
 
         // Session keep alive
         $this->assertTrue(isset($_SESSION['samltest']));
@@ -533,25 +508,26 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testProcessSLOResponseValidDeletingSession()
     {
-        $message = file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64');
-
         if (!isset($_SESSION)) {
             $_SESSION = [];
         }
         $_SESSION['samltest'] = true;
 
         // In order to avoid the destination problem
-        $plainMessage = gzinflate(base64_decode($message));
-        $currentURL = Utils::getSelfURLNoQuery();
-        $plainMessage = str_replace('http://stuff.com/endpoints/endpoints/sls.php', $currentURL, $plainMessage);
-        $message = base64_encode(gzdeflate($plainMessage));
+        $_GET['SAMLResponse'] = base64_encode(
+            gzdeflate(
+                str_replace(
+                    'http://stuff.com/endpoints/endpoints/sls.php',
+                    Utils::getSelfURLNoQuery(),
+                    gzinflate(base64_decode(file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64')))
+                )
+            )
+        );
 
-        $_GET['SAMLResponse'] = $message;
+        $this->auth->setStrict(true);
+        $this->auth->processSLO(false);
 
-        $this->_auth->setStrict(true);
-        $this->_auth->processSLO(false);
-
-        $this->assertEmpty($this->_auth->getErrors());
+        $this->assertEmpty($this->auth->getErrors());
 
         $this->assertFalse(isset($_SESSION['samltest']));
     }
@@ -564,29 +540,28 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testProcessSLOResponseValidDeletingSessionCallback()
     {
-        $message = file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64');
-
         if (!isset($_SESSION)) {
             $_SESSION = [];
         }
         $_SESSION['samltest'] = true;
 
-        $callback = function () {
-            $_SESSION['samltest'] = false;
-        };
-
         // In order to avoid the destination problem
-        $plainMessage = gzinflate(base64_decode($message));
-        $currentURL = Utils::getSelfURLNoQuery();
-        $plainMessage = str_replace('http://stuff.com/endpoints/endpoints/sls.php', $currentURL, $plainMessage);
-        $message = base64_encode(gzdeflate($plainMessage));
+        $_GET['SAMLResponse'] = base64_encode(
+            gzdeflate(
+                str_replace(
+                    'http://stuff.com/endpoints/endpoints/sls.php',
+                    Utils::getSelfURLNoQuery(),
+                    gzinflate(base64_decode(file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64')))
+                )
+            )
+        );
 
-        $_GET['SAMLResponse'] = $message;
+        $this->auth->setStrict(true);
+        $this->auth->processSLO(false, null, false, function () {
+            $_SESSION['samltest'] = false;
+        });
 
-        $this->_auth->setStrict(true);
-        $this->_auth->processSLO(false, null, false, $callback);
-
-        $this->assertEmpty($this->_auth->getErrors());
+        $this->assertEmpty($this->auth->getErrors());
 
         $this->assertTrue(isset($_SESSION['samltest']));
         $this->assertFalse($_SESSION['samltest']);
@@ -603,30 +578,27 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testProcessSLORequestInvalidValid()
     {
-        $message = file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request_deflated.xml.base64');
-        $_GET['SAMLRequest'] = $message;
+        $_GET['SAMLRequest'] = file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request_deflated.xml.base64');
 
-        $targetUrl = $this->_auth->processSLO(true, null, false, null, true);
+        $targetUrl = $this->auth->processSLO(true, null, false, null, true);
         $parsedQuery = getParamsFromUrl($targetUrl);
 
-        $this->assertEmpty($this->_auth->getErrors());
-        $sloUrl = $this->_settingsInfo['idp']['singleLogoutService']['url'];
-        $this->assertContains($sloUrl, $targetUrl);
+        $this->assertEmpty($this->auth->getErrors());
+        $this->assertContains($this->settingsInfo['idp']['singleLogoutService']['url'], $targetUrl);
         $this->assertArrayHasKey('SAMLResponse', $parsedQuery);
         $this->assertArrayNotHasKey('RelayState', $parsedQuery);
 
-        $this->_auth->setStrict(true);
-        $this->_auth->processSLO(true);
+        $this->auth->setStrict(true);
+        $this->auth->processSLO(true);
         // Fail due destination missmatch
-        $this->assertEquals($this->_auth->getErrors(), ['invalid_logout_request']);
+        $this->assertEquals($this->auth->getErrors(), ['invalid_logout_request']);
 
-        $this->_auth->setStrict(false);
-        $targetUrl = $this->_auth->processSLO(true, null, false, null, true);
+        $this->auth->setStrict(false);
+        $targetUrl = $this->auth->processSLO(true, null, false, null, true);
         $parsedQuery = getParamsFromUrl($targetUrl);
 
-        $this->assertEmpty($this->_auth->getErrors());
-        $sloUrl = $this->_settingsInfo['idp']['singleLogoutService']['url'];
-        $this->assertContains($sloUrl, $targetUrl);
+        $this->assertEmpty($this->auth->getErrors());
+        $this->assertContains($this->settingsInfo['idp']['singleLogoutService']['url'], $targetUrl);
         $this->assertArrayHasKey('SAMLResponse', $parsedQuery);
         $this->assertArrayNotHasKey('RelayState', $parsedQuery);
     }
@@ -642,19 +614,20 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testProcessSLORequestNotOnOrAfterFailed()
     {
-        $message = file_get_contents(TEST_ROOT . '/data/logout_requests/invalids/not_after_failed.xml.base64');
-
         // In order to avoid the destination problem
-        $plainMessage = gzinflate(base64_decode($message));
-        $currentURL = Utils::getSelfURLNoQuery();
-        $plainMessage = str_replace('http://stuff.com/endpoints/endpoints/sls.php', $currentURL, $plainMessage);
-        $message = base64_encode(gzdeflate($plainMessage));
+        $_GET['SAMLRequest'] = base64_encode(
+            gzdeflate(
+                str_replace(
+                    'http://stuff.com/endpoints/endpoints/sls.php',
+                    Utils::getSelfURLNoQuery(),
+                    gzinflate(base64_decode(file_get_contents(TEST_ROOT . '/data/logout_requests/invalids/not_after_failed.xml.base64')))
+                )
+            )
+        );
 
-        $_GET['SAMLRequest'] = $message;
-
-        $this->_auth->setStrict(true);
-        $this->_auth->processSLO(true);
-        $this->assertEquals($this->_auth->getErrors(), ['invalid_logout_request']);
+        $this->auth->setStrict(true);
+        $this->auth->processSLO(true);
+        $this->assertEquals($this->auth->getErrors(), ['invalid_logout_request']);
     }
 
     /**
@@ -669,15 +642,16 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testProcessSLORequestDeletingSession()
     {
-        $message = file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request_deflated.xml.base64');
-
         // In order to avoid the destination problem
-        $plainMessage = gzinflate(base64_decode($message));
-        $currentURL = Utils::getSelfURLNoQuery();
-        $plainMessage = str_replace('http://stuff.com/endpoints/endpoints/sls.php', $currentURL, $plainMessage);
-        $message = base64_encode(gzdeflate($plainMessage));
-
-        $_GET['SAMLRequest'] = $message;
+        $_GET['SAMLRequest'] = base64_encode(
+            gzdeflate(
+                str_replace(
+                    'http://stuff.com/endpoints/endpoints/sls.php',
+                    Utils::getSelfURLNoQuery(),
+                    gzinflate(base64_decode(file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request_deflated.xml.base64')))
+                )
+            )
+        );
 
         if (!isset($_SESSION)) {
             $_SESSION = [];
@@ -685,17 +659,15 @@ class AuthTest extends \PHPUnit\Framework\TestCase
         $_SESSION['samltest'] = true;
 
         try {
-            $this->_auth->setStrict(true);
-            $this->_auth->processSLO(false);
+            $this->auth->setStrict(true);
+            $this->auth->processSLO(false);
             $this->assertFalse(true);
         } catch (Exception $e) {
             $this->assertContains('Cannot modify header information', $e->getMessage());
-            $trace = $e->getTrace();
-            $targetUrl = getUrlFromRedirect($trace);
+            $targetUrl = getUrlFromRedirect($e->getTrace());
             $parsedQuery = getParamsFromUrl($targetUrl);
 
-            $sloUrl = $this->_settingsInfo['idp']['singleLogoutService']['url'];
-            $this->assertContains($sloUrl, $targetUrl);
+            $this->assertContains($this->settingsInfo['idp']['singleLogoutService']['url'], $targetUrl);
             $this->assertArrayHasKey('SAMLResponse', $parsedQuery);
             $this->assertArrayNotHasKey('RelayState', $parsedQuery);
 
@@ -706,17 +678,15 @@ class AuthTest extends \PHPUnit\Framework\TestCase
         $_SESSION['samltest'] = true;
 
         try {
-            $this->_auth->setStrict(true);
-            $this->_auth->processSLO(true);
+            $this->auth->setStrict(true);
+            $this->auth->processSLO(true);
             $this->assertFalse(true);
         } catch (Exception $e) {
             $this->assertContains('Cannot modify header information', $e->getMessage());
-            $trace = $e->getTrace();
-            $targetUrl = getUrlFromRedirect($trace);
+            $targetUrl = getUrlFromRedirect($e->getTrace());
             $parsedQuery = getParamsFromUrl($targetUrl);
 
-            $sloUrl = $this->_settingsInfo['idp']['singleLogoutService']['url'];
-            $this->assertContains($sloUrl, $targetUrl);
+            $this->assertContains($this->settingsInfo['idp']['singleLogoutService']['url'], $targetUrl);
             $this->assertArrayHasKey('SAMLResponse', $parsedQuery);
             $this->assertArrayNotHasKey('RelayState', $parsedQuery);
 
@@ -739,37 +709,34 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testProcessSLORequestDeletingSessionCallback()
     {
-        $message = file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request_deflated.xml.base64');
-
         // In order to avoid the destination problem
-        $plainMessage = gzinflate(base64_decode($message));
-        $currentURL = Utils::getSelfURLNoQuery();
-        $plainMessage = str_replace('http://stuff.com/endpoints/endpoints/sls.php', $currentURL, $plainMessage);
-        $message = base64_encode(gzdeflate($plainMessage));
-
-        $_GET['SAMLRequest'] = $message;
+        $_GET['SAMLRequest'] = base64_encode(
+            gzdeflate(
+                str_replace(
+                    'http://stuff.com/endpoints/endpoints/sls.php',
+                    Utils::getSelfURLNoQuery(),
+                    gzinflate(base64_decode(file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request_deflated.xml.base64')))
+                )
+            )
+        );
 
         if (!isset($_SESSION)) {
             $_SESSION = [];
         }
         $_SESSION['samltest'] = true;
 
-        $callback = function () {
-            $_SESSION['samltest'] = false;
-        };
-
         try {
-            $this->_auth->setStrict(true);
-            $this->_auth->processSLO(false, null, false, $callback);
+            $this->auth->setStrict(true);
+            $this->auth->processSLO(false, null, false, function () {
+                $_SESSION['samltest'] = false;
+            });
             $this->assertFalse(true);
         } catch (Exception $e) {
             $this->assertContains('Cannot modify header information', $e->getMessage());
-            $trace = $e->getTrace();
-            $targetUrl = getUrlFromRedirect($trace);
+            $targetUrl = getUrlFromRedirect($e->getTrace());
             $parsedQuery = getParamsFromUrl($targetUrl);
 
-            $sloUrl = $this->_settingsInfo['idp']['singleLogoutService']['url'];
-            $this->assertContains($sloUrl, $targetUrl);
+            $this->assertContains($this->settingsInfo['idp']['singleLogoutService']['url'], $targetUrl);
             $this->assertArrayHasKey('SAMLResponse', $parsedQuery);
             $this->assertArrayNotHasKey('RelayState', $parsedQuery);
 
@@ -797,29 +764,28 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testProcessSLORequestRelayState()
     {
-        $message = file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request_deflated.xml.base64');
-
         // In order to avoid the destination problem
-        $plainMessage = gzinflate(base64_decode($message));
-        $currentURL = Utils::getSelfURLNoQuery();
-        $plainMessage = str_replace('http://stuff.com/endpoints/endpoints/sls.php', $currentURL, $plainMessage);
-        $message = base64_encode(gzdeflate($plainMessage));
-
-        $_GET['SAMLRequest'] = $message;
+        $_GET['SAMLRequest'] = base64_encode(
+            gzdeflate(
+                str_replace(
+                    'http://stuff.com/endpoints/endpoints/sls.php',
+                    Utils::getSelfURLNoQuery(),
+                    gzinflate(base64_decode(file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request_deflated.xml.base64')))
+                )
+            )
+        );
         $_GET['RelayState'] = 'http://relaystate.com';
 
         try {
-            $this->_auth->setStrict(true);
-            $this->_auth->processSLO(false);
+            $this->auth->setStrict(true);
+            $this->auth->processSLO(false);
             $this->assertFalse(true);
         } catch (Exception $e) {
             $this->assertContains('Cannot modify header information', $e->getMessage());
-            $trace = $e->getTrace();
-            $targetUrl = getUrlFromRedirect($trace);
+            $targetUrl = getUrlFromRedirect($e->getTrace());
             $parsedQuery = getParamsFromUrl($targetUrl);
 
-            $sloUrl = $this->_settingsInfo['idp']['singleLogoutService']['url'];
-            $this->assertContains($sloUrl, $targetUrl);
+            $this->assertContains($this->settingsInfo['idp']['singleLogoutService']['url'], $targetUrl);
             $this->assertArrayHasKey('SAMLResponse', $parsedQuery);
             $this->assertArrayHasKey('RelayState', $parsedQuery);
             $this->assertEquals('http://relaystate.com', $parsedQuery['RelayState']);
@@ -838,22 +804,22 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testProcessSLORequestSignedResponse()
     {
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
+        include TEST_ROOT . '/settings/settings1.php';
 
         $settingsInfo['security']['logoutResponseSigned'] = true;
 
         $auth = new Auth($settingsInfo);
 
-        $message = file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request_deflated.xml.base64');
-
         // In order to avoid the destination problem
-        $plainMessage = gzinflate(base64_decode($message));
-        $currentURL = Utils::getSelfURLNoQuery();
-        $plainMessage = str_replace('http://stuff.com/endpoints/endpoints/sls.php', $currentURL, $plainMessage);
-        $message = base64_encode(gzdeflate($plainMessage));
-
-        $_GET['SAMLRequest'] = $message;
+        $_GET['SAMLRequest'] = base64_encode(
+            gzdeflate(
+                str_replace(
+                    'http://stuff.com/endpoints/endpoints/sls.php',
+                    Utils::getSelfURLNoQuery(),
+                    gzinflate(base64_decode(file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request_deflated.xml.base64')))
+                )
+            )
+        );
         $_GET['RelayState'] = 'http://relaystate.com';
 
         try {
@@ -862,12 +828,10 @@ class AuthTest extends \PHPUnit\Framework\TestCase
             $this->assertFalse(true);
         } catch (Exception $e) {
             $this->assertContains('Cannot modify header information', $e->getMessage());
-            $trace = $e->getTrace();
-            $targetUrl = getUrlFromRedirect($trace);
+            $targetUrl = getUrlFromRedirect($e->getTrace());
             $parsedQuery = getParamsFromUrl($targetUrl);
 
-            $sloUrl = $settingsInfo['idp']['singleLogoutService']['url'];
-            $this->assertContains($sloUrl, $targetUrl);
+            $this->assertContains($settingsInfo['idp']['singleLogoutService']['url'], $targetUrl);
             $this->assertArrayHasKey('SAMLResponse', $parsedQuery);
             $this->assertArrayHasKey('RelayState', $parsedQuery);
             $this->assertArrayHasKey('SigAlg', $parsedQuery);
@@ -890,17 +854,15 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     {
         try {
             // The Header of the redirect produces an Exception
-            $this->_auth->login();
+            $this->auth->login();
             // Do not ever get here
             $this->assertFalse(true);
         } catch (Exception $e) {
             $this->assertContains('Cannot modify header information', $e->getMessage());
-            $trace = $e->getTrace();
-            $targetUrl = getUrlFromRedirect($trace);
+            $targetUrl = getUrlFromRedirect($e->getTrace());
             $parsedQuery = getParamsFromUrl($targetUrl);
 
-            $ssoUrl = $this->_settingsInfo['idp']['singleSignOnService']['url'];
-            $this->assertContains($ssoUrl, $targetUrl);
+            $this->assertContains($this->settingsInfo['idp']['singleSignOnService']['url'], $targetUrl);
             $this->assertArrayHasKey('SAMLRequest', $parsedQuery);
             $this->assertArrayHasKey('RelayState', $parsedQuery);
             $this->assertEquals($parsedQuery['RelayState'], Utils::getSelfRoutedURLNoQuery());
@@ -922,17 +884,15 @@ class AuthTest extends \PHPUnit\Framework\TestCase
         try {
             $relayState = 'http://sp.example.com';
             // The Header of the redirect produces an Exception
-            $this->_auth->login($relayState);
+            $this->auth->login($relayState);
             // Do not ever get here
             $this->assertFalse(true);
         } catch (Exception $e) {
             $this->assertContains('Cannot modify header information', $e->getMessage());
-            $trace = $e->getTrace();
-            $targetUrl = getUrlFromRedirect($trace);
+            $targetUrl = getUrlFromRedirect($e->getTrace());
             $parsedQuery = getParamsFromUrl($targetUrl);
 
-            $ssoUrl = $this->_settingsInfo['idp']['singleSignOnService']['url'];
-            $this->assertContains($ssoUrl, $targetUrl);
+            $this->assertContains($this->settingsInfo['idp']['singleSignOnService']['url'], $targetUrl);
             $this->assertArrayHasKey('SAMLRequest', $parsedQuery);
             $this->assertArrayHasKey('RelayState', $parsedQuery);
             $this->assertEquals($parsedQuery['RelayState'], $relayState);
@@ -956,17 +916,15 @@ class AuthTest extends \PHPUnit\Framework\TestCase
             $parameters = ['test1' => 'value1', 'test2' => 'value2'];
 
             // The Header of the redirect produces an Exception
-            $this->_auth->login($relayState, $parameters);
+            $this->auth->login($relayState, $parameters);
             // Do not ever get here
             $this->assertFalse(true);
         } catch (Exception $e) {
             $this->assertContains('Cannot modify header information', $e->getMessage());
-            $trace = $e->getTrace();
-            $targetUrl = getUrlFromRedirect($trace);
+            $targetUrl = getUrlFromRedirect($e->getTrace());
             $parsedQuery = getParamsFromUrl($targetUrl);
 
-            $ssoUrl = $this->_settingsInfo['idp']['singleSignOnService']['url'];
-            $this->assertContains($ssoUrl, $targetUrl);
+            $this->assertContains($this->settingsInfo['idp']['singleSignOnService']['url'], $targetUrl);
             $this->assertArrayHasKey('SAMLRequest', $parsedQuery);
             $this->assertArrayHasKey('RelayState', $parsedQuery);
             $this->assertEquals($parsedQuery['RelayState'], $relayState);
@@ -988,27 +946,22 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testLoginSigned()
     {
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
+        include TEST_ROOT . '/settings/settings1.php';
 
         $settingsInfo['security']['authnRequestsSigned'] = true;
-
-        $auth = new Auth($settingsInfo);
 
         try {
             // The Header of the redirect produces an Exception
             $returnTo = 'http://example.com/returnto';
-            $auth->login($returnTo);
+            (new Auth($settingsInfo))->login($returnTo);
             // Do not ever get here
             $this->assertFalse(true);
         } catch (Exception $e) {
             $this->assertContains('Cannot modify header information', $e->getMessage());
-            $trace = $e->getTrace();
-            $targetUrl = getUrlFromRedirect($trace);
+            $targetUrl = getUrlFromRedirect($e->getTrace());
             $parsedQuery = getParamsFromUrl($targetUrl);
 
-            $ssoUrl = $settingsInfo['idp']['singleSignOnService']['url'];
-            $this->assertContains($ssoUrl, $targetUrl);
+            $this->assertContains($settingsInfo['idp']['singleSignOnService']['url'], $targetUrl);
             $this->assertArrayHasKey('SAMLRequest', $parsedQuery);
             $this->assertArrayHasKey('RelayState', $parsedQuery);
             $this->assertArrayHasKey('SigAlg', $parsedQuery);
@@ -1029,8 +982,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testLoginForceAuthN()
     {
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
+        include TEST_ROOT . '/settings/settings1.php';
 
         $settingsInfo['security']['authnRequestsSigned'] = true;
 
@@ -1038,66 +990,47 @@ class AuthTest extends \PHPUnit\Framework\TestCase
 
         try {
             // The Header of the redirect produces an Exception
-            $returnTo = 'http://example.com/returnto';
-            $auth->login($returnTo);
+            $auth->login('http://example.com/returnto');
             // Do not ever get here
             $this->assertFalse(true);
         } catch (Exception $e) {
             $this->assertContains('Cannot modify header information', $e->getMessage());
-            $trace = $e->getTrace();
-            $targetUrl = getUrlFromRedirect($trace);
+            $targetUrl = getUrlFromRedirect($e->getTrace());
             $parsedQuery = getParamsFromUrl($targetUrl);
 
-            $ssoUrl = $settingsInfo['idp']['singleSignOnService']['url'];
-            $this->assertContains($ssoUrl, $targetUrl);
+            $this->assertContains($settingsInfo['idp']['singleSignOnService']['url'], $targetUrl);
             $this->assertArrayHasKey('SAMLRequest', $parsedQuery);
-            $encodedRequest = $parsedQuery['SAMLRequest'];
-            $decoded = base64_decode($encodedRequest);
-            $request = gzinflate($decoded);
-            $this->assertNotContains('ForceAuthn="true"', $request);
+            $this->assertNotContains('ForceAuthn="true"', gzinflate(base64_decode($parsedQuery['SAMLRequest'])));
         }
 
         try {
             // The Header of the redirect produces an Exception
-            $returnTo = 'http://example.com/returnto';
-
-            $auth->login($returnTo, [], false, false);
+            $auth->login('http://example.com/returnto', [], false, false);
             // Do not ever get here
             $this->assertFalse(true);
         } catch (Exception $e) {
             $this->assertContains('Cannot modify header information', $e->getMessage());
-            $trace2 = $e->getTrace();
-            $targetUrl2 = getUrlFromRedirect($trace2);
+            $targetUrl2 = getUrlFromRedirect($e->getTrace());
             $parsedQuery2 = getParamsFromUrl($targetUrl2);
 
-            $ssoUrl2 = $settingsInfo['idp']['singleSignOnService']['url'];
-            $this->assertContains($ssoUrl2, $targetUrl2);
+            $this->assertContains($settingsInfo['idp']['singleSignOnService']['url'], $targetUrl2);
             $this->assertArrayHasKey('SAMLRequest', $parsedQuery2);
-            $encodedRequest2 = $parsedQuery2['SAMLRequest'];
-            $decoded2 = base64_decode($encodedRequest2);
-            $request2 = gzinflate($decoded2);
-            $this->assertNotContains('ForceAuthn="true"', $request2);
+            $this->assertNotContains('ForceAuthn="true"', gzinflate(base64_decode($parsedQuery2['SAMLRequest'])));
         }
 
         try {
             // The Header of the redirect produces an Exception
-            $returnTo = 'http://example.com/returnto';
-            $auth->login($returnTo, [], true, false);
+            $auth->login('http://example.com/returnto', [], true, false);
             // Do not ever get here
             $this->assertFalse(true);
         } catch (Exception $e) {
             $this->assertContains('Cannot modify header information', $e->getMessage());
-            $trace3 = $e->getTrace();
-            $targetUrl3 = getUrlFromRedirect($trace3);
+            $targetUrl3 = getUrlFromRedirect($e->getTrace());
             $parsedQuery3 = getParamsFromUrl($targetUrl3);
 
-            $ssoUrl3 = $settingsInfo['idp']['singleSignOnService']['url'];
-            $this->assertContains($ssoUrl3, $targetUrl3);
+            $this->assertContains($settingsInfo['idp']['singleSignOnService']['url'], $targetUrl3);
             $this->assertArrayHasKey('SAMLRequest', $parsedQuery3);
-            $encodedRequest3 = $parsedQuery3['SAMLRequest'];
-            $decoded3 = base64_decode($encodedRequest3);
-            $request3 = gzinflate($decoded3);
-            $this->assertContains('ForceAuthn="true"', $request3);
+            $this->assertContains('ForceAuthn="true"', gzinflate(base64_decode($parsedQuery3['SAMLRequest'])));
         }
     }
 
@@ -1112,8 +1045,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testLoginIsPassive()
     {
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
+        include TEST_ROOT . '/settings/settings1.php';
 
         $settingsInfo['security']['authnRequestsSigned'] = true;
 
@@ -1121,65 +1053,47 @@ class AuthTest extends \PHPUnit\Framework\TestCase
 
         try {
             // The Header of the redirect produces an Exception
-            $returnTo = 'http://example.com/returnto';
-            $auth->login($returnTo);
+            $auth->login('http://example.com/returnto');
             // Do not ever get here
             $this->assertFalse(true);
         } catch (Exception $e) {
             $this->assertContains('Cannot modify header information', $e->getMessage());
-            $trace = $e->getTrace();
-            $targetUrl = getUrlFromRedirect($trace);
+            $targetUrl = getUrlFromRedirect($e->getTrace());
             $parsedQuery = getParamsFromUrl($targetUrl);
 
-            $ssoUrl = $settingsInfo['idp']['singleSignOnService']['url'];
-            $this->assertContains($ssoUrl, $targetUrl);
+            $this->assertContains($settingsInfo['idp']['singleSignOnService']['url'], $targetUrl);
             $this->assertArrayHasKey('SAMLRequest', $parsedQuery);
-            $encodedRequest = $parsedQuery['SAMLRequest'];
-            $decoded = base64_decode($encodedRequest);
-            $request = gzinflate($decoded);
-            $this->assertNotContains('IsPassive="true"', $request);
+            $this->assertNotContains('IsPassive="true"', gzinflate(base64_decode($parsedQuery['SAMLRequest'])));
         }
 
         try {
             // The Header of the redirect produces an Exception
-            $returnTo = 'http://example.com/returnto';
-            $auth->login($returnTo, [], false, false);
+            $auth->login('http://example.com/returnto', [], false, false);
             // Do not ever get here
             $this->assertFalse(true);
         } catch (Exception $e) {
             $this->assertContains('Cannot modify header information', $e->getMessage());
-            $trace2 = $e->getTrace();
-            $targetUrl2 = getUrlFromRedirect($trace2);
+            $targetUrl2 = getUrlFromRedirect($e->getTrace());
             $parsedQuery2 = getParamsFromUrl($targetUrl2);
 
-            $ssoUrl2 = $settingsInfo['idp']['singleSignOnService']['url'];
-            $this->assertContains($ssoUrl2, $targetUrl2);
+            $this->assertContains($settingsInfo['idp']['singleSignOnService']['url'], $targetUrl2);
             $this->assertArrayHasKey('SAMLRequest', $parsedQuery2);
-            $encodedRequest2 = $parsedQuery2['SAMLRequest'];
-            $decoded2 = base64_decode($encodedRequest2);
-            $request2 = gzinflate($decoded2);
-            $this->assertNotContains('IsPassive="true"', $request2);
+            $this->assertNotContains('IsPassive="true"', gzinflate(base64_decode($parsedQuery2['SAMLRequest'])));
         }
 
         try {
             // The Header of the redirect produces an Exception
-            $returnTo = 'http://example.com/returnto';
-            $auth->login($returnTo, [], false, true);
+            $auth->login('http://example.com/returnto', [], false, true);
             // Do not ever get here
             $this->assertFalse(true);
         } catch (Exception $e) {
             $this->assertContains('Cannot modify header information', $e->getMessage());
-            $trace3 = $e->getTrace();
-            $targetUrl3 = getUrlFromRedirect($trace3);
+            $targetUrl3 = getUrlFromRedirect($e->getTrace());
             $parsedQuery3 = getParamsFromUrl($targetUrl3);
 
-            $ssoUrl3 = $settingsInfo['idp']['singleSignOnService']['url'];
-            $this->assertContains($ssoUrl3, $targetUrl3);
+            $this->assertContains($settingsInfo['idp']['singleSignOnService']['url'], $targetUrl3);
             $this->assertArrayHasKey('SAMLRequest', $parsedQuery3);
-            $encodedRequest3 = $parsedQuery3['SAMLRequest'];
-            $decoded3 = base64_decode($encodedRequest3);
-            $request3 = gzinflate($decoded3);
-            $this->assertContains('IsPassive="true"', $request3);
+            $this->assertContains('IsPassive="true"', gzinflate(base64_decode($parsedQuery3['SAMLRequest'])));
         }
     }
 
@@ -1194,72 +1108,53 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testLoginNameIDPolicy()
     {
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
+        include TEST_ROOT . '/settings/settings1.php';
 
         $auth = new Auth($settingsInfo);
 
         try {
             // The Header of the redirect produces an Exception
-            $returnTo = 'http://example.com/returnto';
-            $auth->login($returnTo, [], false, false, false, false);
+            $auth->login('http://example.com/returnto', [], false, false, false, false);
             // Do not ever get here
             $this->assertFalse(true);
         } catch (Exception $e) {
             $this->assertContains('Cannot modify header information', $e->getMessage());
-            $trace = $e->getTrace();
-            $targetUrl = getUrlFromRedirect($trace);
+            $targetUrl = getUrlFromRedirect($e->getTrace());
             $parsedQuery = getParamsFromUrl($targetUrl);
 
-            $ssoUrl = $settingsInfo['idp']['singleSignOnService']['url'];
-            $this->assertContains($ssoUrl, $targetUrl);
+            $this->assertContains($settingsInfo['idp']['singleSignOnService']['url'], $targetUrl);
             $this->assertArrayHasKey('SAMLRequest', $parsedQuery);
-            $encodedRequest = $parsedQuery['SAMLRequest'];
-            $decoded = base64_decode($encodedRequest);
-            $request = gzinflate($decoded);
-            $this->assertNotContains('<samlp:NameIDPolicy', $request);
+            $this->assertNotContains('<samlp:NameIDPolicy', gzinflate(base64_decode($parsedQuery['SAMLRequest'])));
         }
 
         try {
             // The Header of the redirect produces an Exception
-            $returnTo = 'http://example.com/returnto';
-            $auth->login($returnTo, [], false, false, false, true);
+            $auth->login('http://example.com/returnto', [], false, false, false, true);
             // Do not ever get here
             $this->assertFalse(true);
         } catch (Exception $e) {
             $this->assertContains('Cannot modify header information', $e->getMessage());
-            $trace2 = $e->getTrace();
-            $targetUrl2 = getUrlFromRedirect($trace2);
+            $targetUrl2 = getUrlFromRedirect($e->getTrace());
             $parsedQuery2 = getParamsFromUrl($targetUrl2);
 
-            $ssoUrl2 = $settingsInfo['idp']['singleSignOnService']['url'];
-            $this->assertContains($ssoUrl2, $targetUrl2);
+            $this->assertContains($settingsInfo['idp']['singleSignOnService']['url'], $targetUrl2);
             $this->assertArrayHasKey('SAMLRequest', $parsedQuery2);
-            $encodedRequest2 = $parsedQuery2['SAMLRequest'];
-            $decoded2 = base64_decode($encodedRequest2);
-            $request2 = gzinflate($decoded2);
-            $this->assertContains('<samlp:NameIDPolicy', $request2);
+            $this->assertContains('<samlp:NameIDPolicy', gzinflate(base64_decode($parsedQuery2['SAMLRequest'])));
         }
 
         try {
             // The Header of the redirect produces an Exception
-            $returnTo = 'http://example.com/returnto';
-            $auth->login($returnTo);
+            $auth->login('http://example.com/returnto');
             // Do not ever get here
             $this->assertFalse(true);
         } catch (Exception $e) {
             $this->assertContains('Cannot modify header information', $e->getMessage());
-            $trace3 = $e->getTrace();
-            $targetUrl3 = getUrlFromRedirect($trace3);
+            $targetUrl3 = getUrlFromRedirect($e->getTrace());
             $parsedQuery3 = getParamsFromUrl($targetUrl3);
 
-            $ssoUrl3 = $settingsInfo['idp']['singleSignOnService']['url'];
-            $this->assertContains($ssoUrl3, $targetUrl3);
+            $this->assertContains($settingsInfo['idp']['singleSignOnService']['url'], $targetUrl3);
             $this->assertArrayHasKey('SAMLRequest', $parsedQuery3);
-            $encodedRequest3 = $parsedQuery3['SAMLRequest'];
-            $decoded3 = base64_decode($encodedRequest3);
-            $request3 = gzinflate($decoded3);
-            $this->assertContains('<samlp:NameIDPolicy', $request3);
+            $this->assertContains('<samlp:NameIDPolicy', gzinflate(base64_decode($parsedQuery3['SAMLRequest'])));
         }
     }
 
@@ -1276,17 +1171,15 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     {
         try {
             // The Header of the redirect produces an Exception
-            $this->_auth->logout();
+            $this->auth->logout();
             // Do not ever get here
             $this->assertFalse(true);
         } catch (Exception $e) {
             $this->assertContains('Cannot modify header information', $e->getMessage());
-            $trace = $e->getTrace();
-            $targetUrl = getUrlFromRedirect($trace);
+            $targetUrl = getUrlFromRedirect($e->getTrace());
             $parsedQuery = getParamsFromUrl($targetUrl);
 
-            $sloUrl = $this->_settingsInfo['idp']['singleLogoutService']['url'];
-            $this->assertContains($sloUrl, $targetUrl);
+            $this->assertContains($this->settingsInfo['idp']['singleLogoutService']['url'], $targetUrl);
             $this->assertArrayHasKey('SAMLRequest', $parsedQuery);
             $this->assertArrayHasKey('RelayState', $parsedQuery);
             $this->assertEquals($parsedQuery['RelayState'], Utils::getSelfRoutedURLNoQuery());
@@ -1308,17 +1201,15 @@ class AuthTest extends \PHPUnit\Framework\TestCase
         try {
             $relayState = 'http://sp.example.com';
             // The Header of the redirect produces an Exception
-            $this->_auth->logout($relayState);
+            $this->auth->logout($relayState);
             // Do not ever get here
             $this->assertFalse(true);
         } catch (Exception $e) {
             $this->assertContains('Cannot modify header information', $e->getMessage());
-            $trace = $e->getTrace();
-            $targetUrl = getUrlFromRedirect($trace);
+            $targetUrl = getUrlFromRedirect($e->getTrace());
             $parsedQuery = getParamsFromUrl($targetUrl);
 
-            $sloUrl = $this->_settingsInfo['idp']['singleLogoutService']['url'];
-            $this->assertContains($sloUrl, $targetUrl);
+            $this->assertContains($this->settingsInfo['idp']['singleLogoutService']['url'], $targetUrl);
             $this->assertArrayHasKey('SAMLRequest', $parsedQuery);
             $this->assertArrayHasKey('RelayState', $parsedQuery);
             $this->assertEquals($parsedQuery['RelayState'], $relayState);
@@ -1342,17 +1233,15 @@ class AuthTest extends \PHPUnit\Framework\TestCase
             $parameters = ['test1' => 'value1', 'test2' => 'value2'];
 
             // The Header of the redirect produces an Exception
-            $this->_auth->logout($relayState, $parameters);
+            $this->auth->logout($relayState, $parameters);
             // Do not ever get here
             $this->assertFalse(true);
         } catch (Exception $e) {
             $this->assertContains('Cannot modify header information', $e->getMessage());
-            $trace = $e->getTrace();
-            $targetUrl = getUrlFromRedirect($trace);
+            $targetUrl = getUrlFromRedirect($e->getTrace());
             $parsedQuery = getParamsFromUrl($targetUrl);
 
-            $sloUrl = $this->_settingsInfo['idp']['singleLogoutService']['url'];
-            $this->assertContains($sloUrl, $targetUrl);
+            $this->assertContains($this->settingsInfo['idp']['singleLogoutService']['url'], $targetUrl);
             $this->assertArrayHasKey('SAMLRequest', $parsedQuery);
             $this->assertArrayHasKey('RelayState', $parsedQuery);
             $this->assertEquals($parsedQuery['RelayState'], $relayState);
@@ -1376,21 +1265,16 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     public function testLogoutWithNameIdAndSessionIndex()
     {
         try {
-            $relayState = 'http://sp.example.com';
             // The Header of the redirect produces an Exception
-            $nameId = 'my_name_id';
-            $sessionIndex = '_51be37965feb5579d803141076936dc2e9d1d98ebf';
-            $this->_auth->logout(null, [], $nameId, $sessionIndex);
+            $this->auth->logout(null, [], 'my_name_id', '_51be37965feb5579d803141076936dc2e9d1d98ebf');
             // Do not ever get here
             $this->assertFalse(true);
         } catch (Exception $e) {
             $this->assertContains('Cannot modify header information', $e->getMessage());
-            $trace = $e->getTrace();
-            $targetUrl = getUrlFromRedirect($trace);
+            $targetUrl = getUrlFromRedirect($e->getTrace());
             $parsedQuery = getParamsFromUrl($targetUrl);
 
-            $sloUrl = $this->_settingsInfo['idp']['singleLogoutService']['url'];
-            $this->assertContains($sloUrl, $targetUrl);
+            $this->assertContains($this->settingsInfo['idp']['singleLogoutService']['url'], $targetUrl);
             $this->assertArrayHasKey('SAMLRequest', $parsedQuery);
         }
     }
@@ -1406,29 +1290,21 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testLogoutNameID()
     {
-        $message = file_get_contents(TEST_ROOT . '/data/responses/valid_response.xml.base64');
-        $_POST['SAMLResponse'] = $message;
-        $this->_auth->processResponse();
-        $nameIdFromResponse = $this->_auth->getNameId();
-
+        $_POST['SAMLResponse'] = file_get_contents(TEST_ROOT . '/data/responses/valid_response.xml.base64');
+        $this->auth->processResponse();
         try {
-            $nameId = 'my_name_id';
-            $this->_auth->logout();
+            $this->auth->logout();
             // Do not ever get here
             $this->assertFalse(true);
         } catch (Exception $e) {
             $this->assertContains('Cannot modify header information', $e->getMessage());
-            $trace = $e->getTrace();
-            $targetUrl = getUrlFromRedirect($trace);
+            $targetUrl = getUrlFromRedirect($e->getTrace());
             $parsedQuery = getParamsFromUrl($targetUrl);
 
-            $sloUrl = $this->_settingsInfo['idp']['singleLogoutService']['url'];
-            $this->assertContains($sloUrl, $targetUrl);
+            $this->assertContains($this->settingsInfo['idp']['singleLogoutService']['url'], $targetUrl);
             $this->assertArrayHasKey('SAMLRequest', $parsedQuery);
 
-            $logoutRequest = gzinflate(base64_decode($parsedQuery['SAMLRequest']));
-            $nameIdFromRequest = LogoutRequest::getNameId($logoutRequest);
-            $this->assertEquals($nameIdFromResponse, $nameIdFromRequest);
+            $this->assertEquals($this->auth->getNameId(), LogoutRequest::getNameId(gzinflate(base64_decode($parsedQuery['SAMLRequest']))));
         }
     }
 
@@ -1444,27 +1320,22 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testLogoutSigned()
     {
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
+        include TEST_ROOT . '/settings/settings1.php';
 
         $settingsInfo['security']['logoutRequestSigned'] = true;
-
-        $auth = new Auth($settingsInfo);
 
         try {
             // The Header of the redirect produces an Exception
             $returnTo = 'http://example.com/returnto';
-            $auth->logout($returnTo);
+            (new Auth($settingsInfo))->logout($returnTo);
             // Do not ever get here
             $this->assertFalse(true);
         } catch (Exception $e) {
             $this->assertContains('Cannot modify header information', $e->getMessage());
-            $trace = $e->getTrace();
-            $targetUrl = getUrlFromRedirect($trace);
+            $targetUrl = getUrlFromRedirect($e->getTrace());
             $parsedQuery = getParamsFromUrl($targetUrl);
 
-            $sloUrl = $settingsInfo['idp']['singleLogoutService']['url'];
-            $this->assertContains($sloUrl, $targetUrl);
+            $this->assertContains($settingsInfo['idp']['singleLogoutService']['url'], $targetUrl);
             $this->assertArrayHasKey('SAMLRequest', $parsedQuery);
             $this->assertArrayHasKey('RelayState', $parsedQuery);
             $this->assertArrayHasKey('SigAlg', $parsedQuery);
@@ -1482,16 +1353,14 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testLogoutNoSLO()
     {
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
+        include TEST_ROOT . '/settings/settings1.php';
 
         unset($settingsInfo['idp']['singleLogoutService']);
 
         $auth = new Auth($settingsInfo);
 
         try {
-            $returnTo = 'http://example.com/returnto';
-            $auth->logout($returnTo);
+            $auth->logout('http://example.com/returnto');
             $this->fail('Error was not raised');
         } catch (Error $e) {
             $this->assertContains('The IdP does not support Single Log Out', $e->getMessage());
@@ -1505,29 +1374,18 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testSetStrict()
     {
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
+        include TEST_ROOT . '/settings/settings1.php';
         $settingsInfo['strict'] = false;
 
         $auth = new Auth($settingsInfo);
 
-        $settings = $auth->getSettings();
-        $this->assertFalse($settings->isStrict());
+        $this->assertFalse($auth->getSettings()->isStrict());
 
         $auth->setStrict(true);
-        $settings = $auth->getSettings();
-        $this->assertTrue($settings->isStrict());
+        $this->assertTrue($auth->getSettings()->isStrict());
 
         $auth->setStrict(false);
-        $settings = $auth->getSettings();
-        $this->assertFalse($settings->isStrict());
-
-        try {
-            $auth->setStrict('a');
-            $this->fail('Exception was not raised');
-        } catch (Exception $e) {
-            $this->assertContains('Invalid value passed to setStrict()', $e->getMessage());
-        }
+        $this->assertFalse($auth->getSettings()->isStrict());
     }
 
     /**
@@ -1537,11 +1395,13 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testBuildRequestSignature()
     {
-        $message = file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request_deflated.xml.base64');
-        $relayState = 'http://relaystate.com';
-        $signature = $this->_auth->buildRequestSignature($message, $relayState);
-        $validSignature = 'CqdIlbO6GieeJFV+PYqyqz1QVJunQXdZZl+ZyIby9O3/eMJM0XHi+TWReRrpgNxKkbmmvx5fp/t7mphbLiVYNMgGINEaaa/OfoaGwU9GM5YCVULA2t7qZBel1yrIXGMxijJizB7UPR2ZMo4G+Wdhx1zbmbB0GYM0A27w6YCe/+k=';
-        $this->assertEquals($validSignature, $signature);
+        $this->assertEquals(
+            'CqdIlbO6GieeJFV+PYqyqz1QVJunQXdZZl+ZyIby9O3/eMJM0XHi+TWReRrpgNxKkbmmvx5fp/t7mphbLiVYNMgGINEaaa/OfoaGwU9GM5YCVULA2t7qZBel1yrIXGMxijJizB7UPR2ZMo4G+Wdhx1zbmbB0GYM0A27w6YCe/+k=',
+            $this->auth->buildRequestSignature(
+                file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request_deflated.xml.base64'),
+                'http://relaystate.com'
+            )
+        );
     }
 
     /**
@@ -1551,11 +1411,10 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testBuildResponseSignature()
     {
-        $message = file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64');
-        $relayState = 'http://relaystate.com';
-        $signature = $this->_auth->buildResponseSignature($message, $relayState);
-        $validSignature = 'fFGaOuO/2+ch/xlwU5o7iS6R+v2quWchLAtiDyQTxStFQZKY1NsBs/eYIin2Meq7oTl1Ks6tpT6JshH5OwhPh/08K7M2oa6FIKb99cjg+jIJ/WwpuJ5h9SH0XXP8y3RLhCxLIomHDsBOGQK8WvOlXFUg+9nvOaEMNi6raUWrGhA=';
-        $this->assertEquals($validSignature, $signature);
+        $this->assertEquals(
+            'fFGaOuO/2+ch/xlwU5o7iS6R+v2quWchLAtiDyQTxStFQZKY1NsBs/eYIin2Meq7oTl1Ks6tpT6JshH5OwhPh/08K7M2oa6FIKb99cjg+jIJ/WwpuJ5h9SH0XXP8y3RLhCxLIomHDsBOGQK8WvOlXFUg+9nvOaEMNi6raUWrGhA=',
+            $this->auth->buildResponseSignature(file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64'), 'http://relaystate.com')
+        );
     }
 
     /**
@@ -1566,10 +1425,8 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetLastAuthNRequest()
     {
-        $targetSSOURL = $this->_auth->login(null, [], false, false, true, false);
-        $parsedQuery = getParamsFromUrl($targetSSOURL);
-        $decodedSamlRequest = gzinflate(base64_decode($parsedQuery['SAMLRequest']));
-        $this->assertEquals($decodedSamlRequest, $this->_auth->getLastRequestXML());
+        $parsedQuery = getParamsFromUrl($this->auth->login(null, [], false, false, true, false));
+        $this->assertEquals(gzinflate(base64_decode($parsedQuery['SAMLRequest'])), $this->auth->getLastRequestXML());
     }
 
     /**
@@ -1580,10 +1437,8 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetLastLogoutRequestSent()
     {
-        $targetSLOURL = $this->_auth->logout(null, [], null, null, true, null);
-        $parsedQuery = getParamsFromUrl($targetSLOURL);
-        $decodedLogoutRequest = gzinflate(base64_decode($parsedQuery['SAMLRequest']));
-        $this->assertEquals($decodedLogoutRequest, $this->_auth->getLastRequestXML());
+        $parsedQuery = getParamsFromUrl($this->auth->logout(null, [], null, null, true, null));
+        $this->assertEquals(gzinflate(base64_decode($parsedQuery['SAMLRequest'])), $this->auth->getLastRequestXML());
     }
 
     /**
@@ -1597,10 +1452,9 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetLastLogoutRequestReceived()
     {
-        $xml = file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request.xml');
         $_GET['SAMLRequest'] = file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request.xml.base64');
-        $this->_auth->processSLO(false, null, false, null, true);
-        $this->assertEquals($xml, $this->_auth->getLastRequestXML());
+        $this->auth->processSLO(false, null, false, null, true);
+        $this->assertEquals(file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request.xml'), $this->auth->getLastRequestXML());
     }
 
     /**
@@ -1615,15 +1469,12 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     public function testGetLastSAMLResponse()
     {
         $_POST['SAMLResponse'] = file_get_contents(TEST_ROOT . '/data/responses/signed_message_response.xml.base64');
-        $response = file_get_contents(TEST_ROOT . '/data/responses/signed_message_response.xml');
-        $this->_auth->processResponse();
-        file_get_contents(TEST_ROOT . '/data/responses/signed_message_response.xml');
-        $this->assertEquals($response, $this->_auth->getLastResponseXML());
+        $this->auth->processResponse();
+        $this->assertEquals(file_get_contents(TEST_ROOT . '/data/responses/signed_message_response.xml'), $this->auth->getLastResponseXML());
 
         $_POST['SAMLResponse'] = file_get_contents(TEST_ROOT . '/data/responses/valid_encrypted_assertion.xml.base64');
-        $decryptedResponse = file_get_contents(TEST_ROOT . '/data/responses/decrypted_valid_encrypted_assertion.xml');
-        $this->_auth->processResponse();
-        $this->assertEquals($decryptedResponse, $this->_auth->getLastResponseXML());
+        $this->auth->processResponse();
+        $this->assertEquals(file_get_contents(TEST_ROOT . '/data/responses/decrypted_valid_encrypted_assertion.xml'), $this->auth->getLastResponseXML());
     }
 
     /**
@@ -1637,30 +1488,23 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetLastLogoutResponseSent()
     {
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
+        include TEST_ROOT . '/settings/settings1.php';
 
         $_GET['SAMLRequest'] = file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request.xml.base64');
 
         $auth = new Auth($settingsInfo);
-        $targetSLOURL = $auth->processSLO(false, null, false, null, true);
-        $parsedQuery = getParamsFromUrl($targetSLOURL);
-        $decodedLogoutResponse = gzinflate(base64_decode($parsedQuery['SAMLResponse']));
-        $this->assertEquals($decodedLogoutResponse, $auth->getLastResponseXML());
+        $parsedQuery = getParamsFromUrl($auth->processSLO(false, null, false, null, true));
+        $this->assertEquals(gzinflate(base64_decode($parsedQuery['SAMLResponse'])), $auth->getLastResponseXML());
 
         $settingsInfo['compress'] = ['responses' => true];
         $auth2 = new Auth($settingsInfo);
-        $targetSLOURL2 = $auth2->processSLO(false, null, false, null, true);
-        $parsedQuery2 = getParamsFromUrl($targetSLOURL2);
-        $decodedLogoutResponse2 = gzinflate(base64_decode($parsedQuery2['SAMLResponse']));
-        $this->assertEquals($decodedLogoutResponse2, $auth2->getLastResponseXML());
+        $parsedQuery2 = getParamsFromUrl($auth2->processSLO(false, null, false, null, true));
+        $this->assertEquals(gzinflate(base64_decode($parsedQuery2['SAMLResponse'])), $auth2->getLastResponseXML());
 
         $settingsInfo['compress'] = ['responses' => false];
         $auth3 = new Auth($settingsInfo);
-        $targetSLOURL3 = $auth3->processSLO(false, null, false, null, true);
-        $parsedQuery3 = getParamsFromUrl($targetSLOURL3);
-        $decodedLogoutResponse3 = base64_decode($parsedQuery3['SAMLResponse']);
-        $this->assertEquals($decodedLogoutResponse3, $auth3->getLastResponseXML());
+        $parsedQuery3 = getParamsFromUrl($auth3->processSLO(false, null, false, null, true));
+        $this->assertEquals(base64_decode($parsedQuery3['SAMLResponse']), $auth3->getLastResponseXML());
     }
 
     /**
@@ -1674,10 +1518,9 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetLastLogoutResponseReceived()
     {
-        $xml = file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response.xml');
         $_GET['SAMLResponse'] = file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response.xml.base64');
-        $this->_auth->processSLO(false, null, false, null, true);
-        $this->assertEquals($xml, $this->_auth->getLastResponseXML());
+        $this->auth->processSLO(false, null, false, null, true);
+        $this->assertEquals(file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response.xml'), $this->auth->getLastResponseXML());
     }
 
     /**
@@ -1694,25 +1537,23 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     public function testGetInfoFromLastResponseReceived()
     {
         $_POST['SAMLResponse'] = file_get_contents(TEST_ROOT . '/data/responses/signed_message_response.xml.base64');
-        $response = file_get_contents(TEST_ROOT . '/data/responses/signed_message_response.xml');
-        $this->_auth->processResponse();
-        $this->assertEmpty($this->_auth->getErrors());
-        $this->assertEquals('pfxc3d2b542-0f7e-8767-8e87-5b0dc6913375', $this->_auth->getLastMessageId());
-        $this->assertEquals('_cccd6024116641fe48e0ae2c51220d02755f96c98d', $this->_auth->getLastAssertionId());
-        $this->assertNull($this->_auth->getLastAssertionNotOnOrAfter());
+        $this->auth->processResponse();
+        $this->assertEmpty($this->auth->getErrors());
+        $this->assertEquals('pfxc3d2b542-0f7e-8767-8e87-5b0dc6913375', $this->auth->getLastMessageId());
+        $this->assertEquals('_cccd6024116641fe48e0ae2c51220d02755f96c98d', $this->auth->getLastAssertionId());
+        $this->assertNull($this->auth->getLastAssertionNotOnOrAfter());
 
         $_POST['SAMLResponse'] = file_get_contents(TEST_ROOT . '/data/responses/valid_response.xml.base64');
-        $this->_auth->processResponse();
-        $this->assertEmpty($this->_auth->getErrors());
-        $this->assertEquals('pfx42be40bf-39c3-77f0-c6ae-8bf2e23a1a2e', $this->_auth->getLastMessageId());
-        $this->assertEquals('pfx57dfda60-b211-4cda-0f63-6d5deb69e5bb', $this->_auth->getLastAssertionId());
-        $this->assertNull($this->_auth->getLastAssertionNotOnOrAfter());
+        $this->auth->processResponse();
+        $this->assertEmpty($this->auth->getErrors());
+        $this->assertEquals('pfx42be40bf-39c3-77f0-c6ae-8bf2e23a1a2e', $this->auth->getLastMessageId());
+        $this->assertEquals('pfx57dfda60-b211-4cda-0f63-6d5deb69e5bb', $this->auth->getLastAssertionId());
+        $this->assertNull($this->auth->getLastAssertionNotOnOrAfter());
 
         // NotOnOrAfter is calculated with strict = true
         // If invalid, response id and assertion id are not obtained
 
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
+        include TEST_ROOT . '/settings/settings1.php';
 
         $settingsInfo['strict'] = true;
         $auth = new Auth($settingsInfo);
@@ -1743,10 +1584,9 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetIdFromLastLogoutRequest()
     {
-        $xml = file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request.xml');
         $_GET['SAMLRequest'] = file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request.xml.base64');
-        $this->_auth->processSLO(false, null, false, null, true);
-        $this->assertEquals('ONELOGIN_21584ccdfaca36a145ae990442dcd96bfe60151e', $this->_auth->getLastMessageId());
+        $this->auth->processSLO(false, null, false, null, true);
+        $this->assertEquals('ONELOGIN_21584ccdfaca36a145ae990442dcd96bfe60151e', $this->auth->getLastMessageId());
     }
 
     /**
@@ -1756,9 +1596,8 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetIdFromLastLogoutResponse()
     {
-        $xml = file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response.xml');
         $_GET['SAMLResponse'] = file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response.xml.base64');
-        $this->_auth->processSLO(false, null, false, null, true);
-        $this->assertEquals('_f9ee61bd9dbf63606faa9ae3b10548d5b3656fb859', $this->_auth->getLastMessageId());
+        $this->auth->processSLO(false, null, false, null, true);
+        $this->assertEquals('_f9ee61bd9dbf63606faa9ae3b10548d5b3656fb859', $this->auth->getLastMessageId());
     }
 }

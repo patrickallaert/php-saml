@@ -21,8 +21,7 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
      */
     public function testBuilder()
     {
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
+        include TEST_ROOT . '/settings/settings1.php';
 
         $settings = new Settings($settingsInfo);
         $spData = $settings->getSPData();
@@ -72,8 +71,7 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
      */
     public function testBuilderWithAttributeConsumingService()
     {
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings3.php';
+        include TEST_ROOT . '/settings/settings3.php';
         $settings = new Settings($settingsInfo);
         $spData = $settings->getSPData();
         $security = $settings->getSecurityData();
@@ -98,8 +96,7 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
      */
     public function testBuilderWithAttributeConsumingServiceWithMultipleAttributeValue()
     {
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings4.php';
+        include TEST_ROOT . '/settings/settings4.php';
         $settings = new Settings($settingsInfo);
         $spData = $settings->getSPData();
         $security = $settings->getSecurityData();
@@ -125,14 +122,12 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
      */
     public function testSignMetadata()
     {
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
+        include TEST_ROOT . '/settings/settings1.php';
 
         $settings = new Settings($settingsInfo);
-        $spData = $settings->getSPData();
         $security = $settings->getSecurityData();
 
-        $metadata = Metadata::builder($spData, $security['authnRequestsSigned'], $security['wantAssertionsSigned']);
+        $metadata = Metadata::builder($settings->getSPData(), $security['authnRequestsSigned'], $security['wantAssertionsSigned']);
 
         $this->assertNotEmpty($metadata);
 
@@ -160,7 +155,7 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
         $this->assertContains('<ds:KeyInfo><ds:X509Data><ds:X509Certificate>', $signedMetadata);
 
         try {
-            $signedMetadata2 = Metadata::signMetadata('', $key, $cert);
+            Metadata::signMetadata('', $key, $cert);
             $this->fail('Exception was not raised');
         } catch (Exception $e) {
             $this->assertContains('Empty string supplied as input', $e->getMessage());
@@ -174,20 +169,21 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
      */
     public function testSignMetadataDefaultAlgorithms()
     {
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
+        include TEST_ROOT . '/settings/settings1.php';
 
         $settings = new Settings($settingsInfo);
-        $spData = $settings->getSPData();
         $security = $settings->getSecurityData();
 
-        $metadata = Metadata::builder($spData, $security['authnRequestsSigned'], $security['wantAssertionsSigned']);
-
         $certPath = $settings->getCertPath();
-        $key = file_get_contents($certPath . 'sp.key');
-        $cert = file_get_contents($certPath . 'sp.crt');
-
-        $signedMetadata = Metadata::signMetadata($metadata, $key, $cert);
+        $signedMetadata = Metadata::signMetadata(
+            Metadata::builder(
+                $settings->getSPData(),
+                $security['authnRequestsSigned'],
+                $security['wantAssertionsSigned']
+            ),
+            file_get_contents($certPath . 'sp.key'),
+            file_get_contents($certPath . 'sp.crt')
+        );
 
         $this->assertContains('<ds:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/>', $signedMetadata);
         $this->assertContains('<ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>', $signedMetadata);
@@ -200,20 +196,13 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
      */
     public function testSignMetadataCustomAlgorithms()
     {
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
+        include TEST_ROOT . '/settings/settings1.php';
 
         $settings = new Settings($settingsInfo);
-        $spData = $settings->getSPData();
         $security = $settings->getSecurityData();
 
-        $metadata = Metadata::builder($spData, $security['authnRequestsSigned'], $security['wantAssertionsSigned']);
-
         $certPath = $settings->getCertPath();
-        $key = file_get_contents($certPath . 'sp.key');
-        $cert = file_get_contents($certPath . 'sp.crt');
-
-        $signedMetadata = Metadata::signMetadata($metadata, $key, $cert, XMLSecurityKey::RSA_SHA256, XMLSecurityDSig::SHA512);
+        $signedMetadata = Metadata::signMetadata(Metadata::builder($settings->getSPData(), $security['authnRequestsSigned'], $security['wantAssertionsSigned']), file_get_contents($certPath . 'sp.key'), file_get_contents($certPath . 'sp.crt'), XMLSecurityKey::RSA_SHA256, XMLSecurityDSig::SHA512);
 
         $this->assertContains('<ds:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/>', $signedMetadata);
         $this->assertContains('<ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha512"/>', $signedMetadata);
@@ -226,19 +215,15 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
      */
     public function testAddX509KeyDescriptors()
     {
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
+        include TEST_ROOT . '/settings/settings1.php';
 
         $settings = new Settings($settingsInfo);
-        $spData = $settings->getSPData();
-
-        $metadata = Metadata::builder($spData);
+        $metadata = Metadata::builder($settings->getSPData());
 
         $this->assertNotContains('<md:KeyDescriptor use="signing"', $metadata);
         $this->assertNotContains('<md:KeyDescriptor use="encryption"', $metadata);
 
-        $certPath = $settings->getCertPath();
-        $cert = file_get_contents($certPath . 'sp.crt');
+        $cert = file_get_contents($settings->getCertPath() . 'sp.crt');
 
         $metadataWithDescriptors = Metadata::addX509KeyDescriptors($metadata, $cert);
 
@@ -256,16 +241,15 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
         $this->assertNotContains('<md:KeyDescriptor use="encryption"', $metadataWithDescriptors);
 
         try {
-            $signedMetadata2 = Metadata::addX509KeyDescriptors('', $cert);
+            Metadata::addX509KeyDescriptors('', $cert);
             $this->fail('Exception was not raised');
         } catch (Exception $e) {
             $this->assertContains('Error parsing metadata', $e->getMessage());
         }
 
         libxml_use_internal_errors(true);
-        $unparsedMetadata = file_get_contents(TEST_ROOT . '/data/metadata/unparsed_metadata.xml');
         try {
-            $metadataWithDescriptors = Metadata::addX509KeyDescriptors($unparsedMetadata, $cert);
+            Metadata::addX509KeyDescriptors(file_get_contents(TEST_ROOT . '/data/metadata/unparsed_metadata.xml'), $cert);
             $this->fail('Exception was not raised');
         } catch (Exception $e) {
             $this->assertContains('Error parsing metadata', $e->getMessage());
@@ -280,8 +264,7 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
      */
     public function testAddX509KeyDescriptors2Times()
     {
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
+        include TEST_ROOT . '/settings/settings1.php';
 
         $settings = new Settings($settingsInfo);
         $spData = $settings->getSPData();
@@ -291,8 +274,7 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
         $this->assertNotContains('<md:KeyDescriptor use="signing"', $metadata);
         $this->assertNotContains('<md:KeyDescriptor use="encryption"', $metadata);
 
-        $certPath = $settings->getCertPath();
-        $cert = file_get_contents($certPath . 'sp.crt');
+        $cert = file_get_contents($settings->getCertPath() . 'sp.crt');
 
         $metadata = Metadata::addX509KeyDescriptors($metadata, $cert, false);
 

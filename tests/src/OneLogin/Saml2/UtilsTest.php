@@ -27,17 +27,9 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     {
         $dom = new DOMDocument();
 
-        $metadataUnloaded = '<xml><EntityDescriptor>';
-        $res1 = Utils::loadXML($dom, $metadataUnloaded);
-        $this->assertFalse($res1);
-
-        $metadataInvalid = file_get_contents(TEST_ROOT . '/data/metadata/noentity_metadata_settings1.xml');
-        $res2 = Utils::loadXML($dom, $metadataInvalid);
-        $this->assertTrue($res2 instanceof DOMDocument);
-
-        $metadataOk = file_get_contents(TEST_ROOT . '/data/metadata/metadata_settings1.xml');
-        $res3 = Utils::loadXML($dom, $metadataOk);
-        $this->assertTrue($res3 instanceof DOMDocument);
+        $this->assertFalse(Utils::loadXML($dom, '<xml><EntityDescriptor>'));
+        $this->assertTrue(Utils::loadXML($dom, file_get_contents(TEST_ROOT . '/data/metadata/noentity_metadata_settings1.xml')) instanceof DOMDocument);
+        $this->assertTrue(Utils::loadXML($dom, file_get_contents(TEST_ROOT . '/data/metadata/metadata_settings1.xml')) instanceof DOMDocument);
     }
 
     /**
@@ -49,55 +41,66 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     {
         $dom = new DOMDocument();
 
-        $attackXXE = '<?xml version="1.0" encoding="ISO-8859-1"?>
-                      <!DOCTYPE foo [  
-                      <!ELEMENT foo ANY >
-                      <!ENTITY xxe SYSTEM "file:///etc/passwd" >]><foo>&xxe;</foo>';
         try {
-            $res = Utils::loadXML($dom, $attackXXE);
+            Utils::loadXML(
+                $dom,
+                '<?xml version="1.0" encoding="ISO-8859-1"?>
+                 <!DOCTYPE foo [  
+                 <!ELEMENT foo ANY >
+                 <!ENTITY xxe SYSTEM "file:///etc/passwd" >]><foo>&xxe;</foo>'
+            );
             $this->fail('Exception was not raised');
         } catch (Exception $e) {
             $this->assertEquals('Detected use of DOCTYPE/ENTITY in XML, disabled to prevent XXE/XEE attacks', $e->getMessage());
         }
 
-        $xmlWithDTD = '<?xml version="1.0"?>
-                          <!DOCTYPE results [
-                            <!ELEMENT results (result+)>
-                            <!ELEMENT result (#PCDATA)>
-                          ]>
-                          <results>
-                            <result>test</result>
-                          </results>';
         try {
-            $res2 = Utils::loadXML($dom, $xmlWithDTD);
-            $this->assertFalse($res2);
+            $this->assertFalse(
+                Utils::loadXML(
+                    $dom,
+                    '<?xml version="1.0"?>
+                     <!DOCTYPE results [
+                       <!ELEMENT results (result+)>
+                       <!ELEMENT result (#PCDATA)>
+                     ]>
+                     <results>
+                       <result>test</result>
+                     </results>'
+                )
+            );
         } catch (Exception $e) {
             $this->assertEquals('Detected use of DOCTYPE/ENTITY in XML, disabled to prevent XXE/XEE attacks', $e->getMessage());
         }
 
-        $attackXEE = '<?xml version="1.0"?>
-                      <!DOCTYPE results [<!ENTITY harmless "completely harmless">]>
-                      <results>
-                        <result>This result is &harmless;</result>
-                      </results>';
         try {
-            $res3 = Utils::loadXML($dom, $attackXEE);
-            $this->assertFalse($res3);
+            $this->assertFalse(
+                Utils::loadXML(
+                    $dom,
+                    '<?xml version="1.0"?>
+                     <!DOCTYPE results [<!ENTITY harmless "completely harmless">]>
+                     <results>
+                       <result>This result is &harmless;</result>
+                     </results>'
+                )
+            );
         } catch (Exception $e) {
             $this->assertEquals('Detected use of DOCTYPE/ENTITY in XML, disabled to prevent XXE/XEE attacks', $e->getMessage());
         }
 
-        $attackXEEutf16 = mb_convert_encoding(
-            '<?xml version="1.0" encoding="UTF-16"?>
-                      <!DOCTYPE results [<!ENTITY harmless "completely harmless">]>
-                      <results>
-                        <result>This result is &harmless;</result>
-                      </results>',
-            'UTF-16'
-        );
         try {
-            $res4 = Utils::loadXML($dom, $attackXEEutf16);
-            $this->assertFalse($res4);
+            $this->assertFalse(
+                Utils::loadXML(
+                    $dom,
+                    mb_convert_encoding(
+                        '<?xml version="1.0" encoding="UTF-16"?>
+                         <!DOCTYPE results [<!ENTITY harmless "completely harmless">]>
+                         <results>
+                           <result>This result is &harmless;</result>
+                         </results>',
+                        'UTF-16'
+                    )
+                )
+            );
         } catch (Exception $e) {
             $this->assertEquals('Detected use of DOCTYPE/ENTITY in XML, disabled to prevent XXE/XEE attacks', $e->getMessage());
         }
@@ -110,32 +113,37 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
      */
     public function testValidateXML()
     {
-        $metadataUnloaded = '<xml><EntityDescriptor>';
-        $this->assertEquals(Utils::validateXML($metadataUnloaded, 'saml-schema-metadata-2.0.xsd'), 'unloaded_xml');
+        $this->assertEquals(Utils::validateXML('<xml><EntityDescriptor>', 'saml-schema-metadata-2.0.xsd'), 'unloaded_xml');
 
-        $metadataInvalid = file_get_contents(TEST_ROOT . '/data/metadata/noentity_metadata_settings1.xml');
-        $this->assertEquals(Utils::validateXML($metadataInvalid, 'saml-schema-metadata-2.0.xsd'), 'invalid_xml');
+        $this->assertEquals(Utils::validateXML(file_get_contents(TEST_ROOT . '/data/metadata/noentity_metadata_settings1.xml'), 'saml-schema-metadata-2.0.xsd'), 'invalid_xml');
 
-        $metadataExpired = file_get_contents(TEST_ROOT . '/data/metadata/expired_metadata_settings1.xml');
-        $res = Utils::validateXML($metadataExpired, 'saml-schema-metadata-2.0.xsd');
-        $this->assertTrue($res instanceof DOMDocument);
+        $this->assertTrue(
+            Utils::validateXML(
+                file_get_contents(TEST_ROOT . '/data/metadata/expired_metadata_settings1.xml'),
+                'saml-schema-metadata-2.0.xsd'
+            ) instanceof DOMDocument
+        );
 
         $metadataOk = file_get_contents(TEST_ROOT . '/data/metadata/metadata_settings1.xml');
-        $res2 = Utils::validateXML($metadataOk, 'saml-schema-metadata-2.0.xsd');
-        $this->assertTrue($res2 instanceof DOMDocument);
+        $this->assertTrue(Utils::validateXML($metadataOk, 'saml-schema-metadata-2.0.xsd') instanceof DOMDocument);
 
-        $metadataBadOrder = file_get_contents(TEST_ROOT . '/data/metadata/metadata_bad_order_settings1.xml');
-        $res3 = Utils::validateXML($metadataBadOrder, 'saml-schema-metadata-2.0.xsd');
-        $this->assertFalse($res3 instanceof DOMDocument);
+        $this->assertFalse(
+            Utils::validateXML(
+                file_get_contents(TEST_ROOT . '/data/metadata/metadata_bad_order_settings1.xml'),
+                'saml-schema-metadata-2.0.xsd'
+            ) instanceof DOMDocument
+        );
 
-        $metadataSigned = file_get_contents(TEST_ROOT . '/data/metadata/signed_metadata_settings1.xml');
-        $res4 = Utils::validateXML($metadataSigned, 'saml-schema-metadata-2.0.xsd');
-        $this->assertTrue($res4 instanceof DOMDocument);
+        $this->assertTrue(
+            Utils::validateXML(
+                file_get_contents(TEST_ROOT . '/data/metadata/signed_metadata_settings1.xml'),
+                'saml-schema-metadata-2.0.xsd'
+            ) instanceof DOMDocument
+        );
 
         $dom = new DOMDocument();
         Utils::loadXML($dom, $metadataOk);
-        $res5 = Utils::validateXML($dom, 'saml-schema-metadata-2.0.xsd');
-        $this->assertTrue($res5 instanceof DOMDocument);
+        $this->assertTrue(Utils::validateXML($dom, 'saml-schema-metadata-2.0.xsd') instanceof DOMDocument);
     }
 
     /**
@@ -145,10 +153,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
      */
     public function testFormatCert()
     {
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings2.php';
-
-        $settings = new Settings($settingsInfo);
+        include TEST_ROOT . '/settings/settings2.php';
 
         $cert = $settingsInfo['idp']['x509cert'];
         $this->assertNotContains('-----BEGIN CERTIFICATE-----', $cert);
@@ -159,8 +164,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         $this->assertContains('-----BEGIN CERTIFICATE-----', $formatedCert1);
         $this->assertContains('-----END CERTIFICATE-----', $formatedCert1);
 
-        $formatedCert2 = Utils::formatCert($cert, true);
-        $this->assertEquals($formatedCert1, $formatedCert2);
+        $this->assertEquals($formatedCert1, Utils::formatCert($cert, true));
 
         $formatedCert3 = Utils::formatCert($cert, false);
         $this->assertNotContains('-----BEGIN CERTIFICATE-----', $formatedCert3);
@@ -176,8 +180,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         $this->assertContains('-----BEGIN CERTIFICATE-----', $formatedCert4);
         $this->assertContains('-----END CERTIFICATE-----', $formatedCert4);
 
-        $formatedCert5 = Utils::formatCert($cert, true);
-        $this->assertEquals($formatedCert4, $formatedCert5);
+        $this->assertEquals($formatedCert4, Utils::formatCert($cert, true));
 
         $formatedCert6 = Utils::formatCert($cert, false);
         $this->assertNotContains('-----BEGIN CERTIFICATE-----', $formatedCert6);
@@ -192,10 +195,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
      */
     public function testFormatPrivateKey()
     {
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings2.php';
-
-        $settings = new Settings($settingsInfo);
+        include TEST_ROOT . '/settings/settings2.php';
 
         $key = $settingsInfo['sp']['privateKey'];
 
@@ -207,8 +207,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         $this->assertContains('-----BEGIN RSA PRIVATE KEY-----', $formatedKey1);
         $this->assertContains('-----END RSA PRIVATE KEY-----', $formatedKey1);
 
-        $formatedKey2 = Utils::formatPrivateKey($key, true);
-        $this->assertEquals($formatedKey1, $formatedKey2);
+        $this->assertEquals($formatedKey1, Utils::formatPrivateKey($key, true));
 
         $formatedKey3 = Utils::formatPrivateKey($key, false);
 
@@ -227,21 +226,10 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         // Check relative and absolute
         $hostname = Utils::getSelfHost();
         $url = "http://$hostname/example";
-        $url2 = '/example';
-
-        $targetUrl = Utils::redirect($url, [], true);
-        $targetUrl2 = Utils::redirect($url2, [], true);
-
-        $this->assertEquals($targetUrl, $targetUrl2);
-
-        // Check that accept http/https and reject other protocols
-        $url3 = "https://$hostname/example?test=true";
-        $url4 = "ftp://$hostname/example";
-
-        $targetUrl3 = Utils::redirect($url3, [], true);
+        $this->assertEquals(Utils::redirect($url, [], true), Utils::redirect('/example', [], true));
 
         try {
-            $targetUrl4 = Utils::redirect($url4, [], true);
+            Utils::redirect("ftp://$hostname/example", [], true);
             $this->fail('Exception was not raised');
         } catch (Exception $e) {
             $this->assertContains('Redirect to invalid URL', $e->getMessage());
@@ -250,30 +238,37 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         // Review parameter prefix
         $parameters1 = ['value1' => 'a'];
 
-        $targetUrl5 = Utils::redirect($url, $parameters1, true);
-        $this->assertEquals("http://$hostname/example?value1=a", $targetUrl5);
+        $this->assertEquals("http://$hostname/example?value1=a", Utils::redirect($url, $parameters1, true));
 
-        $targetUrl6 = Utils::redirect($url3, $parameters1, true);
-        $this->assertEquals("https://$hostname/example?test=true&value1=a", $targetUrl6);
+        // Check that accept http/https and reject other protocols
+        $this->assertEquals("https://$hostname/example?test=true&value1=a", Utils::redirect("https://$hostname/example?test=true", $parameters1, true));
 
         // Review parameters
-        $parameters2 = [
-            'alphavalue' => 'a',
-            'numvalue' => ['1', '2'],
-            'testing' => null,
-        ];
+        $this->assertEquals(
+            "http://$hostname/example?alphavalue=a&numvalue[]=1&numvalue[]=2&testing",
+            Utils::redirect(
+                $url,
+                [
+                    'alphavalue' => 'a',
+                    'numvalue' => ['1', '2'],
+                    'testing' => null,
+                ],
+                true
+            )
+        );
 
-        $targetUrl7 = Utils::redirect($url, $parameters2, true);
-        $this->assertEquals("http://$hostname/example?alphavalue=a&numvalue[]=1&numvalue[]=2&testing", $targetUrl7);
-
-        $parameters3 = [
-            'alphavalue' => 'a',
-            'emptynumvaluelist' => [],
-            'numvaluelist' => [''],
-        ];
-
-        $targetUrl8 = Utils::redirect($url, $parameters3, true);
-        $this->assertEquals("http://$hostname/example?alphavalue=a&numvaluelist[]=", $targetUrl8);
+        $this->assertEquals(
+            "http://$hostname/example?alphavalue=a&numvaluelist[]=",
+            Utils::redirect(
+                $url,
+                [
+                    'alphavalue' => 'a',
+                    'emptynumvaluelist' => [],
+                    'numvaluelist' => [''],
+                ],
+                true
+            )
+        );
     }
 
     /**
@@ -324,13 +319,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetselfhost()
     {
-        if (function_exists('gethostname')) {
-            $hostname = gethostname();
-        } else {
-            $hostname = php_uname("n");
-        }
-
-        $this->assertEquals($hostname, Utils::getSelfHost());
+        $this->assertEquals(function_exists('gethostname') ? gethostname() : php_uname("n"), Utils::getSelfHost());
 
         $_SERVER['SERVER_NAME'] = 'example.com';
         $this->assertEquals('example.com', Utils::getSelfHost());
@@ -471,22 +460,17 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         $_SERVER['SCRIPT_NAME'] = '/example1/route.php';
         unset($_SERVER['PATH_INFO']);
 
-        $expectedUrlNQ = 'https://sp.example.com/example1/route.php';
-        $expectedRoutedUrlNQ = 'https://sp.example.com/example1/route.php';
-        $expectedUrl = 'https://sp.example.com/example1/route.php?x=test';
-
         Utils::setBaseURL("no-valid-url");
         $this->assertEquals('https', Utils::getSelfProtocol());
         $this->assertEquals('sp.example.com', Utils::getSelfHost());
         $this->assertNull(Utils::getSelfPort());
         $this->assertNull(Utils::getBaseURLPath());
 
-        $this->assertEquals($expectedUrlNQ, Utils::getSelfURLNoQuery());
-        $this->assertEquals($expectedRoutedUrlNQ, Utils::getSelfRoutedURLNoQuery());
-        $this->assertEquals($expectedUrl, Utils::getSelfURL());
+        $this->assertEquals('https://sp.example.com/example1/route.php', Utils::getSelfURLNoQuery());
+        $this->assertEquals('https://sp.example.com/example1/route.php', Utils::getSelfRoutedURLNoQuery());
+        $this->assertEquals('https://sp.example.com/example1/route.php?x=test', Utils::getSelfURL());
 
         Utils::setBaseURL("http://anothersp.example.com:81/example2/");
-        $expectedUrlNQ2 = 'http://anothersp.example.com:81/example2/route.php';
         $expectedRoutedUrlNQ2 = 'http://anothersp.example.com:81/example2/route.php';
         $expectedUrl2 = 'http://anothersp.example.com:81/example2/route.php?x=test';
 
@@ -495,14 +479,12 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('81', Utils::getSelfPort());
         $this->assertEquals('/example2/', Utils::getBaseURLPath());
 
-        $this->assertEquals($expectedUrlNQ2, Utils::getSelfURLNoQuery());
+        $this->assertEquals('http://anothersp.example.com:81/example2/route.php', Utils::getSelfURLNoQuery());
         $this->assertEquals($expectedRoutedUrlNQ2, Utils::getSelfRoutedURLNoQuery());
         $this->assertEquals($expectedUrl2, Utils::getSelfURL());
 
         $_SERVER['PATH_INFO'] = '/test';
-        $expectedUrlNQ2 = 'http://anothersp.example.com:81/example2/route.php/test';
-
-        $this->assertEquals($expectedUrlNQ2, Utils::getSelfURLNoQuery());
+        $this->assertEquals('http://anothersp.example.com:81/example2/route.php/test', Utils::getSelfURLNoQuery());
         $this->assertEquals($expectedRoutedUrlNQ2, Utils::getSelfRoutedURLNoQuery());
         $this->assertEquals($expectedUrl2, Utils::getSelfURL());
     }
@@ -617,46 +599,41 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetStatus()
     {
-        $xml = base64_decode(file_get_contents(TEST_ROOT . '/data/responses/response1.xml.base64'));
         $dom = new DOMDocument();
-        $dom->loadXML($xml);
+        $dom->loadXML(base64_decode(file_get_contents(TEST_ROOT . '/data/responses/response1.xml.base64')));
 
         $status = Utils::getStatus($dom);
         $this->assertEquals(Constants::STATUS_SUCCESS, $status['code']);
 
-        $xml2 = base64_decode(file_get_contents(TEST_ROOT . '/data/responses/invalids/status_code_responder.xml.base64'));
         $dom2 = new DOMDocument();
-        $dom2->loadXML($xml2);
+        $dom2->loadXML(base64_decode(file_get_contents(TEST_ROOT . '/data/responses/invalids/status_code_responder.xml.base64')));
 
         $status2 = Utils::getStatus($dom2);
         $this->assertEquals(Constants::STATUS_RESPONDER, $status2['code']);
         $this->assertEmpty($status2['msg']);
 
-        $xml3 = base64_decode(file_get_contents(TEST_ROOT . '/data/responses/invalids/status_code_responer_and_msg.xml.base64'));
         $dom3 = new DOMDocument();
-        $dom3->loadXML($xml3);
+        $dom3->loadXML(base64_decode(file_get_contents(TEST_ROOT . '/data/responses/invalids/status_code_responer_and_msg.xml.base64')));
 
         $status3 = Utils::getStatus($dom3);
         $this->assertEquals(Constants::STATUS_RESPONDER, $status3['code']);
         $this->assertEquals('something_is_wrong', $status3['msg']);
 
-        $xmlInv = base64_decode(file_get_contents(TEST_ROOT . '/data/responses/invalids/no_status.xml.base64'));
         $domInv = new DOMDocument();
-        $domInv->loadXML($xmlInv);
+        $domInv->loadXML(base64_decode(file_get_contents(TEST_ROOT . '/data/responses/invalids/no_status.xml.base64')));
 
         try {
-            $statusInv = Utils::getStatus($domInv);
+            Utils::getStatus($domInv);
             $this->fail('ValidationError was not raised');
         } catch (ValidationError $e) {
             $this->assertEquals('Missing Status on response', $e->getMessage());
         }
 
-        $xmlInv2 = base64_decode(file_get_contents(TEST_ROOT . '/data/responses/invalids/no_status_code.xml.base64'));
         $domInv2 = new DOMDocument();
-        $domInv2->loadXML($xmlInv2);
+        $domInv2->loadXML(base64_decode(file_get_contents(TEST_ROOT . '/data/responses/invalids/no_status_code.xml.base64')));
 
         try {
-            $statusInv2 = Utils::getStatus($domInv2);
+            Utils::getStatus($domInv2);
             $this->fail('ValidationError was not raised');
         } catch (ValidationError $e) {
             $this->assertEquals('Missing Status Code on response', $e->getMessage());
@@ -676,25 +653,17 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         $parsedDuration = Utils::parseDuration($duration, $timestamp);
         $this->assertEquals(2787339119, $parsedDuration);
 
-        $parsedDuration2 = Utils::parseDuration($duration);
+        $this->assertTrue(Utils::parseDuration($duration) > $parsedDuration);
 
-        $this->assertTrue($parsedDuration2 > $parsedDuration);
-
-        $invalidDuration = 'PT1Y';
         try {
-            $parsedDuration3 = Utils::parseDuration($invalidDuration);
+            Utils::parseDuration('PT1Y');
             $this->fail('Exception was not raised');
         } catch (Exception $e) {
             $this->assertContains('Invalid ISO 8601 duration', $e->getMessage());
         }
 
-        $newDuration = 'P1Y1M';
-        $parsedDuration4 = Utils::parseDuration($newDuration, $timestamp);
-        $this->assertEquals(1428091225, $parsedDuration4);
-
-        $negDuration = '-P14M';
-        $parsedDuration5 = Utils::parseDuration($negDuration, $timestamp);
-        $this->assertEquals(1357243225, $parsedDuration5);
+        $this->assertEquals(1428091225, Utils::parseDuration('P1Y1M', $timestamp));
+        $this->assertEquals(1357243225, Utils::parseDuration('-P14M', $timestamp));
     }
 
     /**
@@ -705,8 +674,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     public function testParseSAML2Time()
     {
         $time = 1386650371;
-        $SAMLTime = '2013-12-10T04:39:31Z';
-        $this->assertEquals($time, Utils::parseSAML2Time($SAMLTime));
+        $this->assertEquals($time, Utils::parseSAML2Time('2013-12-10T04:39:31Z'));
 
         try {
             Utils::parseSAML2Time('invalidSAMLTime');
@@ -716,8 +684,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         }
 
         // Now test if toolkit supports miliseconds
-        $SAMLTime2 = '2013-12-10T04:39:31.120Z';
-        $this->assertEquals($time, Utils::parseSAML2Time($SAMLTime2));
+        $this->assertEquals($time, Utils::parseSAML2Time('2013-12-10T04:39:31.120Z'));
     }
 
     /**
@@ -727,9 +694,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
      */
     public function testParseTime2SAML()
     {
-        $time = 1386650371;
-        $SAMLTime = '2013-12-10T04:39:31Z';
-        $this->assertEquals($SAMLTime, Utils::parseTime2SAML($time));
+        $this->assertEquals('2013-12-10T04:39:31Z', Utils::parseTime2SAML(1386650371));
 
         try {
             Utils::parseTime2SAML('invalidtime');
@@ -763,9 +728,8 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
      */
     public function testQuery()
     {
-        $xml = base64_decode(file_get_contents(TEST_ROOT . '/data/responses/valid_response.xml.base64'));
         $dom = new DOMDocument();
-        $dom->loadXML($xml);
+        $dom->loadXML(base64_decode(file_get_contents(TEST_ROOT . '/data/responses/valid_response.xml.base64')));
 
         $assertionNodes = Utils::query($dom, '/samlp:Response/saml:Assertion');
         $this->assertEquals(1, $assertionNodes->length);
@@ -779,8 +743,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
 
         $attributeStatementNodes2 = Utils::query($dom, './saml:AttributeStatement', $assertion);
         $this->assertEquals(1, $attributeStatementNodes2->length);
-        $attributeStatement2 = $attributeStatementNodes2->item(0);
-        $this->assertEquals($attributeStatement, $attributeStatement2);
+        $this->assertEquals($attributeStatement, $attributeStatementNodes2->item(0));
 
         $signatureResNodes = Utils::query($dom, '/samlp:Response/ds:Signature');
         $this->assertEquals(1, $signatureResNodes->length);
@@ -798,14 +761,11 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($signature->textContent, $signature2->textContent);
         $this->assertNotEquals($signatureRes->textContent, $signature2->textContent);
 
-        $signatureNodes3 = Utils::query($dom, './ds:SignatureValue', $assertion);
-        $this->assertEquals(0, $signatureNodes3->length);
+        $this->assertEquals(0, Utils::query($dom, './ds:SignatureValue', $assertion)->length);
 
-        $signatureNodes4 = Utils::query($dom, './ds:Signature/ds:SignatureValue', $assertion);
-        $this->assertEquals(1, $signatureNodes4->length);
+        $this->assertEquals(1, Utils::query($dom, './ds:Signature/ds:SignatureValue', $assertion)->length);
 
-        $signatureNodes5 = Utils::query($dom, './/ds:SignatureValue', $assertion);
-        $this->assertEquals(1, $signatureNodes5->length);
+        $this->assertEquals(1, Utils::query($dom, './/ds:SignatureValue', $assertion)->length);
     }
 
     /**
@@ -820,31 +780,26 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         $entityId = 'http://stuff.com/endpoints/metadata.php';
         $nameIDFormat = 'urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified';
 
-        $nameId = Utils::generateNameId(
-            $nameIdValue,
-            $entityId,
-            $nameIDFormat
+        $this->assertEquals(
+            '<saml:NameID SPNameQualifier="http://stuff.com/endpoints/metadata.php" Format="urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified">ONELOGIN_ce998811003f4e60f8b07a311dc641621379cfde</saml:NameID>',
+            Utils::generateNameId(
+                $nameIdValue,
+                $entityId,
+                $nameIDFormat
+            )
         );
 
-        $expectedNameId = '<saml:NameID SPNameQualifier="http://stuff.com/endpoints/metadata.php" Format="urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified">ONELOGIN_ce998811003f4e60f8b07a311dc641621379cfde</saml:NameID>';
+        include TEST_ROOT . '/settings/settings1.php';
 
-        $this->assertEquals($nameId, $expectedNameId);
-
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
-
-        $x509cert = $settingsInfo['idp']['x509cert'];
-        $key = Utils::formatCert($x509cert);
-
-        $nameIdEnc = Utils::generateNameId(
-            $nameIdValue,
-            $entityId,
-            $nameIDFormat,
-            $key
+        $this->assertContains(
+            '<saml:EncryptedID><xenc:EncryptedData xmlns:xenc="http://www.w3.org/2001/04/xmlenc#" xmlns:dsig="http://www.w3.org/2000/09/xmldsig#" Type="http://www.w3.org/2001/04/xmlenc#Element"><xenc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes128-cbc"/><dsig:KeyInfo xmlns:dsig="http://www.w3.org/2000/09/xmldsig#"><xenc:EncryptedKey><xenc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#rsa-1_5"/><xenc:CipherData><xenc:CipherValue>',
+            Utils::generateNameId(
+                $nameIdValue,
+                $entityId,
+                $nameIDFormat,
+                Utils::formatCert($settingsInfo['idp']['x509cert'])
+            )
         );
-
-        $nameidExpectedEnc = '<saml:EncryptedID><xenc:EncryptedData xmlns:xenc="http://www.w3.org/2001/04/xmlenc#" xmlns:dsig="http://www.w3.org/2000/09/xmldsig#" Type="http://www.w3.org/2001/04/xmlenc#Element"><xenc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes128-cbc"/><dsig:KeyInfo xmlns:dsig="http://www.w3.org/2000/09/xmldsig#"><xenc:EncryptedKey><xenc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#rsa-1_5"/><xenc:CipherData><xenc:CipherValue>';
-        $this->assertContains($nameidExpectedEnc, $nameIdEnc);
     }
 
     /**
@@ -854,14 +809,14 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     */
     public function testGenerateNameIdWithoutFormat()
     {
-        $nameIdValue = 'ONELOGIN_ce998811003f4e60f8b07a311dc641621379cfde';
-        $nameId = Utils::generateNameId(
-            $nameIdValue,
-            null,
-            null
+        $this->assertEquals(
+            '<saml:NameID>ONELOGIN_ce998811003f4e60f8b07a311dc641621379cfde</saml:NameID>',
+            Utils::generateNameId(
+                'ONELOGIN_ce998811003f4e60f8b07a311dc641621379cfde',
+                null,
+                null
+            )
         );
-        $expectedNameId = '<saml:NameID>ONELOGIN_ce998811003f4e60f8b07a311dc641621379cfde</saml:NameID>';
-        $this->assertEquals($nameId, $expectedNameId);
     }
 
     /**
@@ -871,38 +826,29 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
      */
     public function testGenerateNameIdWithoutSPNameQualifier()
     {
-        //$xml = '<root xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">'.$decrypted.'</root>';
-        //$newDoc = new DOMDocument();
-
         $nameIdValue = 'ONELOGIN_ce998811003f4e60f8b07a311dc641621379cfde';
-        $entityId = 'http://stuff.com/endpoints/metadata.php';
         $nameIDFormat = 'urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified';
 
-        $nameId = Utils::generateNameId(
-            $nameIdValue,
-            null,
-            $nameIDFormat
+        $this->assertEquals(
+            '<saml:NameID Format="urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified">ONELOGIN_ce998811003f4e60f8b07a311dc641621379cfde</saml:NameID>',
+            Utils::generateNameId(
+                $nameIdValue,
+                null,
+                $nameIDFormat
+            )
         );
 
-        $expectedNameId = '<saml:NameID Format="urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified">ONELOGIN_ce998811003f4e60f8b07a311dc641621379cfde</saml:NameID>';
+        include TEST_ROOT . '/settings/settings1.php';
 
-        $this->assertEquals($nameId, $expectedNameId);
-
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
-
-        $x509cert = $settingsInfo['idp']['x509cert'];
-        $key = Utils::formatCert($x509cert);
-
-        $nameIdEnc = Utils::generateNameId(
-            $nameIdValue,
-            null,
-            $nameIDFormat,
-            $key
+        $this->assertContains(
+            '<saml:EncryptedID><xenc:EncryptedData xmlns:xenc="http://www.w3.org/2001/04/xmlenc#" xmlns:dsig="http://www.w3.org/2000/09/xmldsig#" Type="http://www.w3.org/2001/04/xmlenc#Element"><xenc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes128-cbc"/><dsig:KeyInfo xmlns:dsig="http://www.w3.org/2000/09/xmldsig#"><xenc:EncryptedKey><xenc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#rsa-1_5"/><xenc:CipherData><xenc:CipherValue>',
+            Utils::generateNameId(
+                $nameIdValue,
+                null,
+                $nameIDFormat,
+                Utils::formatCert($settingsInfo['idp']['x509cert'])
+            )
         );
-
-        $nameidExpectedEnc = '<saml:EncryptedID><xenc:EncryptedData xmlns:xenc="http://www.w3.org/2001/04/xmlenc#" xmlns:dsig="http://www.w3.org/2000/09/xmldsig#" Type="http://www.w3.org/2001/04/xmlenc#Element"><xenc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes128-cbc"/><dsig:KeyInfo xmlns:dsig="http://www.w3.org/2000/09/xmldsig#"><xenc:EncryptedKey><xenc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#rsa-1_5"/><xenc:CipherData><xenc:CipherValue>';
-        $this->assertContains($nameidExpectedEnc, $nameIdEnc);
     }
 
     /**
@@ -968,16 +914,13 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
      */
     public function testCalculateX509Fingerprint()
     {
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
+        include TEST_ROOT . '/settings/settings1.php';
 
-        $settings = new Settings($settingsInfo);
-        $certPath = $settings->getCertPath();
+        $certPath = (new Settings($settingsInfo))->getCertPath();
 
-        $key = file_get_contents($certPath . 'sp.key');
         $cert = file_get_contents($certPath . 'sp.crt');
 
-        $this->assertNull(Utils::calculateX509Fingerprint($key));
+        $this->assertNull(Utils::calculateX509Fingerprint(file_get_contents($certPath . 'sp.key')));
 
         $this->assertNull(Utils::calculateX509Fingerprint(""));
 
@@ -1003,11 +946,8 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
      */
     public function testFormatFingerPrint()
     {
-        $fingerPrint1 = 'AF:E7:1C:28:EF:74:0B:C8:74:25:BE:13:A2:26:3D:37:97:1D:A1:F9';
-        $this->assertEquals('afe71c28ef740bc87425be13a2263d37971da1f9', Utils::formatFingerPrint($fingerPrint1));
-
-        $fingerPrint2 = 'afe71c28ef740bc87425be13a2263d37971da1f9';
-        $this->assertEquals('afe71c28ef740bc87425be13a2263d37971da1f9', Utils::formatFingerPrint($fingerPrint2));
+        $this->assertEquals('afe71c28ef740bc87425be13a2263d37971da1f9', Utils::formatFingerPrint('AF:E7:1C:28:EF:74:0B:C8:74:25:BE:13:A2:26:3D:37:97:1D:A1:F9'));
+        $this->assertEquals('afe71c28ef740bc87425be13a2263d37971da1f9', Utils::formatFingerPrint('afe71c28ef740bc87425be13a2263d37971da1f9'));
     }
 
     /**
@@ -1017,78 +957,64 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
      */
     public function testDecryptElement()
     {
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
+        include TEST_ROOT . '/settings/settings1.php';
 
-        $settings = new Settings($settingsInfo);
-
-        $key = $settings->getSPkey();
         $seckey = new XMLSecurityKey(XMLSecurityKey::RSA_1_5, ['type' => 'private']);
-        $seckey->loadKey($key);
+        $seckey->loadKey((new Settings($settingsInfo))->getSPkey());
 
-        $xmlNameIdEnc = base64_decode(file_get_contents(TEST_ROOT . '/data/responses/response_encrypted_nameid.xml.base64'));
         $domNameIdEnc = new DOMDocument();
-        $domNameIdEnc->loadXML($xmlNameIdEnc);
+        $domNameIdEnc->loadXML(base64_decode(file_get_contents(TEST_ROOT . '/data/responses/response_encrypted_nameid.xml.base64')));
         $encryptedNameIDNodes = $domNameIdEnc->getElementsByTagName('EncryptedID');
         $encryptedData = $encryptedNameIDNodes->item(0)->firstChild;
         $decryptedNameId = Utils::decryptElement($encryptedData, $seckey);
         $this->assertEquals('saml:NameID', $decryptedNameId->tagName);
         $this->assertEquals('2de11defd199f8d5bb63f9b7deb265ba5c675c10', $decryptedNameId->nodeValue);
 
-        $xmlAsssertionEnc = base64_decode(file_get_contents(TEST_ROOT . '/data/responses/valid_encrypted_assertion.xml.base64'));
         $domAsssertionEnc = new DOMDocument();
-        $domAsssertionEnc->loadXML($xmlAsssertionEnc);
-        $encryptedAssertionEncNodes = $domAsssertionEnc->getElementsByTagName('EncryptedAssertion');
-        $encryptedAssertionEncNode = $encryptedAssertionEncNodes->item(0);
-        $encryptedDataAssertNodes = $encryptedAssertionEncNode->getElementsByTagName('EncryptedData');
-        $encryptedDataAssert = $encryptedDataAssertNodes->item(0);
-        $decryptedAssertion = Utils::decryptElement($encryptedDataAssert, $seckey);
-
-        $this->assertEquals('saml:Assertion', $decryptedAssertion->tagName);
+        $domAsssertionEnc->loadXML(base64_decode(file_get_contents(TEST_ROOT . '/data/responses/valid_encrypted_assertion.xml.base64')));
+        $this->assertEquals(
+            'saml:Assertion',
+            Utils::decryptElement(
+                $domAsssertionEnc->getElementsByTagName('EncryptedAssertion')->item(0)->getElementsByTagName('EncryptedData')->item(0),
+                $seckey
+            )->tagName
+        );
 
         try {
-            $res = Utils::decryptElement($encryptedNameIDNodes->item(0), $seckey);
+            Utils::decryptElement($encryptedNameIDNodes->item(0), $seckey);
             $this->fail('ValidationError was not raised');
         } catch (ValidationError $e) {
             $this->assertContains('Algorithm mismatch between input key and key in message', $e->getMessage());
         }
 
-        $key2 = file_get_contents(TEST_ROOT . '/data/misc/sp2.key');
         $seckey2 = new XMLSecurityKey(XMLSecurityKey::RSA_1_5, ['type' => 'private']);
-        $seckey2->loadKey($key2);
+        $seckey2->loadKey(file_get_contents(TEST_ROOT . '/data/misc/sp2.key'));
         $decryptedNameId2 = Utils::decryptElement($encryptedData, $seckey2);
         $this->assertEquals('saml:NameID', $decryptedNameId2->tagName);
         $this->assertEquals('2de11defd199f8d5bb63f9b7deb265ba5c675c10', $decryptedNameId2->nodeValue);
 
-        $key3 = file_get_contents(TEST_ROOT . '/data/misc/sp2.key');
         $seckey3 = new XMLSecurityKey(XMLSecurityKey::RSA_SHA512, ['type' => 'private']);
-        $seckey3->loadKey($key3);
+        $seckey3->loadKey(file_get_contents(TEST_ROOT . '/data/misc/sp2.key'));
         try {
-            $res = Utils::decryptElement($encryptedData, $seckey3);
+            Utils::decryptElement($encryptedData, $seckey3);
             $this->fail('ValidationError was not raised');
         } catch (ValidationError $e) {
             $this->assertContains('Algorithm mismatch between input key and key used to encrypt  the symmetric key for the message', $e->getMessage());
         }
 
-        $xmlNameIdEnc2 = base64_decode(file_get_contents(TEST_ROOT . '/data/responses/invalids/encrypted_nameID_without_EncMethod.xml.base64'));
         $domNameIdEnc2 = new DOMDocument();
-        $domNameIdEnc2->loadXML($xmlNameIdEnc2);
-        $encryptedNameIDNodes2 = $domNameIdEnc2->getElementsByTagName('EncryptedID');
-        $encryptedData2 = $encryptedNameIDNodes2->item(0)->firstChild;
+        $domNameIdEnc2->loadXML(base64_decode(file_get_contents(TEST_ROOT . '/data/responses/invalids/encrypted_nameID_without_EncMethod.xml.base64')));
         try {
-            $res = Utils::decryptElement($encryptedData2, $seckey);
+            Utils::decryptElement($domNameIdEnc2->getElementsByTagName('EncryptedID')->item(0)->firstChild, $seckey);
             $this->fail('Exception was not raised');
         } catch (Exception $e) {
             $this->assertContains('Unable to locate algorithm for this Encrypted Key', $e->getMessage());
         }
 
-        $xmlNameIdEnc3 = base64_decode(file_get_contents(TEST_ROOT . '/data/responses/invalids/encrypted_nameID_without_keyinfo.xml.base64'));
         $domNameIdEnc3 = new DOMDocument();
-        $domNameIdEnc3->loadXML($xmlNameIdEnc3);
-        $encryptedNameIDNodes3 = $domNameIdEnc3->getElementsByTagName('EncryptedID');
-        $encryptedData3 = $encryptedNameIDNodes3->item(0)->firstChild;
+        $domNameIdEnc3->loadXML(base64_decode(file_get_contents(TEST_ROOT . '/data/responses/invalids/encrypted_nameID_without_keyinfo.xml.base64')));
         try {
-            $res = Utils::decryptElement($encryptedData3, $seckey);
+            Utils::decryptElement($domNameIdEnc3->getElementsByTagName('EncryptedID')->item(0)->firstChild, $seckey);
             $this->fail('ValidationError was not raised');
         } catch (ValidationError $e) {
             $this->assertContains('Algorithm mismatch between input key and key in message', $e->getMessage());
@@ -1102,8 +1028,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
      */
     public function testAddSign()
     {
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
+        include TEST_ROOT . '/settings/settings1.php';
 
         $settings = new Settings($settingsInfo);
         $key = $settings->getSPkey();
@@ -1116,8 +1041,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         $this->assertContains('<ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>', $xmlAuthnSigned);
         $res = new DOMDocument();
         $res->loadXML($xmlAuthnSigned);
-        $dsSignature = $res->firstChild->firstChild->nextSibling->nextSibling;
-        $this->assertContains('ds:Signature', $dsSignature->tagName);
+        $this->assertContains('ds:Signature', $res->firstChild->firstChild->nextSibling->nextSibling->tagName);
 
         $dom = new DOMDocument();
         $dom->loadXML($xmlAuthn);
@@ -1127,38 +1051,49 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         $this->assertContains('<ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha512"/>', $xmlAuthnSigned2);
         $res2 = new DOMDocument();
         $res2->loadXML($xmlAuthnSigned2);
-        $dsSignature2 = $res2->firstChild->firstChild->nextSibling->nextSibling;
-        $this->assertContains('ds:Signature', $dsSignature2->tagName);
+        $this->assertContains('ds:Signature', $res2->firstChild->firstChild->nextSibling->nextSibling->tagName);
 
-        $xmlLogoutReq = base64_decode(file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request.xml.base64'));
-        $xmlLogoutReqSigned = Utils::addSign($xmlLogoutReq, $key, $cert, XMLSecurityKey::RSA_SHA256, XMLSecurityDSig::SHA512);
+        $xmlLogoutReqSigned = Utils::addSign(
+            base64_decode(file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request.xml.base64')),
+            $key,
+            $cert,
+            XMLSecurityKey::RSA_SHA256,
+            XMLSecurityDSig::SHA512
+        );
         $this->assertContains('<ds:SignatureValue>', $xmlLogoutReqSigned);
         $this->assertContains('<ds:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/>', $xmlLogoutReqSigned);
         $this->assertContains('<ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha512"/>', $xmlLogoutReqSigned);
         $res3 = new DOMDocument();
         $res3->loadXML($xmlLogoutReqSigned);
-        $dsSignature3 = $res3->firstChild->firstChild->nextSibling->nextSibling;
-        $this->assertContains('ds:Signature', $dsSignature3->tagName);
+        $this->assertContains('ds:Signature', $res3->firstChild->firstChild->nextSibling->nextSibling->tagName);
 
-        $xmlLogoutRes = base64_decode(file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response.xml.base64'));
-        $xmlLogoutResSigned = Utils::addSign($xmlLogoutRes, $key, $cert, XMLSecurityKey::RSA_SHA256, XMLSecurityDSig::SHA512);
+        $xmlLogoutResSigned = Utils::addSign(
+            base64_decode(file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response.xml.base64')),
+            $key,
+            $cert,
+            XMLSecurityKey::RSA_SHA256,
+            XMLSecurityDSig::SHA512
+        );
         $this->assertContains('<ds:SignatureValue>', $xmlLogoutResSigned);
         $this->assertContains('<ds:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/>', $xmlLogoutResSigned);
         $this->assertContains('<ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha512"/>', $xmlLogoutResSigned);
         $res4 = new DOMDocument();
         $res4->loadXML($xmlLogoutResSigned);
-        $dsSignature4 = $res4->firstChild->firstChild->nextSibling->nextSibling;
-        $this->assertContains('ds:Signature', $dsSignature4->tagName);
+        $this->assertContains('ds:Signature', $res4->firstChild->firstChild->nextSibling->nextSibling->tagName);
 
-        $xmlMetadata = file_get_contents(TEST_ROOT . '/data/metadata/metadata_settings1.xml');
-        $xmlMetadataSigned = Utils::addSign($xmlMetadata, $key, $cert, XMLSecurityKey::RSA_SHA256, XMLSecurityDSig::SHA512);
+        $xmlMetadataSigned = Utils::addSign(
+            file_get_contents(TEST_ROOT . '/data/metadata/metadata_settings1.xml'),
+            $key,
+            $cert,
+            XMLSecurityKey::RSA_SHA256,
+            XMLSecurityDSig::SHA512
+        );
         $this->assertContains('<ds:SignatureValue>', $xmlMetadataSigned);
         $this->assertContains('<ds:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/>', $xmlMetadataSigned);
         $this->assertContains('<ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha512"/>', $xmlMetadataSigned);
         $res5 = new DOMDocument();
         $res5->loadXML($xmlMetadataSigned);
-        $dsSignature5 = $res5->firstChild->firstChild;
-        $this->assertContains('ds:Signature', $dsSignature5->tagName);
+        $this->assertContains('ds:Signature', $res5->firstChild->firstChild->tagName);
     }
 
     /**
@@ -1168,21 +1103,17 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
      */
     public function testValidateSign()
     {
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
+        include TEST_ROOT . '/settings/settings1.php';
 
-        $settings = new Settings($settingsInfo);
-        $idpData = $settings->getIdPData();
+        $idpData = (new Settings($settingsInfo))->getIdPData();
         $cert = $idpData['x509cert'];
         $fingerprint = Utils::calculateX509Fingerprint($cert);
-        $fingerprint256 = Utils::calculateX509Fingerprint($cert, 'sha256');
-
         $xmlMetadataSigned = file_get_contents(TEST_ROOT . '/data/metadata/signed_metadata_settings1.xml');
         $this->assertTrue(Utils::validateSign($xmlMetadataSigned, $cert));
         $this->assertTrue(Utils::validateSign($xmlMetadataSigned, null, $fingerprint));
         $this->assertTrue(Utils::validateSign($xmlMetadataSigned, null, $fingerprint, 'sha1'));
         $this->assertFalse(Utils::validateSign($xmlMetadataSigned, null, $fingerprint, 'sha256'));
-        $this->assertTrue(Utils::validateSign($xmlMetadataSigned, null, $fingerprint256, 'sha256'));
+        $this->assertTrue(Utils::validateSign($xmlMetadataSigned, null, Utils::calculateX509Fingerprint($cert, 'sha256'), 'sha256'));
 
         $xmlResponseMsgSigned = base64_decode(file_get_contents(TEST_ROOT . '/data/responses/signed_message_response.xml.base64'));
         $this->assertTrue(Utils::validateSign($xmlResponseMsgSigned, $cert));
@@ -1210,42 +1141,38 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
 
         $dom2 = new DOMDocument();
         $dom2->loadXML($xmlResponseMsgSigned);
-        $assertElem = $dom2->firstChild->firstChild->nextSibling->nextSibling;
-        $this->assertTrue(Utils::validateSign($assertElem, $cert));
+        $this->assertTrue(Utils::validateSign($dom2->firstChild->firstChild->nextSibling->nextSibling, $cert));
 
         $dom3 = new DOMDocument();
         $dom3->loadXML($xmlResponseMsgSigned);
         $dom3->firstChild->firstChild->nodeValue = 'https://example.com/other-idp';
-        $assertElem2 = $dom3->firstChild->firstChild->nextSibling->nextSibling;
         try {
-            $this->assertTrue(Utils::validateSign($assertElem2, $cert));
+            $this->assertTrue(Utils::validateSign($dom3->firstChild->firstChild->nextSibling->nextSibling, $cert));
             $this->fail('Exception was not raised');
         } catch (Exception $e) {
             $this->assertContains('Reference validation failed', $e->getMessage());
         }
 
-        $invalidFingerprint = 'afe71c34ef740bc87434be13a2263d31271da1f9';
-        $this->assertFalse(Utils::validateSign($xmlMetadataSigned, null, $invalidFingerprint));
+        $this->assertFalse(Utils::validateSign($xmlMetadataSigned, null, 'afe71c34ef740bc87434be13a2263d31271da1f9'));
 
-        $noSigned = base64_decode(file_get_contents(TEST_ROOT . '/data/responses/invalids/no_signature.xml.base64'));
         try {
-            $this->assertFalse(Utils::validateSign($noSigned, $cert));
+            $this->assertFalse(Utils::validateSign(base64_decode(file_get_contents(TEST_ROOT . '/data/responses/invalids/no_signature.xml.base64')), $cert));
             $this->fail('Exception was not raised');
         } catch (Exception $e) {
             $this->assertContains('Cannot locate Signature Node', $e->getMessage());
         }
 
-        $noKey = base64_decode(file_get_contents(TEST_ROOT . '/data/responses/invalids/no_key.xml.base64'));
         try {
-            $this->assertFalse(Utils::validateSign($noKey, $cert));
+            $this->assertFalse(Utils::validateSign(base64_decode(file_get_contents(TEST_ROOT . '/data/responses/invalids/no_key.xml.base64')), $cert));
             $this->fail('Exception was not raised');
         } catch (Exception $e) {
             $this->assertContains('We have no idea about the key', $e->getMessage());
         }
 
-        $signatureWrapping = base64_decode(file_get_contents(TEST_ROOT . '/data/responses/invalids/signature_wrapping_attack.xml.base64'));
         try {
-            $this->assertFalse(Utils::validateSign($signatureWrapping, $cert));
+            $this->assertFalse(Utils::validateSign(
+                base64_decode(file_get_contents(TEST_ROOT . '/data/responses/invalids/signature_wrapping_attack.xml.base64')), $cert)
+            );
             $this->fail('Exception was not raised');
         } catch (Exception $e) {
             $this->assertContains('Reference validation failed', $e->getMessage());

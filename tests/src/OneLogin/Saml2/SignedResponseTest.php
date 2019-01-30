@@ -12,16 +12,12 @@ class SignedResponseTest extends \PHPUnit\Framework\TestCase
 {
     private $_settings;
 
-    /**
-     * Initializes the Test Suite
-     */
+
     public function setUp()
     {
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
+        include TEST_ROOT . '/settings/settings1.php';
 
-        $settings = new Settings($settingsInfo);
-        $this->_settings = $settings;
+        $this->_settings = new Settings($settingsInfo);
     }
 
     /**
@@ -33,10 +29,13 @@ class SignedResponseTest extends \PHPUnit\Framework\TestCase
     public function testResponseSignedAssertionNot()
     {
         // The Response is signed, the Assertion is not
-        $message = file_get_contents(TEST_ROOT . '/data/responses/open_saml_response.xml');
-        $response = new Response($this->_settings, base64_encode($message));
-
-        $this->assertEquals('someone@example.org', $response->getNameId());
+        $this->assertEquals(
+            'someone@example.org',
+            (new Response(
+                $this->_settings,
+                base64_encode(file_get_contents(TEST_ROOT . '/data/responses/open_saml_response.xml'))
+            ))->getNameId()
+        );
     }
 
     /**
@@ -47,17 +46,17 @@ class SignedResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function testResponseAndAssertionSigned()
     {
-        $settingsDir = TEST_ROOT . '/settings/';
-        include $settingsDir . 'settings1.php';
+        include TEST_ROOT . '/settings/settings1.php';
 
         $settingsInfo['idp']['entityId'] = "https://federate.example.net/saml/saml2/idp/metadata.php";
         $settingsInfo['sp']['entityId'] = "hello.com";
-        $settings = new Settings($settingsInfo);
-
         // Both the Response and the Asseretion are signed
-        $message = file_get_contents(TEST_ROOT . '/data/responses/simple_saml_php.xml');
-        $response = new Response($settings, base64_encode($message));
-
-        $this->assertEquals('someone@example.com', $response->getNameId());
+        $this->assertEquals(
+            'someone@example.com',
+            (new Response(
+                new Settings($settingsInfo),
+                base64_encode(file_get_contents(TEST_ROOT . '/data/responses/simple_saml_php.xml'))
+            ))->getNameId()
+        );
     }
 }

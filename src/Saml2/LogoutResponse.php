@@ -2,6 +2,7 @@
 namespace OneLogin\Saml2;
 
 use DOMDocument;
+use DOMElement;
 use DOMNodeList;
 use Exception;
 
@@ -22,14 +23,14 @@ class LogoutResponse
      *
      * @var Settings
      */
-    protected $_settings;
+    protected $settings;
 
     /**
      * The decoded, unprocessed XML response provided to the constructor.
      *
      * @var string|null
      */
-    protected $_logoutResponse;
+    protected $logoutResponse;
 
     /**
      * A DOMDocument class loaded from the SAML LogoutResponse.
@@ -43,7 +44,7 @@ class LogoutResponse
      *
      * @var Exception|null
      */
-    private $_error;
+    private $error;
 
     /**
      * Constructs a Logout Response object (Initialize params from settings and if provided
@@ -58,9 +59,9 @@ class LogoutResponse
      */
     public function __construct(\OneLogin\Saml2\Settings $settings, $response = null)
     {
-        $this->_settings = $settings;
+        $this->settings = $settings;
 
-        $baseURL = $this->_settings->getBaseURL();
+        $baseURL = $this->settings->getBaseURL();
         if (!empty($baseURL)) {
             Utils::setBaseURL($baseURL);
         }
@@ -69,12 +70,12 @@ class LogoutResponse
             $decoded = base64_decode($response);
             $inflated = @gzinflate($decoded);
             if ($inflated !== false) {
-                $this->_logoutResponse = $inflated;
+                $this->logoutResponse = $inflated;
             } else {
-                $this->_logoutResponse = $decoded;
+                $this->logoutResponse = $decoded;
             }
             $this->document = new DOMDocument();
-            $this->document = Utils::loadXML($this->document, $this->_logoutResponse);
+            $this->document = Utils::loadXML($this->document, $this->logoutResponse);
 
             if ($this->document === false) {
                 throw new Error(
@@ -89,34 +90,26 @@ class LogoutResponse
         }
     }
 
-    /**
-     * Gets the Issuer of the Logout Response.
-     *
-     * @return string|null $issuer The Issuer
-     */
-    public function getIssuer()
+    public function getIssuer(): ?string
     {
-        $issuer = null;
-        $issuerNodes = $this->_query('/samlp:LogoutResponse/saml:Issuer');
+        $issuerNodes = $this->query('/samlp:LogoutResponse/saml:Issuer');
         if ($issuerNodes->length === 1) {
-            $issuer = $issuerNodes->item(0)->textContent;
+            return $issuerNodes->item(0)->textContent;
         }
-        return $issuer;
+        return null;
     }
 
-    /**
-     * Gets the Status of the Logout Response.
-     *
-     * @return string|null The Status
-     */
-    public function getStatus()
+    public function getStatus(): ?string
     {
-        $entries = $this->_query('/samlp:LogoutResponse/samlp:Status/samlp:StatusCode');
+        $entries = $this->query('/samlp:LogoutResponse/samlp:Status/samlp:StatusCode');
         if ($entries->length !== 1) {
             return null;
         }
-        $status = $entries->item(0)->getAttribute('Value');
-        return $status;
+        $statusCode = $entries->item(0);
+        if (!$statusCode instanceof DOMElement) {
+            return null;
+        }
+        return $statusCode->getAttribute('Value');
     }
 
     /**
@@ -125,22 +118,18 @@ class LogoutResponse
      * @param string|null $requestId                    The ID of the LogoutRequest sent by this SP to the IdP
      * @param bool        $retrieveParametersFromServer True if we want to use parameters from $_SERVER to validate the signature
      *
-     * @return bool Returns if the SAML LogoutResponse is or not valid
-     *
      * @throws ValidationError
      */
-    public function isValid($requestId = null, $retrieveParametersFromServer = false)
+    public function isValid(?string $requestId = null, bool $retrieveParametersFromServer = false): bool
     {
-        $this->_error = null;
+        $this->error = null;
         try {
-            $idpData = $this->_settings->getIdPData();
-            $idPEntityId = $idpData['entityId'];
-
-            if ($this->_settings->isStrict()) {
-                $security = $this->_settings->getSecurityData();
+            $idpData = $this->settings->getIdPData();
+            if ($this->settings->isStrict()) {
+                $security = $this->settings->getSecurityData();
 
                 if ($security['wantXMLValidation']) {
-                    $res = Utils::validateXML($this->document, 'saml-schema-protocol-2.0.xsd', $this->_settings->isDebugActive());
+                    $res = Utils::validateXML($this->document, 'saml-schema-protocol-2.0.xsd', $this->settings->isDebugActive());
                     if (!$res instanceof DOMDocument) {
                         throw new ValidationError(
                             "Invalid SAML Logout Response. Not match the saml-schema-protocol-2.0.xsd",
@@ -162,7 +151,7 @@ class LogoutResponse
 
                 // Check issuer
                 $issuer = $this->getIssuer();
-                if (!empty($issuer) && $issuer !== $idPEntityId) {
+                if (!empty($issuer) && $issuer !== $idpData['entityId']) {
                     throw new ValidationError(
                         "Invalid issuer in the Logout Response",
                         ValidationError::WRONG_ISSUER
@@ -201,10 +190,10 @@ class LogoutResponse
             }
             return true;
         } catch (Exception $e) {
-            $this->_error = $e;
-            $debug = $this->_settings->isDebugActive();
+            $this->error = $e;
+            $debug = $this->settings->isDebugActive();
             if ($debug) {
-                echo htmlentities($this->_error->getMessage());
+                echo htmlentities($this->error->getMessage());
             }
             return false;
         }
@@ -217,7 +206,7 @@ class LogoutResponse
      *
      * @return DOMNodeList The queried node
      */
-    private function _query($query)
+    private function query($query)
     {
         return Utils::query($this->document, $query);
     }
@@ -229,8 +218,8 @@ class LogoutResponse
      */
     public function build($inResponseTo)
     {
-        $spData = $this->_settings->getSPData();
-        $idpData = $this->_settings->getIdPData();
+        $spData = $this->settings->getSPData();
+        $idpData = $this->settings->getIdPData();
 
         $this->id = Utils::generateUniqueID();
         $issueInstant = Utils::parseTime2SAML(time());
@@ -251,7 +240,7 @@ class LogoutResponse
     </samlp:Status>
 </samlp:LogoutResponse>
 LOGOUTRESPONSE;
-        $this->_logoutResponse = $logoutResponse;
+        $this->logoutResponse = $logoutResponse;
     }
 
     /**
@@ -263,14 +252,14 @@ LOGOUTRESPONSE;
      */
     public function getResponse($deflate = null)
     {
-        $logoutResponse = $this->_logoutResponse;
+        $logoutResponse = $this->logoutResponse;
 
-        if (is_null($deflate)) {
-            $deflate = $this->_settings->shouldCompressResponses();
+        if ($deflate === null) {
+            $deflate = $this->settings->shouldCompressResponses();
         }
 
         if ($deflate) {
-            $logoutResponse = gzdeflate($this->_logoutResponse);
+            $logoutResponse = gzdeflate($this->logoutResponse);
         }
         return base64_encode($logoutResponse);
     }
@@ -282,19 +271,14 @@ LOGOUTRESPONSE;
      */
     public function getErrorException()
     {
-        return $this->_error;
+        return $this->error;
     }
 
-    /**
-     * After execute a validation process, if fails this method returns the cause
-     *
-     * @return null|string Error reason
-     */
-    public function getError()
+    public function getError(): ?string
     {
         $errorMsg = null;
-        if (isset($this->_error)) {
-            $errorMsg = htmlentities($this->_error->getMessage());
+        if (isset($this->error)) {
+            $errorMsg = htmlentities($this->error->getMessage());
         }
         return $errorMsg;
     }
@@ -315,6 +299,6 @@ LOGOUTRESPONSE;
      */
     public function getXML()
     {
-        return $this->_logoutResponse;
+        return $this->logoutResponse;
     }
 }
