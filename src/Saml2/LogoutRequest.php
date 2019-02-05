@@ -338,7 +338,7 @@ LOGOUTREQUEST;
                 $security = $this->settings->getSecurityData();
 
                 if ($security['wantXMLValidation']) {
-                    $res = Utils::validateXML($dom, 'saml-schema-protocol-2.0.xsd', $this->settings->isDebugActive());
+                    $res = Utils::validateXML($dom, 'saml-schema-protocol-2.0.xsd');
                     if (!$res instanceof DOMDocument) {
                         throw new ValidationError(
                             "Invalid SAML Logout Request. Not match the saml-schema-protocol-2.0.xsd",
@@ -400,9 +400,6 @@ LOGOUTREQUEST;
             return true;
         } catch (Exception $e) {
             $this->error = $e;
-            if ($this->settings->isDebugActive()) {
-                echo htmlentities($this->error->getMessage());
-            }
             return false;
         }
     }

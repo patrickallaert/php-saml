@@ -106,9 +106,12 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
      */
     public function testValidateXML()
     {
-        $this->assertEquals(Utils::validateXML('<xml><EntityDescriptor>', 'saml-schema-metadata-2.0.xsd'), 'unloaded_xml');
+        $this->assertEquals('unloaded_xml', Utils::validateXML('<xml><EntityDescriptor>', 'saml-schema-metadata-2.0.xsd'));
 
-        $this->assertEquals(Utils::validateXML(file_get_contents(TEST_ROOT . '/data/metadata/noentity_metadata_settings1.xml'), 'saml-schema-metadata-2.0.xsd'), 'invalid_xml');
+        $this->assertEquals(
+            'invalid_xml',
+            Utils::validateXML(file_get_contents(TEST_ROOT . '/data/metadata/noentity_metadata_settings1.xml'), 'saml-schema-metadata-2.0.xsd')
+        );
 
         $this->assertTrue(
             Utils::validateXML(
@@ -1020,7 +1023,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         $this->assertContains('ds:Signature', $signature->tagName);
 
         $xmlLogoutReqSigned = Utils::addSign(
-            base64_decode(file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request.xml.base64')),
+            file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request.xml'),
             $key,
             $cert,
             XMLSecurityKey::RSA_SHA256,
@@ -1085,7 +1088,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         $this->assertFalse(Utils::validateSign($xmlMetadataSigned, null, $fingerprint, 'sha256'));
         $this->assertTrue(Utils::validateSign($xmlMetadataSigned, null, Utils::calculateX509Fingerprint($cert, 'sha256'), 'sha256'));
 
-        $xmlResponseMsgSigned = base64_decode(file_get_contents(TEST_ROOT . '/data/responses/signed_message_response.xml.base64'));
+        $xmlResponseMsgSigned = file_get_contents(TEST_ROOT . '/data/responses/signed_message_response.xml');
         $this->assertTrue(Utils::validateSign($xmlResponseMsgSigned, $cert));
         $this->assertTrue(Utils::validateSign($xmlResponseMsgSigned, null, $fingerprint));
 

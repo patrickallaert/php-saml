@@ -849,21 +849,4 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
         $settingsInfo['strict'] = true;
         $this->assertTrue((new Settings($settingsInfo))->isStrict());
     }
-
-    /**
-     * @covers OneLogin\Saml2\Settings::isDebugActive
-     */
-    public function testIsDebugActive()
-    {
-        include TEST_ROOT . '/settings/settings1.php';
-        unset($settingsInfo['debug']);
-
-        $this->assertFalse((new Settings($settingsInfo))->isDebugActive());
-
-        $settingsInfo['debug'] = false;
-        $this->assertFalse((new Settings($settingsInfo))->isDebugActive());
-
-        $settingsInfo['debug'] = true;
-        $this->assertTrue((new Settings($settingsInfo))->isDebugActive());
-    }
 }

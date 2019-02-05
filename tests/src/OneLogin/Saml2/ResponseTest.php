@@ -34,26 +34,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests that we can retrieve the raw text of an XML SAML Response
-     * without going through intermediate steps
-     *
-     * @covers OneLogin\Saml2\Response::getXMLDocument()
-     */
-    public function testGetXMLDocument()
-    {
-        $encodedResponse = file_get_contents(TEST_ROOT . '/data/responses/signed_message_response.xml.base64');
-        $this->assertEquals(
-            Utils::loadXML(new DOMDocument(), base64_decode($encodedResponse)),
-            (new Response($this->settings, $encodedResponse))->getXMLDocument()
-        );
-
-        $this->assertEquals(
-            Utils::loadXML(new DOMDocument(), file_get_contents(TEST_ROOT . '/data/responses/decrypted_valid_encrypted_assertion.xml')),
-            (new Response($this->settings, file_get_contents(TEST_ROOT . '/data/responses/valid_encrypted_assertion.xml.base64')))->getXMLDocument()
-        );
-    }
-
-    /**
      * Tests that we can retrieve the ID of the Response
      *
      * @covers OneLogin\Saml2\Response::getId()
@@ -64,7 +44,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
             'pfxc3d2b542-0f7e-8767-8e87-5b0dc6913375',
             (new Response(
                 $this->settings,
-                file_get_contents(TEST_ROOT . '/data/responses/signed_message_response.xml.base64')
+                base64_encode(file_get_contents(TEST_ROOT . '/data/responses/signed_message_response.xml'))
             ))->getId()
         );
     }
@@ -80,7 +60,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
             '_cccd6024116641fe48e0ae2c51220d02755f96c98d',
             (new Response(
                 $this->settings,
-                file_get_contents(TEST_ROOT . '/data/responses/signed_message_response.xml.base64')
+                base64_encode(file_get_contents(TEST_ROOT . '/data/responses/signed_message_response.xml'))
             ))->getAssertionId()
         );
     }
@@ -1422,7 +1402,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function testIsValidSign()
     {
-        $xml = file_get_contents(TEST_ROOT . '/data/responses/signed_message_response.xml.base64');
+        $xml = base64_encode(file_get_contents(TEST_ROOT . '/data/responses/signed_message_response.xml'));
         $this->assertTrue((new Response($this->settings, $xml))->isValid());
 
         $xml2 = file_get_contents(TEST_ROOT . '/data/responses/signed_assertion_response.xml.base64');
@@ -1473,7 +1453,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         include TEST_ROOT . '/settings/settings6.php';
 
         $this->assertTrue(
-            (new Response(new Settings($settingsInfo), file_get_contents(TEST_ROOT . '/data/responses/signed_message_response.xml.base64')))->isValid()
+            (new Response(new Settings($settingsInfo), base64_encode(file_get_contents(TEST_ROOT . '/data/responses/signed_message_response.xml'))))->isValid()
         );
     }
 }

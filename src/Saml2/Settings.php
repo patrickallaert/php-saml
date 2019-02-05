@@ -30,13 +30,6 @@ class Settings
     private $strict = false;
 
     /**
-     * Activate debug mode
-     *
-     * @var bool
-     */
-    private $debug = false;
-
-    /**
      * SP data.
      *
      * @var array
@@ -202,9 +195,6 @@ class Settings
 
             if (isset($settings['strict'])) {
                 $this->strict = $settings['strict'];
-            }
-            if (isset($settings['debug'])) {
-                $this->debug = $settings['debug'];
             }
 
             if (isset($settings['baseurl'])) {
@@ -836,7 +826,7 @@ class Settings
     public function validateMetadata(string $xml)
     {
         $errors = [];
-        $res = Utils::validateXML($xml, 'saml-schema-metadata-2.0.xsd', $this->debug);
+        $res = Utils::validateXML($xml, 'saml-schema-metadata-2.0.xsd');
         if (!$res instanceof DOMDocument) {
             $errors[] = $res;
         } else {
@@ -948,16 +938,6 @@ class Settings
     public function isStrict()
     {
         return $this->strict;
-    }
-
-    /**
-     * Returns if the debug is active.
-     *
-     * @return bool Debug parameter
-     */
-    public function isDebugActive()
-    {
-        return $this->debug;
     }
 
     /**

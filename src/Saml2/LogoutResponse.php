@@ -129,7 +129,7 @@ class LogoutResponse
                 $security = $this->settings->getSecurityData();
 
                 if ($security['wantXMLValidation']) {
-                    $res = Utils::validateXML($this->document, 'saml-schema-protocol-2.0.xsd', $this->settings->isDebugActive());
+                    $res = Utils::validateXML($this->document, 'saml-schema-protocol-2.0.xsd');
                     if (!$res instanceof DOMDocument) {
                         throw new ValidationError(
                             "Invalid SAML Logout Response. Not match the saml-schema-protocol-2.0.xsd",
@@ -191,10 +191,6 @@ class LogoutResponse
             return true;
         } catch (Exception $e) {
             $this->error = $e;
-            $debug = $this->settings->isDebugActive();
-            if ($debug) {
-                echo htmlentities($this->error->getMessage());
-            }
             return false;
         }
     }
@@ -225,7 +221,7 @@ class LogoutResponse
         $issueInstant = Utils::parseTime2SAML(time());
 
         $spEntityId = htmlspecialchars($spData['entityId'], ENT_QUOTES);
-        $logoutResponse = <<<LOGOUTRESPONSE
+        $this->logoutResponse = <<<LOGOUTRESPONSE
 <samlp:LogoutResponse xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
                   xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
                   ID="{$this->id}"
@@ -240,7 +236,6 @@ class LogoutResponse
     </samlp:Status>
 </samlp:LogoutResponse>
 LOGOUTRESPONSE;
-        $this->logoutResponse = $logoutResponse;
     }
 
     /**
@@ -270,24 +265,5 @@ LOGOUTRESPONSE;
     public function getErrorException(): Exception
     {
         return $this->error;
-    }
-
-    /**
-     * @return string the ID of the Response
-     */
-    public function getId()
-    {
-        return $this->id;
-    }
-
-    /**
-     * Returns the XML that will be sent as part of the response
-     * or that was received at the SP
-     *
-     * @return string|null
-     */
-    public function getXML()
-    {
-        return $this->logoutResponse;
     }
 }

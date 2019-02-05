@@ -453,25 +453,6 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests that we can get the request XML directly without
-     * going through intermediate steps
-     *
-     * @covers OneLogin\Saml2\LogoutResponse::getXML()
-     */
-    public function testGetXML()
-    {
-        include TEST_ROOT . '/settings/settings1.php';
-
-        $settings = new Settings($settingsInfo);
-        $logoutResponse = new LogoutResponse($settings);
-        $logoutResponse->build('jhgvsadja');
-        $xml = $logoutResponse->getXML();
-        $this->assertRegExp('#^<samlp:LogoutResponse#', $xml);
-
-        $this->assertRegExp('#^<samlp:LogoutResponse#', (new LogoutResponse($settings, base64_encode($xml)))->getXML());
-    }
-
-    /**
      * Tests that we can get the ID of the LogoutResponse
      *
      * @covers OneLogin\Saml2\LogoutRequest::getID()
@@ -480,14 +461,10 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
     {
         include TEST_ROOT . '/settings/settings1.php';
 
-        $settings = new Settings($settingsInfo);
-        $logoutResponse = new LogoutResponse($settings);
+        $logoutResponse = new LogoutResponse(new Settings($settingsInfo));
         $logoutResponse->build('jhgvsadja');
 
-        $id1 = $logoutResponse->getID();
-        $this->assertNotNull($id1);
-
-        $this->assertEquals($id1, (new LogoutResponse($settings, base64_encode($logoutResponse->getXML())))->getID());
+        $this->assertStringStartsWith("ONELOGIN_", $logoutResponse->id);
     }
 
     /**

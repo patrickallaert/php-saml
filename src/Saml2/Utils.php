@@ -79,13 +79,12 @@ class Utils
      *
      * @param string|DOMDocument $xml    The XML string or document which should be validated.
      * @param string             $schema The schema filename which should be used.
-     * @param bool               $debug  To disable/enable the debug mode
      *
      * @return string|DOMDocument $dom  string that explains the problem or the DOMDocument
      *
      * @throws Exception
      */
-    public static function validateXML($xml, string $schema, bool $debug = false)
+    public static function validateXML($xml, string $schema)
     {
         assert(is_string($xml) || $xml instanceof DOMDocument);
 
@@ -106,14 +105,8 @@ class Utils
         $res = $dom->schemaValidate(__DIR__ . '/schemas/' . $schema);
         libxml_disable_entity_loader($oldEntityLoader);
         if (!$res) {
-            $xmlErrors = libxml_get_errors();
-            syslog(LOG_INFO, 'Error validating the metadata: ' . var_export($xmlErrors, true));
+            syslog(LOG_INFO, 'Error validating the metadata: ' . var_export(libxml_get_errors(), true));
 
-            if ($debug) {
-                foreach ($xmlErrors as $error) {
-                    echo htmlentities($error->message) . "\n";
-                }
-            }
             return 'invalid_xml';
         }
 

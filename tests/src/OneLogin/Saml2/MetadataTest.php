@@ -78,8 +78,7 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
         $this->assertContains('<md:RequestedAttribute Name="FirstName" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri" isRequired="true" />', $metadata);
         $this->assertContains('<md:RequestedAttribute Name="LastName" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri" isRequired="true" />', $metadata);
 
-        $result = Utils::validateXML($metadata, 'saml-schema-metadata-2.0.xsd');
-        $this->assertInstanceOf('DOMDocument', $result);
+        $this->assertInstanceOf('DOMDocument', Utils::validateXML($metadata, 'saml-schema-metadata-2.0.xsd'));
     }
 
     /**
@@ -102,8 +101,7 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
         $this->assertContains('<saml:AttributeValue xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">userType</saml:AttributeValue>', $metadata);
         $this->assertContains('<saml:AttributeValue xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">admin</saml:AttributeValue>', $metadata);
 
-        $result = Utils::validateXML($metadata, 'saml-schema-metadata-2.0.xsd');
-        $this->assertInstanceOf('DOMDocument', $result);
+        $this->assertInstanceOf('DOMDocument', Utils::validateXML($metadata, 'saml-schema-metadata-2.0.xsd'));
     }
 
     /**

@@ -7,9 +7,6 @@ $settings = [
     // standard: Destination, NameId, Conditions ... are validated too.
     'strict' => false,
 
-    // Enable debug mode (to print errors)
-    'debug' => false,
-
     // Set a BaseURL to be used instead of try to guess
     // the BaseURL of the view that process the SAML Message.
     // Ex. http://sp.example.com/

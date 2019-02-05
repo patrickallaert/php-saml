@@ -114,23 +114,6 @@ class Auth
     private $lastRequestID;
 
     /**
-     * The most recently-constructed/processed XML SAML request
-     * (AuthNRequest, LogoutRequest)
-     *
-     * @var string
-     */
-    private $lastRequest;
-
-    /**
-     * The most recently-constructed/processed XML SAML response
-     * (SAMLResponse, LogoutResponse). If the SAMLResponse was
-     * encrypted, by default tries to return the decrypted XML
-     *
-     * @var string|\DomDocument|null
-     */
-    private $lastResponse;
-
-    /**
      * Initializes the SP SAML instance.
      *
      * @param array|null $settings Setting data
@@ -168,7 +151,6 @@ class Auth
         if (isset($_POST['SAMLResponse'])) {
             // AuthnResponse -- HTTP_POST Binding
             $response = new Response($this->settings, $_POST['SAMLResponse']);
-            $this->lastResponse = $response->getXMLDocument();
 
             if ($response->isValid($requestId)) {
                 $this->attributes = $response->getAttributes();
@@ -215,7 +197,6 @@ class Auth
         $this->lastErrorException = null;
         if (isset($_GET['SAMLResponse'])) {
             $logoutResponse = new LogoutResponse($this->settings, $_GET['SAMLResponse']);
-            $this->lastResponse = $logoutResponse->getXML();
             if (!$logoutResponse->isValid($requestId, $retrieveParametersFromServer)) {
                 $this->errors[] = 'invalid_logout_response';
                 $this->lastErrorException = $logoutResponse->getErrorException();
@@ -233,7 +214,6 @@ class Auth
             }
         } elseif (isset($_GET['SAMLRequest'])) {
             $logoutRequest = new LogoutRequest($this->settings, $_GET['SAMLRequest']);
-            $this->lastRequest = $logoutRequest->getXML();
             if (!$logoutRequest->isValid($retrieveParametersFromServer)) {
                 $this->errors[] = 'invalid_logout_request';
                 $this->lastErrorException = $logoutRequest->getErrorException();
@@ -245,11 +225,9 @@ class Auth
                         call_user_func($cbDeleteSession);
                     }
                 }
-                $inResponseTo = $logoutRequest->id;
                 $this->lastMessageId = $logoutRequest->id;
                 $responseBuilder = new LogoutResponse($this->settings);
-                $responseBuilder->build($inResponseTo);
-                $this->lastResponse = $responseBuilder->getXML();
+                $responseBuilder->build($logoutRequest->id);
 
                 $logoutResponse = $responseBuilder->getResponse();
 
@@ -260,9 +238,8 @@ class Auth
 
                 $security = $this->settings->getSecurityData();
                 if (isset($security['logoutResponseSigned']) && $security['logoutResponseSigned']) {
-                    $signature = $this->buildResponseSignature($logoutResponse, isset($parameters['RelayState']) ? $parameters['RelayState'] : null, $security['signatureAlgorithm']);
                     $parameters['SigAlg'] = $security['signatureAlgorithm'];
-                    $parameters['Signature'] = $signature;
+                    $parameters['Signature'] = $this->buildResponseSignature($logoutResponse, isset($parameters['RelayState']) ? $parameters['RelayState'] : null, $security['signatureAlgorithm']);
                 }
 
                 return $this->redirectTo($this->getSLOurl(), $parameters, $stay);
@@ -400,7 +377,6 @@ class Auth
     {
         $authnRequest = new AuthnRequest($this->settings, $forceAuthn, $isPassive, $setNameIdPolicy);
 
-        $this->lastRequest = $authnRequest->getXML();
         $this->lastRequestID = $authnRequest->getId();
 
         $samlRequest = $authnRequest->getRequest();
@@ -414,9 +390,8 @@ class Auth
 
         $security = $this->settings->getSecurityData();
         if (isset($security['authnRequestsSigned']) && $security['authnRequestsSigned']) {
-            $signature = $this->buildRequestSignature($samlRequest, $parameters['RelayState'], $security['signatureAlgorithm']);
             $parameters['SigAlg'] = $security['signatureAlgorithm'];
-            $parameters['Signature'] = $signature;
+            $parameters['Signature'] = $this->buildRequestSignature($samlRequest, $parameters['RelayState'], $security['signatureAlgorithm']);
         }
         return $this->redirectTo($this->getSSOurl(), $parameters, $stay);
     }
@@ -455,7 +430,6 @@ class Auth
 
         $logoutRequest = new LogoutRequest($this->settings, null, $nameId, $sessionIndex, $nameIdFormat, $nameIdNameQualifier, $nameIdSPNameQualifier);
 
-        $this->lastRequest = $logoutRequest->getXML();
         $this->lastRequestID = $logoutRequest->id;
 
         $samlRequest = $logoutRequest->getRequest();
@@ -469,9 +443,8 @@ class Auth
 
         $security = $this->settings->getSecurityData();
         if (isset($security['logoutRequestSigned']) && $security['logoutRequestSigned']) {
-            $signature = $this->buildRequestSignature($samlRequest, $parameters['RelayState'], $security['signatureAlgorithm']);
             $parameters['SigAlg'] = $security['signatureAlgorithm'];
-            $parameters['Signature'] = $signature;
+            $parameters['Signature'] = $this->buildRequestSignature($samlRequest, $parameters['RelayState'], $security['signatureAlgorithm']);
         }
 
         return $this->redirectTo($sloUrl, $parameters, $stay);
@@ -584,38 +557,5 @@ class Auth
     public function getLastAssertionNotOnOrAfter()
     {
         return $this->lastAssertionNotOnOrAfter;
-    }
-
-    /**
-     * Returns the most recently-constructed/processed
-     * XML SAML request (AuthNRequest, LogoutRequest)
-     *
-     * @return string|null The Request XML
-     */
-    public function getLastRequestXML()
-    {
-        return $this->lastRequest;
-    }
-
-    /**
-     * Returns the most recently-constructed/processed
-     * XML SAML response (SAMLResponse, LogoutResponse).
-     * If the SAMLResponse was encrypted, by default tries
-     * to return the decrypted XML.
-     *
-     * @return string|null The Response XML
-     */
-    public function getLastResponseXML()
-    {
-        $response = null;
-        if (isset($this->lastResponse)) {
-            if (is_string($this->lastResponse)) {
-                $response = $this->lastResponse;
-            } else {
-                $response = $this->lastResponse->saveXML();
-            }
-        }
-
-        return $response;
     }
 }

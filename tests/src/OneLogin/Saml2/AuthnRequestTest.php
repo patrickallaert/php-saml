@@ -201,17 +201,4 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
         //Compression is currently turned off in settings.
         $this->assertRegExp('#^<samlp:AuthnRequest#', gzinflate(base64_decode((new AuthnRequest(new Settings($settingsInfo)))->getRequest(true))));
     }
-
-    /**
-     * Tests that we can get the request XML directly without
-     * going through intermediate steps
-     *
-     * @covers OneLogin\Saml2\AuthnRequest::getXML()
-     */
-    public function testGetXML()
-    {
-        include TEST_ROOT . '/settings/settings1.php';
-
-        $this->assertRegExp('#^<samlp:AuthnRequest#', (new AuthnRequest(new Settings($settingsInfo)))->getXML());
-    }
 }

@@ -1361,112 +1361,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests that we can get most recently constructed
-     * SAML AuthNRequest
-     *
-     * @covers OneLogin\Saml2\Auth::getLastRequestXML()
-     */
-    public function testGetLastAuthNRequest()
-    {
-        $parsedQuery = getParamsFromUrl($this->auth->login(null, [], false, false, true, false));
-        $this->assertEquals(gzinflate(base64_decode($parsedQuery['SAMLRequest'])), $this->auth->getLastRequestXML());
-    }
-
-    /**
-     * Tests that we can get most recently constructed
-     * LogoutResponse.
-     *
-     * @covers OneLogin\Saml2\Auth::getLastRequestXML()
-     */
-    public function testGetLastLogoutRequestSent()
-    {
-        $parsedQuery = getParamsFromUrl($this->auth->logout(null, [], null, null, true, null));
-        $this->assertEquals(gzinflate(base64_decode($parsedQuery['SAMLRequest'])), $this->auth->getLastRequestXML());
-    }
-
-    /**
-     * Tests that we can get most recently processed
-     * LogoutRequest.
-     *
-     * @covers OneLogin\Saml2\Auth::getLastRequestXML()
-     *
-     * @runInSeparateProcess
-     * @preserveGlobalState disabled
-     */
-    public function testGetLastLogoutRequestReceived()
-    {
-        $_GET['SAMLRequest'] = file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request.xml.base64');
-        $this->auth->processSLO(false, null, false, null, true);
-        $this->assertEquals(file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request.xml'), $this->auth->getLastRequestXML());
-    }
-
-    /**
-     * Tests that we can get most recently processed
-     * SAML Response
-     *
-     * @covers OneLogin\Saml2\Auth::getLastResponseXML()
-     *
-     * @runInSeparateProcess
-     * @preserveGlobalState disabled
-     */
-    public function testGetLastSAMLResponse()
-    {
-        $_POST['SAMLResponse'] = file_get_contents(TEST_ROOT . '/data/responses/signed_message_response.xml.base64');
-        $this->auth->processResponse();
-        $this->assertEquals(file_get_contents(TEST_ROOT . '/data/responses/signed_message_response.xml'), $this->auth->getLastResponseXML());
-
-        $_POST['SAMLResponse'] = file_get_contents(TEST_ROOT . '/data/responses/valid_encrypted_assertion.xml.base64');
-        $this->auth->processResponse();
-        $this->assertEquals(file_get_contents(TEST_ROOT . '/data/responses/decrypted_valid_encrypted_assertion.xml'), $this->auth->getLastResponseXML());
-    }
-
-    /**
-     * Tests that we can get most recently constructed
-     * LogoutResponse.
-     *
-     * @covers OneLogin\Saml2\Auth::getLastResponseXML()
-     *
-     * @runInSeparateProcess
-     * @preserveGlobalState disabled
-     */
-    public function testGetLastLogoutResponseSent()
-    {
-        include TEST_ROOT . '/settings/settings1.php';
-
-        $_GET['SAMLRequest'] = file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request.xml.base64');
-
-        $auth = new Auth($settingsInfo);
-        $parsedQuery = getParamsFromUrl($auth->processSLO(false, null, false, null, true));
-        $this->assertEquals(gzinflate(base64_decode($parsedQuery['SAMLResponse'])), $auth->getLastResponseXML());
-
-        $settingsInfo['compress'] = ['responses' => true];
-        $auth2 = new Auth($settingsInfo);
-        $parsedQuery2 = getParamsFromUrl($auth2->processSLO(false, null, false, null, true));
-        $this->assertEquals(gzinflate(base64_decode($parsedQuery2['SAMLResponse'])), $auth2->getLastResponseXML());
-
-        $settingsInfo['compress'] = ['responses' => false];
-        $auth3 = new Auth($settingsInfo);
-        $parsedQuery3 = getParamsFromUrl($auth3->processSLO(false, null, false, null, true));
-        $this->assertEquals(base64_decode($parsedQuery3['SAMLResponse']), $auth3->getLastResponseXML());
-    }
-
-    /**
-     * Tests that we can get most recently processed
-     * LogoutResponse.
-     *
-     * @covers OneLogin\Saml2\Auth::getLastResponseXML()
-     *
-     * @runInSeparateProcess
-     * @preserveGlobalState disabled
-     */
-    public function testGetLastLogoutResponseReceived()
-    {
-        $_GET['SAMLResponse'] = file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response.xml.base64');
-        $this->auth->processSLO(false, null, false, null, true);
-        $this->assertEquals(file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response.xml'), $this->auth->getLastResponseXML());
-    }
-
-    /**
      * Tests that we can get the Id of the SAMLResponse and
      * the assertion processed and the NotOnOrAfter value
      *
@@ -1479,7 +1373,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetInfoFromLastResponseReceived()
     {
-        $_POST['SAMLResponse'] = file_get_contents(TEST_ROOT . '/data/responses/signed_message_response.xml.base64');
+        $_POST['SAMLResponse'] = base64_encode(file_get_contents(TEST_ROOT . '/data/responses/signed_message_response.xml'));
         $this->auth->processResponse();
         $this->assertEmpty($this->auth->getErrors());
         $this->assertEquals('pfxc3d2b542-0f7e-8767-8e87-5b0dc6913375', $this->auth->getLastMessageId());
@@ -1527,7 +1421,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetIdFromLastLogoutRequest()
     {
-        $_GET['SAMLRequest'] = file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request.xml.base64');
+        $_GET['SAMLRequest'] = base64_encode(file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request.xml'));
         $this->auth->processSLO(false, null, false, null, true);
         $this->assertEquals('ONELOGIN_21584ccdfaca36a145ae990442dcd96bfe60151e', $this->auth->getLastMessageId());
     }

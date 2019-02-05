@@ -2,7 +2,6 @@
 
 $settingsInfo = [
     'strict' => false,
-    'debug' => false,
     'sp' => [
         'entityId' => 'http://stuff.com/endpoints/metadata.php',
         'assertionConsumerService' => ['url' => 'http://stuff.com/endpoints/endpoints/acs.php'],

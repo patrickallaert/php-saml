@@ -29,7 +29,7 @@ class AuthnRequest
         $idpData = $this->settings->getIdPData();
         $security = $this->settings->getSecurityData();
 
-        $id = Utils::generateUniqueID();
+        $this->id = Utils::generateUniqueID();
         $issueInstant = Utils::parseTime2SAML(time());
 
         $nameIdPolicyStr = '';
@@ -102,11 +102,11 @@ REQUESTEDAUTHN;
 
         $spEntityId = htmlspecialchars($spData['entityId'], ENT_QUOTES);
         $acsUrl = htmlspecialchars($spData['assertionConsumerService']['url'], ENT_QUOTES);
-        $request = <<<AUTHNREQUEST
+        $this->authnRequest = <<<AUTHNREQUEST
 <samlp:AuthnRequest
     xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
     xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
-    ID="$id"
+    ID="$this->id"
     Version="2.0"
 {$providerNameStr}{$forceAuthnStr}{$isPassiveStr}
     IssueInstant="$issueInstant"
@@ -118,9 +118,6 @@ REQUESTEDAUTHN;
 {$requestedAuthnStr}
 </samlp:AuthnRequest>
 AUTHNREQUEST;
-
-        $this->id = $id;
-        $this->authnRequest = $request;
     }
 
     /**
@@ -142,17 +139,11 @@ AUTHNREQUEST;
             $subject = gzdeflate($this->authnRequest);
         }
 
-        $base64Request = base64_encode($subject);
-        return $base64Request;
+        return base64_encode($subject);
     }
 
     public function getId(): string
     {
         return $this->id;
-    }
-
-    public function getXML(): string
-    {
-        return $this->authnRequest;
     }
 }
