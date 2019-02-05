@@ -663,14 +663,16 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         // Encrypted Attributes are not supported
         $this->assertEmpty(
             (new Response(
-                $this->settings, file_get_contents(TEST_ROOT . '/data/responses/invalids/encrypted_attrs.xml.base64')
+                $this->settings,
+                file_get_contents(TEST_ROOT . '/data/responses/invalids/encrypted_attrs.xml.base64')
             ))->getAttributesWithFriendlyName()
         );
         // Duplicated Attribute names
         try {
             (
                 new Response(
-                    $this->settings, file_get_contents(TEST_ROOT . '/data/responses/invalids/duplicated_attributes_with_friendly_names.xml.base64')
+                    $this->settings,
+                    file_get_contents(TEST_ROOT . '/data/responses/invalids/duplicated_attributes_with_friendly_names.xml.base64')
                 )
             )->getAttributesWithFriendlyName();
             $this->fail('OneLogin\Saml2\ValidationError was not raised');
@@ -1043,8 +1045,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
             str_replace(
                 'http://stuff.com/endpoints/endpoints/acs.php',
                 Utils::getSelfURLNoQuery(),
-                base64_decode(file_get_contents(TEST_ROOT . '/data/responses/invalids/invalid_audience.xml.base64')
-                )
+                base64_decode(file_get_contents(TEST_ROOT . '/data/responses/invalids/invalid_audience.xml.base64'))
             )
         );
 
@@ -1076,16 +1077,14 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
             str_replace(
                 'http://stuff.com/endpoints/endpoints/acs.php',
                 $currentURL,
-                base64_decode(file_get_contents(TEST_ROOT . '/data/responses/invalids/invalid_issuer_assertion.xml.base64')
-                )
+                base64_decode(file_get_contents(TEST_ROOT . '/data/responses/invalids/invalid_issuer_assertion.xml.base64'))
             )
         );
         $message2 = base64_encode(
             str_replace(
                 'http://stuff.com/endpoints/endpoints/acs.php',
                 $currentURL,
-                base64_decode(file_get_contents(TEST_ROOT . '/data/responses/invalids/invalid_issuer_message.xml.base64')
-                )
+                base64_decode(file_get_contents(TEST_ROOT . '/data/responses/invalids/invalid_issuer_message.xml.base64'))
             )
         );
 
@@ -1127,8 +1126,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
             str_replace(
                 'http://stuff.com/endpoints/endpoints/acs.php',
                 Utils::getSelfURLNoQuery(),
-                base64_decode(file_get_contents(TEST_ROOT . '/data/responses/invalids/invalid_sessionindex.xml.base64')
-                )
+                base64_decode(file_get_contents(TEST_ROOT . '/data/responses/invalids/invalid_sessionindex.xml.base64'))
             )
         );
 
@@ -1248,8 +1246,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
             str_replace(
                 'http://stuff.com/endpoints/endpoints/acs.php',
                 Utils::getSelfURLNoQuery(),
-                base64_decode(file_get_contents(TEST_ROOT . '/data/responses/unsigned_response.xml.base64')
-                )
+                base64_decode(file_get_contents(TEST_ROOT . '/data/responses/unsigned_response.xml.base64'))
             )
         );
 
@@ -1278,7 +1275,9 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     public function testIsInValidSignIssues()
     {
         $message = base64_encode(
-            str_replace('http://stuff.com/endpoints/endpoints/acs.php', Utils::getSelfURLNoQuery(),
+            str_replace(
+                'http://stuff.com/endpoints/endpoints/acs.php',
+                Utils::getSelfURLNoQuery(),
                 base64_decode(file_get_contents(TEST_ROOT . '/data/responses/unsigned_response.xml.base64'))
             )
         );
@@ -1345,8 +1344,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
             str_replace(
                 'http://stuff.com/endpoints/endpoints/acs.php',
                 Utils::getSelfURLNoQuery(),
-                base64_decode(file_get_contents(TEST_ROOT . '/data/responses/unsigned_response.xml.base64')
-                )
+                base64_decode(file_get_contents(TEST_ROOT . '/data/responses/unsigned_response.xml.base64'))
             )
         );
 
@@ -1569,6 +1567,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         include TEST_ROOT . '/settings/settings6.php';
 
         $this->assertTrue(
-            (new Response(new Settings($settingsInfo), file_get_contents(TEST_ROOT . '/data/responses/signed_message_response.xml.base64')))->isValid());
+            (new Response(new Settings($settingsInfo), file_get_contents(TEST_ROOT . '/data/responses/signed_message_response.xml.base64')))->isValid()
+        );
     }
 }

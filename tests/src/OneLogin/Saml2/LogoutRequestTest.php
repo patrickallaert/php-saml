@@ -60,10 +60,14 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
 
         $logoutUrl = Utils::redirect(
             'http://idp.example.com/SingleLogoutService.php',
-            ['SAMLRequest' => (new LogoutRequest(
-                new Settings($settingsInfo),
-                file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request_deflated.xml.base64')
-            ))->getRequest()],
+            [
+                'SAMLRequest' => (
+                    new LogoutRequest(
+                        new Settings($settingsInfo),
+                        file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request_deflated.xml.base64')
+                    )
+                )->getRequest(),
+            ],
             true
         );
         $this->assertRegExp('#^http://idp\.example\.com\/SingleLogoutService\.php\?SAMLRequest=#', $logoutUrl);
@@ -113,13 +117,17 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
 
         $logoutUrl = Utils::redirect(
             'http://idp.example.com/SingleLogoutService.php',
-            ['SAMLRequest' => (new LogoutRequest(
-                $settings,
-                null,
-                $nameId,
-                null,
-                $nameIdFormat
-            ))->getRequest()],
+            [
+                'SAMLRequest' => (
+                    new LogoutRequest(
+                        $settings,
+                        null,
+                        $nameId,
+                        null,
+                        $nameIdFormat
+                    )
+                )->getRequest(),
+            ],
             true
         );
         $this->assertRegExp('#^http://idp\.example\.com\/SingleLogoutService\.php\?SAMLRequest=#', $logoutUrl);
@@ -197,14 +205,18 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
         $nameIdNameQualifier = 'https://test.example.com/saml/metadata';
         $logoutUrl = Utils::redirect(
             'http://idp.example.com/SingleLogoutService.php',
-            ['SAMLRequest' => (new LogoutRequest(
-                new Settings($settingsInfo),
-                null,
-                $nameId,
-                null,
-                'urn:oasis:names:tc:SAML:2.0:nameid-format:transient',
-                $nameIdNameQualifier
-            ))->getRequest()],
+            [
+                'SAMLRequest' => (
+                    new LogoutRequest(
+                        new Settings($settingsInfo),
+                        null,
+                        $nameId,
+                        null,
+                        'urn:oasis:names:tc:SAML:2.0:nameid-format:transient',
+                        $nameIdNameQualifier
+                    )
+                )->getRequest(),
+            ],
             true
         );
         $this->assertRegExp('#^http://idp\.example\.com\/SingleLogoutService\.php\?SAMLRequest=#', $logoutUrl);
@@ -376,7 +388,11 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
 
         $logoutRequestStr3 = (
             new LogoutRequest(
-                $this->settings, null, "ONELOGIN_1e442c129e1f822c8096086a1103c5ee2c7cae1c", null, Constants::NAMEID_UNSPECIFIED
+                $this->settings,
+                null,
+                "ONELOGIN_1e442c129e1f822c8096086a1103c5ee2c7cae1c",
+                null,
+                Constants::NAMEID_UNSPECIFIED
             )
         )->getXML();
         $this->assertContains('ONELOGIN_1e442c129e1f822c8096086a1103c5ee2c7cae1c', $logoutRequestStr3);
@@ -723,12 +739,19 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
 
         $this->settings->setStrict(true);
 
-        $request2 = str_replace('https://pitbulk.no-ip.org/newonelogin/demo1/index.php?sls', Utils::getSelfURLNoQuery(),
-            gzinflate(base64_decode($_GET['SAMLRequest']))
+        $encodedRequest2 = base64_encode(
+            gzdeflate(
+                str_replace(
+                    'https://pitbulk.no-ip.org/simplesaml/saml2/idp/metadata.php',
+                    'http://idp.example.com/',
+                    str_replace(
+                        'https://pitbulk.no-ip.org/newonelogin/demo1/index.php?sls',
+                        Utils::getSelfURLNoQuery(),
+                        gzinflate(base64_decode($_GET['SAMLRequest']))
+                    )
+                )
+            )
         );
-        $request2 = str_replace('https://pitbulk.no-ip.org/simplesaml/saml2/idp/metadata.php', 'http://idp.example.com/', $request2);
-
-        $encodedRequest2 = base64_encode(gzdeflate($request2));
 
         $_GET['SAMLRequest'] = $encodedRequest2;
         $logoutRequest4 = new LogoutRequest($this->settings, $encodedRequest2);

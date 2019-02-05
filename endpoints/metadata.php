@@ -1,10 +1,10 @@
 <?php
- 
+
 /**
  *  SP Metadata Endpoint
  */
 
-require_once dirname(__DIR__).'/_toolkit_loader.php';
+require_once dirname(__DIR__) . '/_toolkit_loader.php';
 
 use OneLogin\Saml2\Auth;
 use OneLogin\Saml2\Error;
@@ -19,7 +19,7 @@ try {
         echo $metadata;
     } else {
         throw new Error(
-            'Invalid SP metadata: '.implode(', ', $errors),
+            'Invalid SP metadata: ' . implode(', ', $errors),
             Error::METADATA_SP_INVALID
         );
     }

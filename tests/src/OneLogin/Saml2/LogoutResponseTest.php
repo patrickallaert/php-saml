@@ -403,7 +403,8 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
 
         $this->assertTrue(
             (new LogoutResponse(
-                $this->settings, base64_encode(
+                $this->settings,
+                base64_encode(
                     gzdeflate(
                         str_replace('http://stuff.com/endpoints/endpoints/sls.php', Utils::getSelfURLNoQuery(), gzinflate(base64_decode($message)))
                     )
@@ -423,11 +424,13 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
         //Test that we can compress.
         include TEST_ROOT . '/settings/settings1.php';
 
-        $this->assertRegExp('#^<samlp:LogoutResponse#',
+        $this->assertRegExp(
+            '#^<samlp:LogoutResponse#',
             gzinflate(
                 base64_decode(
                     (new LogoutResponse(
-                        new Settings($settingsInfo), file_get_contents(
+                        new Settings($settingsInfo),
+                        file_get_contents(
                             TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64'
                         )
                     ))->getResponse()
@@ -451,7 +454,8 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
             '#^<samlp:LogoutResponse#',
             base64_decode(
                 (new LogoutResponse(
-                    new Settings($settingsInfo), file_get_contents(
+                    new Settings($settingsInfo),
+                    file_get_contents(
                         TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64'
                     )
                 ))->getResponse()
@@ -477,7 +481,8 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
 
         include TEST_ROOT . '/settings/settings2.php';
 
-        $this->assertRegExp('#^<samlp:LogoutResponse#',
+        $this->assertRegExp(
+            '#^<samlp:LogoutResponse#',
             gzinflate(base64_decode((new LogoutResponse(new Settings($settingsInfo), $message))->getResponse(true)))
         );
     }

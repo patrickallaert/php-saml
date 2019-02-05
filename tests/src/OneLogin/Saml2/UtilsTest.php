@@ -1171,8 +1171,9 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
 
         try {
             $this->assertFalse(Utils::validateSign(
-                base64_decode(file_get_contents(TEST_ROOT . '/data/responses/invalids/signature_wrapping_attack.xml.base64')), $cert)
-            );
+                base64_decode(file_get_contents(TEST_ROOT . '/data/responses/invalids/signature_wrapping_attack.xml.base64')),
+                $cert
+            ));
             $this->fail('Exception was not raised');
         } catch (Exception $e) {
             $this->assertContains('Reference validation failed', $e->getMessage());
