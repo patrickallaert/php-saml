@@ -21,25 +21,33 @@ class IdPMetadataParser
      */
     public static function parseRemoteXML(string $url, ?string $entityId = null, ?string $desiredNameIdFormat = null, string $desiredSSOBinding = Constants::BINDING_HTTP_REDIRECT, string $desiredSLOBinding = Constants::BINDING_HTTP_REDIRECT)
     {
-        $metadataInfo = [];
-
         try {
             $ch = curl_init($url);
-            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "GET");
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-            curl_setopt($ch, CURLOPT_FAILONERROR, 1);
+
+            if ($ch === false) {
+                throw new Exception("An unknown error occurred during curl_init");
+            }
+
+            curl_setopt_array(
+                $ch,
+                [
+                    CURLOPT_CUSTOMREQUEST => "GET",
+                    CURLOPT_RETURNTRANSFER => 1,
+                    CURLOPT_FOLLOWLOCATION => 1,
+                    CURLOPT_SSL_VERIFYPEER => 0,
+                    CURLOPT_FAILONERROR => 1,
+                ]
+            );
 
             $xml = curl_exec($ch);
-            if ($xml !== false) {
-                $metadataInfo = self::parseXML($xml, $entityId, $desiredNameIdFormat, $desiredSSOBinding, $desiredSLOBinding);
-            } else {
+            if ($xml === false) {
                 throw new Exception(curl_error($ch), curl_errno($ch));
             }
+
+            return self::parseXML($xml, $entityId, $desiredNameIdFormat, $desiredSSOBinding, $desiredSLOBinding);
         } catch (Exception $e) {
         }
-        return $metadataInfo;
+        return [];
     }
 
     /**
