@@ -1,6 +1,6 @@
 # Patrick Allaert's SAML PHP Toolkit Compatible with PHP 7.1+ based on OneLogin's
 
-[![Build Status](https://api.travis-ci.org/patrickallaert/php-saml.png?branch=master)](http://travis-ci.org/patrickallaert/php-saml) [![License](https://poser.pugx.org/patrickallaert/php-saml/license.png)](https://packagist.org/packages/patrickallaert/php-saml)
+[![Build Status](https://api.travis-ci.org/patrickallaert/php-saml.png?branch=1.0)](http://travis-ci.org/patrickallaert/php-saml) [![License](https://poser.pugx.org/patrickallaert/php-saml/license.png)](https://packagist.org/packages/patrickallaert/php-saml)
 
 Add SAML support to your PHP software using this library.
 
