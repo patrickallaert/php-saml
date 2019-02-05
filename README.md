@@ -1,24 +1,13 @@
-# OneLogin's SAML PHP Toolkit Compatible with PHP 5.X & 7.X
+# Patrick Allaert's SAML PHP Toolkit Compatible with PHP 7.1+ based on OneLogin's
 
-[![Build Status](https://api.travis-ci.org/onelogin/php-saml.png?branch=master)](http://travis-ci.org/onelogin/php-saml) [![Coverage Status](https://coveralls.io/repos/onelogin/php-saml/badge.png)](https://coveralls.io/r/onelogin/php-saml) [![License](https://poser.pugx.org/onelogin/php-saml/license.png)](https://packagist.org/packages/onelogin/php-saml)
+[![Build Status](https://api.travis-ci.org/patrickallaert/php-saml.png?branch=master)](http://travis-ci.org/patrickallaert/php-saml) [![License](https://poser.pugx.org/patrickallaert/php-saml/license.png)](https://packagist.org/packages/patrickallaert/php-saml)
 
 Add SAML support to your PHP software using this library.
-Forget those complicated libraries and use this open source library provided
-and supported by OneLogin Inc.
-
 
 Warning
 -------
 
-Update php-saml to 3.1.0, this version includes a security patch related to XEE attacks.
-
-This version is compatible with PHP 7.X and does not include xmlseclibs (you will need to install it via composer, dependency described in composer.json)
-
-Security Guidelines
--------------------
-
-If you believe you have discovered a security vulnerability in this toolkit, please report it at https://www.onelogin.com/security with a description. We follow responsible disclosure guidelines, and will work with you to quickly find a resolution.
-
+This version is compatible with PHP 7.1+ and does not include xmlseclibs (you will need to install it via composer, dependency described in composer.json)
 
 Why add SAML support to my software?
 ------------------------------------
@@ -47,7 +36,7 @@ since 2002, but lately it is becoming popular due its advantages:
 General description
 -------------------
 
-OneLogin's SAML PHP toolkit let you build a SP (Service Provider) over
+SAML PHP toolkit let you build a SP (Service Provider) over
 your PHP application and connect it to any IdP (Identity Provider).
 
 Supports:
@@ -68,16 +57,14 @@ Key features:
  * **Easy to use** - Programmer will be allowed to code high-level and
    low-level programming, 2 easy to use APIs are available.
  * **Tested** - Thoroughly tested.
- * **Popular** - OneLogin's customers use it. Many PHP SAML plugins uses it.
-
-Integrate your PHP toolkit at OneLogin using this guide: [https://developers.onelogin.com/page/saml-toolkit-for-php](https://developers.onelogin.com/page/saml-toolkit-for-php)
+ * **Popular** - Many PHP SAML plugins uses it.
 
 Installation
 ------------
 
 ### Dependencies ###
 
- * `php >= 5.4` and some core extensions like `php-xml`, `php-date`, `php-zlib`.
+ * `php >= 7.1` and some core extensions like `php-xml`, `php-date`, `php-zlib`.
  * `openssl`. Install the openssl library. It handles x509 certificates.
  * `gettext`. Install that library and its php driver. It handles translations.
  * `curl`. Install that library and its php driver if you plan to use the IdP Metadata parser.
@@ -88,46 +75,21 @@ Installation
 
 The toolkit is hosted on github. You can download it from:
 
- * https://github.com/onelogin/php-saml/releases
-
-Search for 3.X.X releases
-
-Copy the core of the library inside the php application. (each application has its
-structure so take your time to locate the PHP SAML toolkit in the best place).
-See the "Guide to add SAML support to my app" to know how.
+ * https://github.com/patrickallaert/php-saml/releases
 
 #### Option 2. Composer ####
 
-The toolkit supports [composer](https://getcomposer.org/). You can find the `onelogin/php-saml` package at https://packagist.org/packages/onelogin/php-saml
+The toolkit supports [composer](https://getcomposer.org/). You can find the `patrickallaert/php-saml` package at https://packagist.org/packages/patrickallaert/php-saml
 
 In order to import the saml toolkit to your current php project, execute
 ```
-composer require onelogin/php-saml
+composer require patrickallaert/php-saml
 ```
 
-Remember to select the 3.X.X branch
-
-After installation has completed you will find at the `vendor/` folder a new folder named `onelogin` and inside the `php-saml`. Make sure you are including the autoloader provided by composer. It can be found at `vendor/autoload.php`.
-
-**Important** In this option, the x509 certs must be stored at `vendor/onelogin/php-saml/certs`
-and settings file stored at `vendor/onelogin/php-saml`.
+**Important** In this option, the x509 certs must be stored at `vendor/patrickallaert/php-saml/certs`
+and settings file stored at `vendor/patrickallaert/php-saml`.
 
 Your settings are at risk of being deleted when updating packages using `composer update` or similar commands. So it is **highly** recommended that instead of using settings files, you pass the settings as an array directly to the constructor (explained later in this document). If you do not use this approach your settings are at risk of being deleted when updating packages using `composer update` or similar commands.
-
-Compatibility
--------------
-
-This 3.X.X supports PHP 7.X. but can be used with PHP >=5.4 as well  (5.6.24+ recommended for security reasons).
-
-Namespaces
-----------
-
-If you are using the library with a framework like Symfony that contains
-namespaces, remember that calls to the class must be done by adding a backslash (`\`) to the
-start, for example to use the static method getSelfURLNoQuery use:
-
-    \OneLogin\Saml2\Utils::getSelfURLNoQuery()
-
 
 Security warning
 ----------------
@@ -144,8 +106,7 @@ Getting started
 
 ### Knowing the toolkit ###
 
-The new OneLogin SAML Toolkit contains different folders (`certs`, `endpoints`,
-`lib`, `demo`, etc.) and some files.
+The SAML Toolkit contains different folders (`certs`, `endpoints`, `lib`, `demo`, etc.) and some files.
 
 Let's start describing the folders:
 
@@ -270,7 +231,7 @@ $settings = array(
             // URL Location where the <Response> from the IdP will be returned
             'url' => '',
             // SAML protocol binding to be used when returning the <Response>
-            // message. OneLogin Toolkit supports this endpoint for the
+            // message. Toolkit supports this endpoint for the
             // HTTP-POST binding only.
             'binding' => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST',
         ),
@@ -296,7 +257,7 @@ $settings = array(
             // URL Location where the <Response> from the IdP will be returned
             'url' => '',
             // SAML protocol binding to be used when returning the <Response>
-            // message. OneLogin Toolkit supports the HTTP-Redirect binding
+            // message. Toolkit supports the HTTP-Redirect binding
             // only for this endpoint.
             'binding' => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect',
         ),
@@ -329,7 +290,7 @@ $settings = array(
             // will be sent.
             'url' => '',
             // SAML protocol binding to be used when returning the <Response>
-            // message. OneLogin Toolkit supports the HTTP-Redirect binding
+            // message. Toolkit supports the HTTP-Redirect binding
             // only for this endpoint.
             'binding' => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect',
         ),
@@ -338,7 +299,7 @@ $settings = array(
             // URL Location of the IdP where SLO Request will be sent.
             'url' => '',
             // SAML protocol binding to be used when returning the <Response>
-            // message. OneLogin Toolkit supports the HTTP-Redirect binding
+            // message. Toolkit supports the HTTP-Redirect binding
             // only for this endpoint.
             'binding' => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect',
         ),
@@ -1153,7 +1114,7 @@ Lets describe now the classes and methods of the SAML2 library.
 
 ##### OneLogin\Saml2\Auth - Auth.php #####
 
-Main class of OneLogin PHP Toolkit
+Main class of PHP Toolkit
 
  * `Auth` - Initializes the SP SAML instance
  * `login` - Initiates the SSO process.
@@ -1250,7 +1211,7 @@ SAML 2 Logout Response class
 
 ##### OneLogin\Saml2\Settings - `Settings.php` #####
 
-Configuration of the OneLogin PHP Toolkit
+Configuration of the SAML PHP Toolkit
 
  * `Settings` -  Initializes the settings: Sets the paths of
    the different folders and Loads settings info from settings file or
@@ -1360,7 +1321,7 @@ Demos require that SP and IdP are well configured before test it.
 
 ### SP setup ###
 
-The Onelogin's PHP Toolkit allows you to provide the settings info in two ways:
+The SAML PHP Toolkit allows you to provide the settings info in two ways:
 
  * Use a `settings.php` file that we should locate at the base folder of the
    toolkit.
@@ -1435,7 +1396,7 @@ must be done.
 
 ### SP setup ###
 
-The Onelogin's PHP Toolkit allows you to provide the settings info in two ways:
+The SAML PHP Toolkit allows you to provide the settings info in two ways:
 
  * Use a `settings.php` file that we should locate at the base folder of the
    toolkit.

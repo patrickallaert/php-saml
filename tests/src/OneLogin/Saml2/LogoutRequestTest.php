@@ -2,7 +2,7 @@
 
 namespace OneLogin\Saml2\Tests;
 
-use DomDocument;
+use DOMDocument;
 use OneLogin\Saml2\Constants;
 use OneLogin\Saml2\Error;
 use OneLogin\Saml2\LogoutRequest;

@@ -26,7 +26,7 @@ $settings = [
             // URL Location where the <Response> from the IdP will be returned
             'url' => '',
             // SAML protocol binding to be used when returning the <Response>
-            // message.  Onelogin Toolkit supports for this endpoint the
+            // message. SAML Toolkit supports for this endpoint the
             // HTTP-Redirect binding only
             'binding' => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST',
         ],
@@ -52,7 +52,7 @@ $settings = [
             // URL Location where the <Response> from the IdP will be returned
             'url' => '',
             // SAML protocol binding to be used when returning the <Response>
-            // message.  Onelogin Toolkit supports for this endpoint the
+            // message. SAML Toolkit supports for this endpoint the
             // HTTP-Redirect binding only
             'binding' => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect',
         ],
@@ -85,7 +85,7 @@ $settings = [
             // URL Target of the IdP where the SP will send the Authentication Request Message
             'url' => '',
             // SAML protocol binding to be used when returning the <Response>
-            // message.  Onelogin Toolkit supports for this endpoint the
+            // message. SAML Toolkit supports for this endpoint the
             // HTTP-POST binding only
             'binding' => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect',
         ],
@@ -94,7 +94,7 @@ $settings = [
             // URL Location of the IdP where the SP will send the SLO Request
             'url' => '',
             // SAML protocol binding to be used when returning the <Response>
-            // message.  Onelogin Toolkit supports for this endpoint the
+            // message. SAML Toolkit supports for this endpoint the
             // HTTP-Redirect binding only
             'binding' => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect',
         ],

@@ -6,9 +6,6 @@ use Exception;
 use RobRichards\XMLSecLibs\XMLSecurityDSig;
 use RobRichards\XMLSecLibs\XMLSecurityKey;
 
-/**
- * Configuration of the OneLogin PHP Toolkit
- */
 class Settings
 {
     /**
