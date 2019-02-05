@@ -20,7 +20,7 @@ before_script:
 
 script:
   - vendor/bin/phpunit --bootstrap tests/bootstrap.php --configuration tests/phpunit.xml
-  - php vendor/bin/phpcs --standard=phpcs.xml --extensions=php src/ demo1 demo2 endpoints tests
+  - php vendor/bin/phpcs -n --standard=phpcs.xml --extensions=php src/ demo1 demo2 endpoints tests
 
 after_script:
   - export TRAVIS=https://travis-ci.org/patrickallaert/php-saml
