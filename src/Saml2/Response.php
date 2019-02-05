@@ -1072,6 +1072,7 @@ class Response
 
         $decrypted = $decrypted->documentElement;
         $encryptedAssertion = $encData->parentNode;
+        assert($encryptedAssertion instanceof DOMElement);
         $container = $encryptedAssertion->parentNode;
         assert($container instanceof DOMElement);
 
@@ -1100,10 +1101,8 @@ class Response
 
     /**
      * After execute a validation process, if fails this method returns the cause
-     *
-     * @return Exception|null Cause
      */
-    public function getErrorException()
+    public function getErrorException(): ?Exception
     {
         return $this->error;
     }

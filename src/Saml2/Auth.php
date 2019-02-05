@@ -102,7 +102,7 @@ class Auth
     /**
      * Last error object.
      *
-     * @var Error|null
+     * @var ?Exception
      */
     private $lastErrorException;
 

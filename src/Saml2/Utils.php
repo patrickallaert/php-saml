@@ -486,7 +486,7 @@ class Utils
 
         // strip the port
         if (strpos($currentHost, ':') !== false) {
-            list($currentHost, $port) = explode(':', $currentHost, 2);
+            list($currentHost) = explode(':', $currentHost, 2);
         }
 
         return $currentHost;
@@ -511,7 +511,7 @@ class Utils
 
         // strip the port
         if (strpos($currentHost, ':') !== false) {
-            list($currentHost, $port) = explode(':', $currentHost, 2);
+            list(, $port) = explode(':', $currentHost, 2);
             if (is_numeric($port)) {
                 return (int) $port;
             }
@@ -1188,6 +1188,7 @@ class Utils
 
         /* Get the EntityDescriptor node we should sign. */
         $rootNode = $dom->firstChild;
+        assert($rootNode instanceof DOMElement);
 
         /* Sign the metadata with our private key. */
         $objXMLSecDSig = new XMLSecurityDSig();

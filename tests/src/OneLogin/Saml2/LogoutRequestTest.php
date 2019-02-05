@@ -89,7 +89,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
         $this->assertRegExp('#^<samlp:LogoutRequest#', $inflated);
 
         $sessionIndexes = LogoutRequest::getSessionIndexes($inflated);
-        $this->assertInternalType('array', $sessionIndexes);
+        $this->assertIsArray($sessionIndexes);
         $this->assertEquals([$sessionIndex], $sessionIndexes);
     }
 

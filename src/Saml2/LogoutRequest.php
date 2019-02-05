@@ -31,7 +31,7 @@ class LogoutRequest
     /**
      * After execute a validation process, this var contains the cause
      *
-     * @var Exception
+     * @var ?Exception
      */
     private $error;
 
@@ -409,10 +409,8 @@ LOGOUTREQUEST;
 
     /**
      * After execute a validation process, if fails this method returns the Exception of the cause
-     *
-     * @return Exception Cause
      */
-    public function getErrorException()
+    public function getErrorException(): ?Exception
     {
         return $this->error;
     }

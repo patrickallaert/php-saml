@@ -3,6 +3,7 @@
 namespace OneLogin\Saml2\Tests;
 
 use DOMDocument;
+use DOMElement;
 use Exception;
 use OneLogin\Saml2\Constants;
 use OneLogin\Saml2\Settings;
@@ -698,11 +699,13 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         $assertionNodes = Utils::query($dom, '/samlp:Response/saml:Assertion');
         $this->assertEquals(1, $assertionNodes->length);
         $assertion = $assertionNodes->item(0);
+        assert($assertion instanceof DOMElement);
         $this->assertEquals('saml:Assertion', $assertion->tagName);
 
         $attributeStatementNodes = Utils::query($dom, '/samlp:Response/saml:Assertion/saml:AttributeStatement');
         $this->assertEquals(1, $attributeStatementNodes->length);
         $attributeStatement = $attributeStatementNodes->item(0);
+        assert($attributeStatement instanceof DOMElement);
         $this->assertEquals('saml:AttributeStatement', $attributeStatement->tagName);
 
         $attributeStatementNodes2 = Utils::query($dom, './saml:AttributeStatement', $assertion);
@@ -712,11 +715,13 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         $signatureResNodes = Utils::query($dom, '/samlp:Response/ds:Signature');
         $this->assertEquals(1, $signatureResNodes->length);
         $signatureRes = $signatureResNodes->item(0);
+        assert($signatureRes instanceof DOMElement);
         $this->assertEquals('ds:Signature', $signatureRes->tagName);
 
         $signatureNodes = Utils::query($dom, '/samlp:Response/saml:Assertion/ds:Signature');
         $this->assertEquals(1, $signatureNodes->length);
         $signature = $signatureNodes->item(0);
+        assert($signature instanceof DOMElement);
         $this->assertEquals('ds:Signature', $signature->tagName);
 
         $signatureNodes2 = Utils::query($dom, './ds:Signature', $assertion);
@@ -913,24 +918,30 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
 
         $domNameIdEnc = new DOMDocument();
         $domNameIdEnc->loadXML(base64_decode(file_get_contents(TEST_ROOT . '/data/responses/response_encrypted_nameid.xml.base64')));
-        $encryptedNameIDNodes = $domNameIdEnc->getElementsByTagName('EncryptedID');
-        $encryptedData = $encryptedNameIDNodes->item(0)->firstChild;
+        $encryptedNameIDNode = $domNameIdEnc->getElementsByTagName('EncryptedID')->item(0);
+        assert($encryptedNameIDNode instanceof DOMElement);
+        $encryptedData = $encryptedNameIDNode->firstChild;
+        assert($encryptedData instanceof DOMElement);
         $decryptedNameId = Utils::decryptElement($encryptedData, $seckey);
         $this->assertEquals('saml:NameID', $decryptedNameId->tagName);
         $this->assertEquals('2de11defd199f8d5bb63f9b7deb265ba5c675c10', $decryptedNameId->nodeValue);
 
         $domAsssertionEnc = new DOMDocument();
         $domAsssertionEnc->loadXML(base64_decode(file_get_contents(TEST_ROOT . '/data/responses/valid_encrypted_assertion.xml.base64')));
+        $encryptedAssertionElement = $domAsssertionEnc->getElementsByTagName('EncryptedAssertion')->item(0);
+        assert($encryptedAssertionElement instanceof DOMElement);
+        $encryptedDataElement = $encryptedAssertionElement->getElementsByTagName('EncryptedData')->item(0);
+        assert($encryptedDataElement instanceof DOMElement);
         $this->assertEquals(
             'saml:Assertion',
             Utils::decryptElement(
-                $domAsssertionEnc->getElementsByTagName('EncryptedAssertion')->item(0)->getElementsByTagName('EncryptedData')->item(0),
+                $encryptedDataElement,
                 $seckey
             )->tagName
         );
 
         try {
-            Utils::decryptElement($encryptedNameIDNodes->item(0), $seckey);
+            Utils::decryptElement($encryptedNameIDNode, $seckey);
             $this->fail('ValidationError was not raised');
         } catch (ValidationError $e) {
             $this->assertContains('Algorithm mismatch between input key and key in message', $e->getMessage());
@@ -954,7 +965,9 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         $domNameIdEnc2 = new DOMDocument();
         $domNameIdEnc2->loadXML(base64_decode(file_get_contents(TEST_ROOT . '/data/responses/invalids/encrypted_nameID_without_EncMethod.xml.base64')));
         try {
-            Utils::decryptElement($domNameIdEnc2->getElementsByTagName('EncryptedID')->item(0)->firstChild, $seckey);
+            $encryptedId = $domNameIdEnc2->getElementsByTagName('EncryptedID')->item(0)->firstChild;
+            assert($encryptedId instanceof DOMElement);
+            Utils::decryptElement($encryptedId, $seckey);
             $this->fail('Exception was not raised');
         } catch (Exception $e) {
             $this->assertContains('Unable to locate algorithm for this Encrypted Key', $e->getMessage());
@@ -963,7 +976,9 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         $domNameIdEnc3 = new DOMDocument();
         $domNameIdEnc3->loadXML(base64_decode(file_get_contents(TEST_ROOT . '/data/responses/invalids/encrypted_nameID_without_keyinfo.xml.base64')));
         try {
-            Utils::decryptElement($domNameIdEnc3->getElementsByTagName('EncryptedID')->item(0)->firstChild, $seckey);
+            $encryptedId = $domNameIdEnc3->getElementsByTagName('EncryptedID')->item(0)->firstChild;
+            assert($encryptedId instanceof DOMElement);
+            Utils::decryptElement($encryptedId, $seckey);
             $this->fail('ValidationError was not raised');
         } catch (ValidationError $e) {
             $this->assertContains('Algorithm mismatch between input key and key in message', $e->getMessage());
@@ -988,7 +1003,9 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         $this->assertContains('<ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>', $xmlAuthnSigned);
         $res = new DOMDocument();
         $res->loadXML($xmlAuthnSigned);
-        $this->assertContains('ds:Signature', $res->firstChild->firstChild->nextSibling->nextSibling->tagName);
+        $signature = $res->firstChild->firstChild->nextSibling->nextSibling;
+        assert($signature instanceof DOMElement);
+        $this->assertContains('ds:Signature', $signature->tagName);
 
         $dom = new DOMDocument();
         $dom->loadXML($xmlAuthn);
@@ -998,7 +1015,9 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         $this->assertContains('<ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha512"/>', $xmlAuthnSigned2);
         $res2 = new DOMDocument();
         $res2->loadXML($xmlAuthnSigned2);
-        $this->assertContains('ds:Signature', $res2->firstChild->firstChild->nextSibling->nextSibling->tagName);
+        $signature = $res2->firstChild->firstChild->nextSibling->nextSibling;
+        assert($signature instanceof DOMElement);
+        $this->assertContains('ds:Signature', $signature->tagName);
 
         $xmlLogoutReqSigned = Utils::addSign(
             base64_decode(file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request.xml.base64')),
@@ -1012,7 +1031,9 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         $this->assertContains('<ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha512"/>', $xmlLogoutReqSigned);
         $res3 = new DOMDocument();
         $res3->loadXML($xmlLogoutReqSigned);
-        $this->assertContains('ds:Signature', $res3->firstChild->firstChild->nextSibling->nextSibling->tagName);
+        $signature = $res3->firstChild->firstChild->nextSibling->nextSibling;
+        assert($signature instanceof DOMElement);
+        $this->assertContains('ds:Signature', $signature->tagName);
 
         $xmlLogoutResSigned = Utils::addSign(
             base64_decode(file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response.xml.base64')),
@@ -1026,7 +1047,9 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         $this->assertContains('<ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha512"/>', $xmlLogoutResSigned);
         $res4 = new DOMDocument();
         $res4->loadXML($xmlLogoutResSigned);
-        $this->assertContains('ds:Signature', $res4->firstChild->firstChild->nextSibling->nextSibling->tagName);
+        $signature = $res4->firstChild->firstChild->nextSibling->nextSibling;
+        assert($signature instanceof DOMElement);
+        $this->assertContains('ds:Signature', $signature->tagName);
 
         $xmlMetadataSigned = Utils::addSign(
             file_get_contents(TEST_ROOT . '/data/metadata/metadata_settings1.xml'),
@@ -1040,7 +1063,9 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         $this->assertContains('<ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha512"/>', $xmlMetadataSigned);
         $res5 = new DOMDocument();
         $res5->loadXML($xmlMetadataSigned);
-        $this->assertContains('ds:Signature', $res5->firstChild->firstChild->tagName);
+        $signature = $res5->firstChild->firstChild;
+        assert($signature instanceof DOMElement);
+        $this->assertContains('ds:Signature', $signature->tagName);
     }
 
     /**
