@@ -111,7 +111,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      * @covers OneLogin\Saml2\Auth::getErrors
      * @covers OneLogin\Saml2\Auth::getSessionIndex
      * @covers OneLogin\Saml2\Auth::getSessionExpiration
-     * @covers OneLogin\Saml2\Auth::getLastErrorReason
      * @covers OneLogin\Saml2\Auth::getLastErrorException
      */
     public function testProcessResponseInvalid()
@@ -130,7 +129,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
         $this->assertNull($this->auth->getSessionExpiration());
         $this->assertNull($this->auth->getAttribute('uid'));
         $this->assertEquals($this->auth->getErrors(), ['invalid_response']);
-        $this->assertEquals($this->auth->getLastErrorReason(), "Reference validation failed");
         $this->assertEquals("Reference validation failed", $this->auth->getLastErrorException()->getMessage());
     }
 
@@ -152,15 +150,14 @@ class AuthTest extends \PHPUnit\Framework\TestCase
         $requestId = 'invalid';
         $this->auth->processResponse($requestId);
 
-        $this->assertEquals("No Signature found. SAML Response rejected", $this->auth->getLastErrorReason());
         $this->assertEquals("No Signature found. SAML Response rejected", $this->auth->getLastErrorException()->getMessage());
 
         $this->auth->setStrict(true);
         $this->auth->processResponse($requestId);
-        $this->assertEquals("The InResponseTo of the Response: _57bcbf70-7b1f-012e-c821-782bcb13bb38, does not match the ID of the AuthNRequest sent by the SP: invalid", $this->auth->getLastErrorReason());
+        $this->assertEquals("The InResponseTo of the Response: _57bcbf70-7b1f-012e-c821-782bcb13bb38, does not match the ID of the AuthNRequest sent by the SP: invalid", $this->auth->getLastErrorException()->getMessage());
 
         $this->auth->processResponse('_57bcbf70-7b1f-012e-c821-782bcb13bb38');
-        $this->assertEquals("No Signature found. SAML Response rejected", $this->auth->getLastErrorReason());
+        $this->assertEquals("No Signature found. SAML Response rejected", $this->auth->getLastErrorException()->getMessage());
     }
 
     /**

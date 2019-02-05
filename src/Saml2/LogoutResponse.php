@@ -267,18 +267,9 @@ LOGOUTRESPONSE;
     /**
      * After execute a validation process, if fails this method returns the cause.
      */
-    public function getErrorException(): ?Exception
+    public function getErrorException(): Exception
     {
         return $this->error;
-    }
-
-    public function getError(): ?string
-    {
-        $errorMsg = null;
-        if (isset($this->error)) {
-            $errorMsg = htmlentities($this->error->getMessage());
-        }
-        return $errorMsg;
     }
 
     /**

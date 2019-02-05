@@ -12,14 +12,12 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
 {
     private $settings;
 
-
     public function setUp()
     {
         include TEST_ROOT . '/settings/settings1.php';
 
         $this->settings = new Settings($settingsInfo);
     }
-
 
     /**
      * @covers OneLogin\Saml2\Response
@@ -659,39 +657,25 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Response::getError
-     */
-    public function testGetError()
-    {
-        $response = new Response($this->settings, file_get_contents(TEST_ROOT . '/data/responses/response4.xml.base64'));
-
-        $this->assertNull($response->getErrorException());
-
-        $this->assertFalse($response->isValid());
-        $this->assertEquals('SAML Response must contain 1 assertion', $response->getErrorException()->getMessage());
-
-        $response2 = new Response($this->settings, file_get_contents(TEST_ROOT . '/data/responses/valid_response.xml.base64'));
-
-        $this->assertTrue($response2->isValid());
-        $this->assertNull($response2->getErrorException());
-    }
-
-    /**
      * @covers OneLogin\Saml2\Response::getErrorException
      */
     public function testGetErrorException()
     {
         $response = new Response($this->settings, file_get_contents(TEST_ROOT . '/data/responses/response4.xml.base64'));
 
-        $this->assertNull($response->getError());
-
         $this->assertFalse($response->isValid());
-        $this->assertEquals('SAML Response must contain 1 assertion', $response->getError());
+        $this->assertEquals('SAML Response must contain 1 assertion', $response->getErrorException()->getMessage());
 
-        $response2 = new Response($this->settings, file_get_contents(TEST_ROOT . '/data/responses/valid_response.xml.base64'));
+        $this->assertTrue((new Response($this->settings, file_get_contents(TEST_ROOT . '/data/responses/valid_response.xml.base64')))->isValid());
+    }
 
-        $this->assertTrue($response2->isValid());
-        $this->assertNull($response2->getError());
+    /**
+     * @covers OneLogin\Saml2\Response::getErrorException
+     * @expectedException TypeError
+     */
+    public function testGetErrorExceptionNoException()
+    {
+        $this->assertNull((new Response($this->settings, file_get_contents(TEST_ROOT . '/data/responses/response4.xml.base64')))->getErrorException());
     }
 
     /**
@@ -707,7 +691,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
 
         $this->assertFalse($response->isValid());
 
-        $this->assertEquals('SAML Response must contain 1 assertion', $response->getError());
+        $this->assertEquals('SAML Response must contain 1 assertion', $response->getErrorException()->getMessage());
     }
 
     public function testDoesNotAllowSignatureWrappingAttack2()
@@ -814,7 +798,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         $response = new Response($this->settings, file_get_contents(TEST_ROOT . '/data/responses/invalids/no_saml2.xml.base64'));
 
         $this->assertFalse($response->isValid());
-        $this->assertEquals('Unsupported SAML version', $response->getError());
+        $this->assertEquals('Unsupported SAML version', $response->getErrorException()->getMessage());
     }
 
     /**
@@ -827,7 +811,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         $response = new Response($this->settings, file_get_contents(TEST_ROOT . '/data/responses/invalids/no_id.xml.base64'));
 
         $this->assertFalse($response->isValid());
-        $this->assertEquals('Missing ID attribute on SAML Response', $response->getError());
+        $this->assertEquals('Missing ID attribute on SAML Response', $response->getErrorException()->getMessage());
     }
 
     /**
@@ -840,7 +824,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         $response = new Response($this->settings, file_get_contents(TEST_ROOT . '/data/responses/response1.xml.base64'));
 
         $this->assertFalse($response->isValid());
-        $this->assertEquals('Reference validation failed', $response->getError());
+        $this->assertEquals('Reference validation failed', $response->getErrorException()->getMessage());
     }
 
     /**
@@ -857,7 +841,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         $response2 = new Response($this->settings, $xml);
 
         $this->assertFalse($response2->isValid());
-        $this->assertEquals('Could not validate timestamp: expired. Check system clock.', $response2->getError());
+        $this->assertEquals('Could not validate timestamp: expired. Check system clock.', $response2->getErrorException()->getMessage());
     }
 
     /**
@@ -870,7 +854,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         $response = new Response($this->settings, file_get_contents(TEST_ROOT . '/data/responses/invalids/no_key.xml.base64'));
 
         $this->assertFalse($response->isValid());
-        $this->assertEquals('We have no idea about the key', $response->getError());
+        $this->assertEquals('We have no idea about the key', $response->getErrorException()->getMessage());
     }
 
     /**
@@ -883,7 +867,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         $response = new Response($this->settings, file_get_contents(TEST_ROOT . '/data/responses/invalids/multiple_assertions.xml.base64'));
 
         $this->assertFalse($response->isValid());
-        $this->assertEquals('SAML Response must contain 1 assertion', $response->getError());
+        $this->assertEquals('SAML Response must contain 1 assertion', $response->getErrorException()->getMessage());
     }
 
     /**
@@ -897,13 +881,13 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         $response = new Response($this->settings, $xml);
 
         $this->assertFalse($response->isValid());
-        $this->assertEquals('No Signature found. SAML Response rejected', $response->getError());
+        $this->assertEquals('No Signature found. SAML Response rejected', $response->getErrorException()->getMessage());
 
         $this->settings->setStrict(true);
         $response2 = new Response($this->settings, $xml);
 
         $this->assertFalse($response2->isValid());
-        $this->assertEquals('There is an EncryptedAttribute in the Response and this SP not support them', $response2->getError());
+        $this->assertEquals('There is an EncryptedAttribute in the Response and this SP not support them', $response2->getErrorException()->getMessage());
     }
 
     /**
@@ -926,7 +910,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         $settings->setStrict(true);
         $response2 = new Response($settings, $xml);
         $response2->isValid();
-        $this->assertNotEquals('Invalid SAML Response. Not match the saml-schema-protocol-2.0.xsd', $response2->getError());
+        $this->assertNotEquals('Invalid SAML Response. Not match the saml-schema-protocol-2.0.xsd', $response2->getErrorException()->getMessage());
 
         $settingsInfo['security']['wantXMLValidation'] = true;
         $settings2 = new Settings($settingsInfo);
@@ -937,7 +921,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         $settings2->setStrict(true);
         $response4 = new Response($settings2, $xml);
         $this->assertFalse($response4->isValid());
-        $this->assertEquals('Invalid SAML Response. Not match the saml-schema-protocol-2.0.xsd', $response4->getError());
+        $this->assertEquals('Invalid SAML Response. Not match the saml-schema-protocol-2.0.xsd', $response4->getErrorException()->getMessage());
     }
 
     /**
@@ -951,20 +935,20 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
 
         $response = new Response($this->settings, $xml);
         $response->isValid();
-        $this->assertEquals('No Signature found. SAML Response rejected', $response->getError());
+        $this->assertEquals('No Signature found. SAML Response rejected', $response->getErrorException()->getMessage());
 
         $this->settings->setStrict(true);
         $response2 = new Response($this->settings, $xml);
 
         $this->assertFalse($response2->isValid());
-        $this->assertContains('The response was received at', $response2->getError());
+        $this->assertContains('The response was received at', $response2->getErrorException()->getMessage());
 
         // Empty Destination
         $xml2 = file_get_contents(TEST_ROOT . '/data/responses/invalids/empty_destination.xml.base64');
         $response3 = new Response($this->settings, $xml2);
 
         $this->assertFalse($response3->isValid());
-        $this->assertEquals('The response has an empty Destination value', $response3->getError());
+        $this->assertEquals('The response has an empty Destination value', $response3->getErrorException()->getMessage());
 
         include TEST_ROOT . '/settings/settings1.php';
         $settingsInfo['security']['relaxDestinationValidation'] = true;
@@ -988,7 +972,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
 
         $response = new Response($this->settings, $message);
         $response->isValid();
-        $this->assertEquals('No Signature found. SAML Response rejected', $response->getError());
+        $this->assertEquals('No Signature found. SAML Response rejected', $response->getErrorException()->getMessage());
 
         $this->settings->setStrict(true);
         $response2 = new Response($this->settings, $message);
@@ -996,7 +980,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         $this->assertFalse($response2->isValid());
         $this->assertSame(
             'Invalid audience for this Response (expected \'http://stuff.com/endpoints/metadata.php\', got \'http://invalid.audience.com\')',
-            $response2->getError()
+            $response2->getErrorException()->getMessage()
         );
     }
 
@@ -1026,11 +1010,11 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
 
         $response = new Response($this->settings, $message);
         $response->isValid();
-        $this->assertEquals('No Signature found. SAML Response rejected', $response->getError());
+        $this->assertEquals('No Signature found. SAML Response rejected', $response->getErrorException()->getMessage());
 
         $response2 = new Response($this->settings, $message2);
         $response2->isValid();
-        $this->assertEquals('No Signature found. SAML Response rejected', $response2->getError());
+        $this->assertEquals('No Signature found. SAML Response rejected', $response2->getErrorException()->getMessage());
 
         $this->settings->setStrict(true);
         $response3 = new Response($this->settings, $message);
@@ -1038,7 +1022,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         $this->assertFalse($response3->isValid());
         $this->assertEquals(
             'Invalid issuer in the Assertion/Response (expected \'http://idp.example.com/\', got \'http://invalid.issuer.example.com/\')',
-            $response3->getError()
+            $response3->getErrorException()->getMessage()
         );
 
         $response4 = new Response($this->settings, $message2);
@@ -1046,7 +1030,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         $this->assertFalse($response4->isValid());
         $this->assertEquals(
             'Invalid issuer in the Assertion/Response (expected \'http://idp.example.com/\', got \'http://invalid.isser.example.com/\')',
-            $response4->getError()
+            $response4->getErrorException()->getMessage()
         );
     }
 
@@ -1067,13 +1051,13 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
 
         $response = new Response($this->settings, $message);
         $response->isValid();
-        $this->assertEquals('No Signature found. SAML Response rejected', $response->getError());
+        $this->assertEquals('No Signature found. SAML Response rejected', $response->getErrorException()->getMessage());
 
         $this->settings->setStrict(true);
         $response2 = new Response($this->settings, $message);
 
         $this->assertFalse($response2->isValid());
-        $this->assertEquals('The attributes have expired, based on the SessionNotOnOrAfter of the AttributeStatement of this Response', $response2->getError());
+        $this->assertEquals('The attributes have expired, based on the SessionNotOnOrAfter of the AttributeStatement of this Response', $response2->getErrorException()->getMessage());
     }
 
     /**
@@ -1094,54 +1078,54 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
 
         $response = new Response($this->settings, $message);
         $response->isValid();
-        $this->assertEquals('No Signature found. SAML Response rejected', $response->getError());
+        $this->assertEquals('No Signature found. SAML Response rejected', $response->getErrorException()->getMessage());
 
         $response2 = new Response($this->settings, $message2);
         $response2->isValid();
-        $this->assertEquals('No Signature found. SAML Response rejected', $response2->getError());
+        $this->assertEquals('No Signature found. SAML Response rejected', $response2->getErrorException()->getMessage());
 
         $response3 = new Response($this->settings, $message3);
         $response3->isValid();
-        $this->assertEquals('No Signature found. SAML Response rejected', $response3->getError());
+        $this->assertEquals('No Signature found. SAML Response rejected', $response3->getErrorException()->getMessage());
 
         $response4 = new Response($this->settings, $message4);
         $response4->isValid();
-        $this->assertEquals('No Signature found. SAML Response rejected', $response4->getError());
+        $this->assertEquals('No Signature found. SAML Response rejected', $response4->getErrorException()->getMessage());
 
         $response5 = new Response($this->settings, $message5);
         $response5->isValid();
-        $this->assertEquals('No Signature found. SAML Response rejected', $response5->getError());
+        $this->assertEquals('No Signature found. SAML Response rejected', $response5->getErrorException()->getMessage());
 
         $response6 = new Response($this->settings, $message6);
         $response6->isValid();
-        $this->assertEquals('No Signature found. SAML Response rejected', $response6->getError());
+        $this->assertEquals('No Signature found. SAML Response rejected', $response6->getErrorException()->getMessage());
 
         $this->settings->setStrict(true);
 
         $response = new Response($this->settings, $message);
         $this->assertFalse($response->isValid());
-        $this->assertEquals('A valid SubjectConfirmation was not found on this Response', $response->getError());
+        $this->assertEquals('A valid SubjectConfirmation was not found on this Response', $response->getErrorException()->getMessage());
 
         $response2 = new Response($this->settings, $message2);
         $this->assertFalse($response2->isValid());
-        $this->assertEquals('A valid SubjectConfirmation was not found on this Response', $response2->getError());
+        $this->assertEquals('A valid SubjectConfirmation was not found on this Response', $response2->getErrorException()->getMessage());
 
         $response3 = new Response($this->settings, $message3);
         $this->assertFalse($response3->isValid());
-        $this->assertEquals('A valid SubjectConfirmation was not found on this Response', $response3->getError());
+        $this->assertEquals('A valid SubjectConfirmation was not found on this Response', $response3->getErrorException()->getMessage());
 
         $response4 = new Response($this->settings, $message4);
         $this->assertFalse($response4->isValid());
-        $this->assertEquals('A valid SubjectConfirmation was not found on this Response', $response4->getError());
+        $this->assertEquals('A valid SubjectConfirmation was not found on this Response', $response4->getErrorException()->getMessage());
 
         $response5 = new Response($this->settings, $message5);
         $this->assertFalse($response5->isValid());
-        $this->assertEquals('A valid SubjectConfirmation was not found on this Response', $response5->getError());
+        $this->assertEquals('A valid SubjectConfirmation was not found on this Response', $response5->getErrorException()->getMessage());
 
         $response6 = new Response($this->settings, $message6);
 
         $this->assertFalse($response6->isValid());
-        $this->assertEquals('A valid SubjectConfirmation was not found on this Response', $response6->getError());
+        $this->assertEquals('A valid SubjectConfirmation was not found on this Response', $response6->getErrorException()->getMessage());
     }
 
     /**
@@ -1155,7 +1139,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         $xml = file_get_contents(TEST_ROOT . '/data/responses/unsigned_response_with_miliseconds.xm.base64');
         $response = new Response($this->settings, $xml);
         $response->isValid();
-        $this->assertEquals('No Signature found. SAML Response rejected', $response->getError());
+        $this->assertEquals('No Signature found. SAML Response rejected', $response->getErrorException()->getMessage());
 
         $this->settings->setStrict(true);
 
@@ -1165,7 +1149,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         );
 
         $response2->isValid();
-        $this->assertEquals('No Signature found. SAML Response rejected', $response2->getError());
+        $this->assertEquals('No Signature found. SAML Response rejected', $response2->getErrorException()->getMessage());
     }
 
     /**
@@ -1187,16 +1171,16 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
 
         $requestId = 'invalid';
         $response->isValid($requestId);
-        $this->assertEquals('No Signature found. SAML Response rejected', $response->getError());
+        $this->assertEquals('No Signature found. SAML Response rejected', $response->getErrorException()->getMessage());
 
         $this->settings->setStrict(true);
 
         $response2 = new Response($this->settings, $message);
         $response2->isValid($requestId);
-        $this->assertContains('The InResponseTo of the Response', $response2->getError());
+        $this->assertContains('The InResponseTo of the Response', $response2->getErrorException()->getMessage());
 
         $response2->isValid('_57bcbf70-7b1f-012e-c821-782bcb13bb38');
-        $this->assertContains('No Signature found. SAML Response rejected', $response2->getError());
+        $this->assertContains('No Signature found. SAML Response rejected', $response2->getErrorException()->getMessage());
     }
 
     /**
@@ -1219,24 +1203,24 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         $settingsInfo['security']['wantAssertionsSigned'] = false;
         $response = new Response(new Settings($settingsInfo), $message);
         $response->isValid();
-        $this->assertContains('No Signature found. SAML Response rejected', $response->getError());
+        $this->assertContains('No Signature found. SAML Response rejected', $response->getErrorException()->getMessage());
 
         $settingsInfo['security']['wantAssertionsSigned'] = true;
         $response2 = new Response(new Settings($settingsInfo), $message);
         $response2->isValid();
-        $this->assertContains('No Signature found. SAML Response rejected', $response2->getError());
+        $this->assertContains('No Signature found. SAML Response rejected', $response2->getErrorException()->getMessage());
 
         $settingsInfo['strict'] = true;
         $settingsInfo['security']['wantAssertionsSigned'] = false;
         $response3 = new Response(new Settings($settingsInfo), $message);
         $response3->isValid();
-        $this->assertContains('No Signature found. SAML Response rejected', $response3->getError());
+        $this->assertContains('No Signature found. SAML Response rejected', $response3->getErrorException()->getMessage());
 
         $settingsInfo['security']['wantAssertionsSigned'] = true;
         $response4 = new Response(new Settings($settingsInfo), $message);
 
         $this->assertFalse($response4->isValid());
-        $this->assertEquals('The Assertion of the Response is not signed and the SP requires it', $response4->getError());
+        $this->assertEquals('The Assertion of the Response is not signed and the SP requires it', $response4->getErrorException()->getMessage());
 
         $settingsInfo['security']['wantAssertionsSigned'] = false;
         $settingsInfo['strict'] = false;
@@ -1244,24 +1228,24 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         $settingsInfo['security']['wantMessagesSigned'] = false;
         $response5 = new Response(new Settings($settingsInfo), $message);
         $response5->isValid();
-        $this->assertContains('No Signature found. SAML Response rejected', $response5->getError());
+        $this->assertContains('No Signature found. SAML Response rejected', $response5->getErrorException()->getMessage());
 
         $settingsInfo['security']['wantMessagesSigned'] = true;
         $response6 = new Response(new Settings($settingsInfo), $message);
         $response6->isValid();
-        $this->assertContains('No Signature found. SAML Response rejected', $response6->getError());
+        $this->assertContains('No Signature found. SAML Response rejected', $response6->getErrorException()->getMessage());
 
         $settingsInfo['strict'] = true;
         $settingsInfo['security']['wantMessagesSigned'] = false;
         $response7 = new Response(new Settings($settingsInfo), $message);
         $response7->isValid();
-        $this->assertContains('No Signature found. SAML Response rejected', $response7->getError());
+        $this->assertContains('No Signature found. SAML Response rejected', $response7->getErrorException()->getMessage());
 
         $settingsInfo['security']['wantMessagesSigned'] = true;
         $response8 = new Response(new Settings($settingsInfo), $message);
 
         $this->assertFalse($response8->isValid());
-        $this->assertEquals('The Message of the Response is not signed and the SP requires it', $response8->getError());
+        $this->assertEquals('The Message of the Response is not signed and the SP requires it', $response8->getErrorException()->getMessage());
     }
 
     /**
@@ -1284,31 +1268,31 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         $settingsInfo['security']['wantAssertionsEncrypted'] = true;
         $response = new Response(new Settings($settingsInfo), $message);
         $response->isValid();
-        $this->assertContains('No Signature found. SAML Response rejected', $response->getError());
+        $this->assertContains('No Signature found. SAML Response rejected', $response->getErrorException()->getMessage());
 
         $settingsInfo['strict'] = true;
         $settingsInfo['security']['wantAssertionsEncrypted'] = false;
         $response2 = new Response(new Settings($settingsInfo), $message);
         $response2->isValid();
-        $this->assertContains('No Signature found. SAML Response rejected', $response2->getError());
+        $this->assertContains('No Signature found. SAML Response rejected', $response2->getErrorException()->getMessage());
 
         $settingsInfo['security']['wantAssertionsEncrypted'] = true;
         $response3 = new Response(new Settings($settingsInfo), $message);
 
         $this->assertFalse($response3->isValid());
-        $this->assertEquals('The assertion of the Response is not encrypted and the SP requires it', $response3->getError());
+        $this->assertEquals('The assertion of the Response is not encrypted and the SP requires it', $response3->getErrorException()->getMessage());
 
         $settingsInfo['security']['wantAssertionsEncrypted'] = false;
         $settingsInfo['security']['wantNameIdEncrypted'] = true;
         $settingsInfo['strict'] = false;
         $response4 = new Response(new Settings($settingsInfo), $message);
         $response4->isValid();
-        $this->assertContains('No Signature found. SAML Response rejected', $response4->getError());
+        $this->assertContains('No Signature found. SAML Response rejected', $response4->getErrorException()->getMessage());
 
         $settingsInfo['strict'] = true;
         $response5 = new Response(new Settings($settingsInfo), $message);
         $this->assertFalse($response5->isValid());
-        $this->assertEquals('The NameID of the Response is not encrypted and the SP requires it', $response5->getError());
+        $this->assertEquals('The NameID of the Response is not encrypted and the SP requires it', $response5->getErrorException()->getMessage());
     }
 
     /**
@@ -1323,7 +1307,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         $response = new Response(new Settings($settingsInfo), file_get_contents(TEST_ROOT . '/data/responses/valid_response.xml.base64'));
 
         $this->assertFalse($response->isValid());
-        $this->assertEquals('openssl_x509_read(): supplied parameter cannot be coerced into an X509 certificate!', $response->getError());
+        $this->assertEquals('openssl_x509_read(): supplied parameter cannot be coerced into an X509 certificate!', $response->getErrorException()->getMessage());
     }
 
     /**
@@ -1338,7 +1322,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         $response = new Response(new Settings($settingsInfo), file_get_contents(TEST_ROOT . '/data/responses/valid_response.xml.base64'));
 
         $this->assertFalse($response->isValid());
-        $this->assertEquals('Signature validation failed. SAML Response rejected', $response->getError());
+        $this->assertEquals('Signature validation failed. SAML Response rejected', $response->getErrorException()->getMessage());
     }
 
     /**
@@ -1351,7 +1335,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         $response = new Response($this->settings, file_get_contents(TEST_ROOT . '/data/responses/response_namespaces.xml.base64'));
 
         $response->isValid();
-        $this->assertContains('No Signature found. SAML Response rejected', $response->getError());
+        $this->assertContains('No Signature found. SAML Response rejected', $response->getErrorException()->getMessage());
     }
 
     /**
@@ -1364,7 +1348,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         $response = new Response($this->settings, file_get_contents(TEST_ROOT . '/data/responses/response_adfs1.xml.base64'));
 
         $response->isValid();
-        $this->assertContains('No Signature found. SAML Response rejected', $response->getError());
+        $this->assertContains('No Signature found. SAML Response rejected', $response->getErrorException()->getMessage());
     }
 
     /**
@@ -1425,7 +1409,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         );
 
         $response4->isValid();
-        $this->assertContains('No Signature found. SAML Response rejected', $response4->getError());
+        $this->assertContains('No Signature found. SAML Response rejected', $response4->getErrorException()->getMessage());
     }
 
     /**
@@ -1452,7 +1436,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         $dom->firstChild->firstChild->nodeValue = 'https://example.com/other-idp';
         $response4 = new Response($this->settings, base64_encode($dom->saveXML()));
         $this->assertFalse($response4->isValid());
-        $this->assertEquals('Reference validation failed', $response4->getError());
+        $this->assertEquals('Reference validation failed', $response4->getErrorException()->getMessage());
 
         $dom2 = new DOMDocument();
         $dom2->loadXML(base64_decode($xml2));
@@ -1464,7 +1448,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         $dom3->firstChild->firstChild->nodeValue = 'https://example.com/other-idp';
         $response6 = new Response($this->settings, base64_encode($dom3->saveXML()));
         $this->assertFalse($response6->isValid());
-        $this->assertEquals('Reference validation failed', $response6->getError());
+        $this->assertEquals('Reference validation failed', $response6->getErrorException()->getMessage());
     }
 
     public function testIsValidSignWithEmptyReferenceURI()

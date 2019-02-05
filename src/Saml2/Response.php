@@ -1102,22 +1102,9 @@ class Response
     /**
      * After execute a validation process, if fails this method returns the cause
      */
-    public function getErrorException(): ?Exception
+    public function getErrorException(): Exception
     {
         return $this->error;
-    }
-
-    /**
-     * After execute a validation process, if fails this method returns the cause
-     *
-     * @return null|string Error reason
-     */
-    public function getError()
-    {
-        if (isset($this->error)) {
-            return htmlentities($this->error->getMessage());
-        }
-        return null;
     }
 
     /**

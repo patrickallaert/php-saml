@@ -1177,7 +1177,7 @@ SAML 2 Authentication Response class
    Assertion (encrypted or not).
  * `validateTimestamps` - Verifies that the document is still valid according
    Conditions Element.
- * `getError` - After executing a validation process, if it fails, this method returns the cause
+ * `getErrorException` - After executing a validation process, if it fails, this method returns the exception triggered.
  * `getXMLDocument` - Returns the SAML Response document (If contains an encrypted assertion, decrypts it)
 
 ##### OneLogin\Saml2\LogoutRequest - `LogoutRequest.php` #####
@@ -1192,7 +1192,7 @@ SAML 2 Logout Request class
  * `getIssuer` - Gets the Issuer of the Logout Request.
  * `getSessionIndexes` - Gets the SessionIndexes from the Logout Request.
  * `isValid` - Checks if the Logout Request received is valid.
- * `getError` - After executing a validation process, if it fails, this method returns the cause
+ * `getErrorException` - After executing a validation process, if it fails, this method returns the exception triggered.
  * `getXML` - Returns the XML that will be sent as part of the request or that was received at the SP.
 
 ##### OneLogin\Saml2\LogoutResponse - `LogoutResponse.php` #####
@@ -1206,7 +1206,7 @@ SAML 2 Logout Response class
  * `isValid` - Determines if the SAML LogoutResponse is valid
  * `build` - Generates a Logout Response object.
  * `getResponse` - Returns a Logout Response object.
- * `getError` - After executing a validation process, if it fails, this method returns the cause.
+ * `getErrorException` - After executing a validation process, if it fails, this method returns the exception triggered.
  * `getXML` - Returns the XML that will be sent as part of the response or that was received at the SP.
 
 ##### OneLogin\Saml2\Settings - `Settings.php` #####
@@ -1239,7 +1239,7 @@ Configuration of the SAML PHP Toolkit
  * `formatSPKey` - Formats the SP private key.
  * `getErrors` - Returns an array with the errors, the array is empty when
    the settings is ok.
- * `getLastErrorReason` - Returns the reason of the last error
+ * `getLastErrorException` - Returns the exception related to the last error
  * `getBaseURL` -  Returns the baseurl set on the settings if any.
  * `setBaseURL` - Set a baseurl value
  * `setStrict` - Activates or deactivates the strict mode.

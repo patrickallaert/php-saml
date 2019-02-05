@@ -430,27 +430,6 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\LogoutRequest::getError
-     */
-    public function testGetError()
-    {
-        $encodedRequest = base64_encode(gzdeflate(file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request.xml')));
-
-        $logoutRequest = new LogoutRequest($this->settings, $encodedRequest);
-
-        $this->assertNull($logoutRequest->getError());
-
-        $this->assertTrue($logoutRequest->isValid());
-        $this->assertNull($logoutRequest->getError());
-
-        $this->settings->setStrict(true);
-        $logoutRequest2 = new LogoutRequest($this->settings, $encodedRequest);
-
-        $this->assertFalse($logoutRequest2->isValid());
-        $this->assertContains('The LogoutRequest was received at', $logoutRequest2->getError());
-    }
-
-    /**
      * @covers OneLogin\Saml2\LogoutRequest::getErrorException
      */
     public function testGetErrorException()
@@ -459,18 +438,26 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
 
         $logoutRequest = new LogoutRequest($this->settings, $encodedRequest);
 
-        $this->assertNull($logoutRequest->getError());
-
         $this->assertTrue($logoutRequest->isValid());
-        $this->assertNull($logoutRequest->getError());
 
         $this->settings->setStrict(true);
         $logoutRequest2 = new LogoutRequest($this->settings, $encodedRequest);
 
         $this->assertFalse($logoutRequest2->isValid());
-        $errorException = $logoutRequest2->getErrorException();
-        $this->assertContains('The LogoutRequest was received at', $errorException->getMessage());
-        $this->assertEquals($errorException->getMessage(), $logoutRequest2->getError());
+        $this->assertContains('The LogoutRequest was received at', $logoutRequest2->getErrorException()->getMessage());
+    }
+
+    /**
+     * @covers OneLogin\Saml2\LogoutRequest::getErrorException
+     * @expectedException TypeError
+     */
+    public function testGetErrorExceptionNoException()
+    {
+        (
+            new LogoutRequest(
+                $this->settings, base64_encode(gzdeflate(file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request.xml')))
+            )
+        )->getErrorException();
     }
 
     /**
@@ -496,7 +483,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
         $logoutRequest2 = new LogoutRequest($this->settings, $encodedRequest);
 
         $this->assertFalse($logoutRequest2->isValid());
-        $this->assertContains('Invalid issuer in the Logout Request', $logoutRequest2->getError());
+        $this->assertContains('Invalid issuer in the Logout Request', $logoutRequest2->getErrorException()->getMessage());
     }
 
     /**
@@ -519,7 +506,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
         $settings->setStrict(true);
         $response2 = new LogoutRequest($settings, $message);
         $response2->isValid();
-        $this->assertNotEquals('Invalid SAML Logout Request. Not match the saml-schema-protocol-2.0.xsd', $response2->getError());
+        $this->assertNotEquals('Invalid SAML Logout Request. Not match the saml-schema-protocol-2.0.xsd', $response2->getErrorException()->getMessage());
 
         $settingsInfo['security']['wantXMLValidation'] = true;
         $settings2 = new Settings($settingsInfo);
@@ -530,7 +517,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
         $settings2->setStrict(true);
         $response4 = new LogoutRequest($settings2, $message);
         $this->assertFalse($response4->isValid());
-        $this->assertEquals('Invalid SAML Logout Request. Not match the saml-schema-protocol-2.0.xsd', $response4->getError());
+        $this->assertEquals('Invalid SAML Logout Request. Not match the saml-schema-protocol-2.0.xsd', $response4->getErrorException()->getMessage());
     }
 
     /**
@@ -548,7 +535,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
         $logoutRequest2 = new LogoutRequest($this->settings, $encodedRequest);
 
         $this->assertFalse($logoutRequest2->isValid());
-        $this->assertContains('The LogoutRequest was received at', $logoutRequest2->getError());
+        $this->assertContains('The LogoutRequest was received at', $logoutRequest2->getErrorException()->getMessage());
     }
 
     /**
@@ -574,7 +561,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
         $logoutRequest2 = new LogoutRequest($this->settings, $encodedRequest);
 
         $this->assertFalse($logoutRequest2->isValid());
-        $this->assertEquals("Could not validate timestamp: expired. Check system clock.", $logoutRequest2->getError());
+        $this->assertEquals("Could not validate timestamp: expired. Check system clock.", $logoutRequest2->getErrorException()->getMessage());
     }
 
     /**
@@ -672,7 +659,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
         $logoutRequest2 = new LogoutRequest($this->settings, $encodedRequest);
 
         $this->assertFalse($logoutRequest2->isValid());
-        $this->assertContains('The LogoutRequest was received at', $logoutRequest2->getError());
+        $this->assertContains('The LogoutRequest was received at', $logoutRequest2->getErrorException()->getMessage());
 
         $this->settings->setStrict(false);
         $oldSignature = $_GET['Signature'];
@@ -681,7 +668,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
         $logoutRequest3 = new LogoutRequest($this->settings, $encodedRequest);
 
         $this->assertFalse($logoutRequest3->isValid());
-        $this->assertContains('Signature validation failed. Logout Request rejected', $logoutRequest3->getError());
+        $this->assertContains('Signature validation failed. Logout Request rejected', $logoutRequest3->getErrorException()->getMessage());
 
         $_GET['Signature'] = $oldSignature;
         $oldSigAlg = $_GET['SigAlg'];
@@ -692,7 +679,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
         $_GET['RelayState'] = 'http://example.com/relaystate';
 
         $this->assertFalse($logoutRequest3->isValid());
-        $this->assertContains('Signature validation failed. Logout Request rejected', $logoutRequest3->getError());
+        $this->assertContains('Signature validation failed. Logout Request rejected', $logoutRequest3->getErrorException()->getMessage());
 
         $this->settings->setStrict(true);
 
@@ -714,18 +701,18 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
         $logoutRequest4 = new LogoutRequest($this->settings, $encodedRequest2);
 
         $this->assertFalse($logoutRequest4->isValid());
-        $this->assertEquals('Signature validation failed. Logout Request rejected', $logoutRequest4->getError());
+        $this->assertEquals('Signature validation failed. Logout Request rejected', $logoutRequest4->getErrorException()->getMessage());
 
         $this->settings->setStrict(false);
         $logoutRequest5 = new LogoutRequest($this->settings, $encodedRequest2);
 
         $this->assertFalse($logoutRequest5->isValid());
-        $this->assertEquals('Signature validation failed. Logout Request rejected', $logoutRequest5->getError());
+        $this->assertEquals('Signature validation failed. Logout Request rejected', $logoutRequest5->getErrorException()->getMessage());
 
         $_GET['SigAlg'] = 'http://www.w3.org/2000/09/xmldsig#dsa-sha1';
 
         $this->assertFalse($logoutRequest5->isValid());
-        $this->assertEquals('Invalid signAlg in the recieved Logout Request', $logoutRequest5->getError());
+        $this->assertEquals('Invalid signAlg in the recieved Logout Request', $logoutRequest5->getErrorException()->getMessage());
 
         include TEST_ROOT . '/settings/settings1.php';
         $settingsInfo['strict'] = true;
@@ -737,7 +724,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
         $logoutRequest6 = new LogoutRequest(new Settings($settingsInfo), $encodedRequest2);
 
         $this->assertFalse($logoutRequest6->isValid());
-        $this->assertEquals('The Message of the Logout Request is not signed and the SP require it', $logoutRequest6->getError());
+        $this->assertEquals('The Message of the Logout Request is not signed and the SP require it', $logoutRequest6->getErrorException()->getMessage());
 
         $_GET['Signature'] = $oldSignature;
 
@@ -746,7 +733,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
         $logoutRequest7 = new LogoutRequest(new Settings($settingsInfo), $encodedRequest2);
 
         $this->assertFalse($logoutRequest7->isValid());
-        $this->assertContains('In order to validate the sign on the Logout Request, the x509cert of the IdP is required', $logoutRequest7->getError());
+        $this->assertContains('In order to validate the sign on the Logout Request, the x509cert of the IdP is required', $logoutRequest7->getErrorException()->getMessage());
     }
 
     /**
