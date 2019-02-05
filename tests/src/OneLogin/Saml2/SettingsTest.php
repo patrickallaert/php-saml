@@ -8,13 +8,9 @@ use OneLogin\Saml2\Metadata;
 use OneLogin\Saml2\Settings;
 use OneLogin\Saml2\Utils;
 
-/**
- * Unit tests for Setting class
- */
 class SettingsTest extends \PHPUnit\Framework\TestCase
 {
     /**
-     * Tests the Settings Constructor.
      * Case load setting from array
      *
      * @covers OneLogin\Saml2\Settings
@@ -48,7 +44,6 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the Settings Constructor.
      * Case load setting from file
      *
      * @covers OneLogin\Saml2\Settings
@@ -134,8 +129,6 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the checkCompressionSettings method of Settings.
-     *
      * @dataProvider invalidCompressSettingsProvider
      * @param string $invalidValue invalidCompressSettingsProvider
      *
@@ -159,8 +152,6 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the checkCompressionSettings method of Settings.
-     *
      * @dataProvider invalidCompressSettingsProvider
      * @param string $invalidValue invalidCompressSettingsProvider
      *
@@ -208,8 +199,6 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the checkSPCerts method of the Settings
-     *
      * @covers OneLogin\Saml2\Settings::checkSPCerts
      * @covers OneLogin\Saml2\Settings::getSPcert
      * @covers OneLogin\Saml2\Settings::getSPcertNew
@@ -241,7 +230,6 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the checkSettings method of the Settings
      * The checkSettings method is private and is used at the constructor
      *
      * @covers OneLogin\Saml2\Settings::checkSettings
@@ -339,7 +327,6 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getSPMetadata method of the Settings
      * Case unsigned metadata
      *
      * @covers OneLogin\Saml2\Settings::getSPMetadata
@@ -362,7 +349,6 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getSPMetadata method of the Settings
      * Case with x509certNew
      *
      * @covers OneLogin\Saml2\Settings::getSPMetadata
@@ -435,11 +421,10 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-    * Tests the getSPMetadata method of the OneLogin_Saml2_Settings
-    * Case ValidUntil CacheDuration
-    *
-    * @covers OneLogin\Saml2\Settings::getSPMetadata
-    */
+     * Case ValidUntil CacheDuration
+     *
+     * @covers OneLogin\Saml2\Settings::getSPMetadata
+     */
     public function testGetSPMetadataTiming()
     {
         include TEST_ROOT . '/settings/settings1.php';
@@ -457,7 +442,6 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getSPMetadata method of the Settings
      * Case signed metadata
      *
      * @covers OneLogin\Saml2\Settings::getSPMetadata
@@ -515,7 +499,6 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getSPMetadata method of the Settings
      * Case signed metadata with specific certs
      *
      * @covers OneLogin\Saml2\Settings::getSPMetadata
@@ -562,8 +545,6 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
 
 
     /**
-     * Tests the setIdPCert method of the Settings
-     *
      * @covers OneLogin\Saml2\Settings::setIdPCert
      */
     public function testSetIdPCert()
@@ -587,7 +568,6 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the validateMetadata method of the Settings
      * Case valid metadata
      *
      * @covers OneLogin\Saml2\Settings::validateMetadata
@@ -602,7 +582,6 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the validateMetadata method of the Settings
      * Case valid signed metadata
      *
      * @covers OneLogin\Saml2\Settings::validateMetadata
@@ -615,7 +594,6 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the validateMetadata method of the Settings
      * Case expired metadata
      *
      * @covers OneLogin\Saml2\Settings::validateMetadata
@@ -630,7 +608,6 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the validateMetadata method of the Settings
      * Case no metadata
      *
      * @covers OneLogin\Saml2\Settings::validateMetadata
@@ -655,7 +632,6 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the validateMetadata method of the Settings
      * Case invalid xml metadata: No entity
      *
      * @covers OneLogin\Saml2\Settings::validateMetadata
@@ -670,7 +646,6 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the validateMetadata method of the Settings
      * Case invalid xml metadata: Wrong order
      *
      * @covers OneLogin\Saml2\Settings::validateMetadata
@@ -685,7 +660,6 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getIdPData method of the Settings
      *
      * @covers OneLogin\Saml2\Settings::getIdPData
      */
@@ -720,8 +694,6 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getSPData method of the Settings
-     *
      * @covers OneLogin\Saml2\Settings::getSPData
      */
     public function testGetSPData()
@@ -742,8 +714,6 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getSecurityData method of the Settings
-     *
      * @covers OneLogin\Saml2\Settings::getSecurityData
      */
     public function testGetSecurityData()
@@ -817,8 +787,6 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getContacts method of the Settings
-     *
      * @covers OneLogin\Saml2\Settings::getContacts
      */
     public function testGetContacts()
@@ -834,8 +802,6 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getOrganization method of the Settings
-     *
      * @covers OneLogin\Saml2\Settings::getOrganization
      */
     public function testGetOrganization()
@@ -850,8 +816,6 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the setStrict method of the Settings
-     *
      * @covers OneLogin\Saml2\Settings::setStrict
      */
     public function testSetStrict()
@@ -870,8 +834,6 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the isStrict method of the Settings
-     *
      * @covers OneLogin\Saml2\Settings::isStrict
      */
     public function testIsStrict()
@@ -889,8 +851,6 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the isDebugActive method of the Settings
-     *
      * @covers OneLogin\Saml2\Settings::isDebugActive
      */
     public function testIsDebugActive()

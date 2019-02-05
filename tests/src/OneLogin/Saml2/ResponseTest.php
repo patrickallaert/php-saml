@@ -8,10 +8,6 @@ use OneLogin\Saml2\Settings;
 use OneLogin\Saml2\Utils;
 use OneLogin\Saml2\ValidationError;
 
-/**
- * Unit tests for Response messages
- */
-
 class ResponseTest extends \PHPUnit\Framework\TestCase
 {
     private $settings;
@@ -26,8 +22,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
 
 
     /**
-     * Tests the Response Constructor.
-     *
      * @covers OneLogin\Saml2\Response
      */
     public function testConstruct()
@@ -111,8 +105,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getNameId method of the Response
-     *
      * @covers OneLogin\Saml2\Response::getNameId
      */
     public function testReturnNameId()
@@ -194,8 +186,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getNameIdFormat method of the Response
-     *
      * @covers OneLogin\Saml2\Response::getNameIdFormat
      */
     public function testGetNameIdFormat()
@@ -233,10 +223,8 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-    * Tests the getNameIdNameQualifier method of the Response
-    *
-    * @covers OneLogin\Saml2\Response::getNameIdNameQualifier
-    */
+     * @covers OneLogin\Saml2\Response::getNameIdNameQualifier
+     */
     public function testGetNameIdNameQualifier()
     {
         $this->assertEquals(
@@ -263,10 +251,8 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-    * Tests the getNameIdSPNameQualifier method of the Response
-    *
-    * @covers OneLogin\Saml2\Response::getNameIdSPNameQualifier
-    */
+     * @covers OneLogin\Saml2\Response::getNameIdSPNameQualifier
+     */
     public function testGetNameIdSPNameQualifier()
     {
         $this->assertNull((new Response($this->settings, file_get_contents(TEST_ROOT . '/data/responses/response1.xml.base64')))->getNameIdSPNameQualifier());
@@ -300,8 +286,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getNameIdData method of the Response
-     *
      * @covers OneLogin\Saml2\Response::getNameIdData
      */
     public function testGetNameIdData()
@@ -404,8 +388,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the checkOneCondition method of SamlResponse
-     *
      * @covers OneLogin\Saml2\Response::checkOneCondition
      */
     public function testCheckOneCondition()
@@ -418,8 +400,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the checkOneAuthnStatement method of SamlResponse
-     *
      * @covers OneLogin\Saml2\Response::checkOneAuthnStatement
      */
     public function testCheckOneAuthNStatement()
@@ -434,8 +414,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the checkStatus method of the Response
-     *
      * @covers OneLogin\Saml2\Response::checkStatus
      */
     public function testCheckStatus()
@@ -460,8 +438,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getAudiences method of the Response
-     *
      * @covers OneLogin\Saml2\Response::getAudiences
      */
     public function testGetAudiences()
@@ -480,10 +456,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         );
     }
 
-    /**
-     * Tests the _queryAssertion and _query methods of the Response
-     * using the getIssuers call
-     */
     public function testQueryAssertions()
     {
         $this->assertEquals(
@@ -544,8 +516,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getIssuers method of the Response
-     *
      * @covers OneLogin\Saml2\Response::getIssuers
      */
     public function testGetIssuers()
@@ -587,8 +557,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getSessionIndex method of the Response
-     *
      * @covers OneLogin\Saml2\Response::getSessionIndex
      */
     public function testGetSessionIndex()
@@ -611,8 +579,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getAttributes method of the Response
-     *
      * @covers OneLogin\Saml2\Response::getAttributes
      */
     public function testGetAttributes()
@@ -643,8 +609,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getAttributesWithFriendlyName method of the OneLogin_Saml2_Response
-     *
      * @covers OneLogin\Saml2\Response::getAttributesWithFriendlyName
      */
     public function testGetAttributesWithFriendlyName()
@@ -682,8 +646,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getNameId method of the Response
-     *
      * The Assertion is unsigned, the response is invalid but is able to retrieve the NameID
      *
      * @covers OneLogin\Saml2\Response::getNameId
@@ -697,8 +659,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getError method of the Response
-     *
      * @covers OneLogin\Saml2\Response::getError
      */
     public function testGetError()
@@ -717,8 +677,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getErrorException method of the Response
-     *
      * @covers OneLogin\Saml2\Response::getErrorException
      */
     public function testGetErrorException()
@@ -737,8 +695,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getNameId method of the Response
-     *
      * Test that the SignatureWrappingAttack is not allowed
      *
      * @covers OneLogin\Saml2\Response::getNameId
@@ -770,9 +726,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getNameId and getAttributes methods of the
-     * Response
-     *
      * Test that the node text with comment attack (VU#475445)
      * is not allowed
      *
@@ -788,8 +741,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getSessionNotOnOrAfter method of the Response
-     *
      * @covers OneLogin\Saml2\Response::getSessionNotOnOrAfter
      */
     public function testGetSessionNotOnOrAfter()
@@ -809,8 +760,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the validateNumAssertions method of the Response
-     *
      * @covers OneLogin\Saml2\Response::validateNumAssertions
      */
     public function testValidateNumAssertions()
@@ -823,8 +772,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the validateTimestamps method of the Response
-     *
      * @covers OneLogin\Saml2\Response::validateTimestamps
      */
     public function testValidateTimestamps()
@@ -858,7 +805,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the isValid method of the Response
      * Case invalid version
      *
      * @covers OneLogin\Saml2\Response::isValid
@@ -872,7 +818,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the isValid method of the Response
      * Case invalid no ID
      *
      * @covers OneLogin\Saml2\Response::isValid
@@ -886,7 +831,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the isValid method of the Response
      * Case invalid reference
      *
      * @covers OneLogin\Saml2\Response::isValid
@@ -900,7 +844,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the isValid method of the Response
      * Case expired response
      *
      * @covers OneLogin\Saml2\Response::isValid
@@ -918,7 +861,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the isValid method of the Response
      * Case no key
      *
      * @covers OneLogin\Saml2\Response::isValid
@@ -932,7 +874,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the isValid method of the Response
      * Case invalid multiple assertions
      *
      * @covers OneLogin\Saml2\Response::isValid
@@ -946,7 +887,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the isValid method of the Response
      * Case invalid Encrypted Attrs
      *
      * @covers OneLogin\Saml2\Response::isValid
@@ -967,7 +907,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the isValid method of the Response
      * Case invalid xml
      *
      * @covers OneLogin\Saml2\Response::isValid
@@ -1002,7 +941,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the isValid method of the Response class
      * Case Invalid Response, Invalid Destination
      *
      * @covers OneLogin\Saml2\Response::isValid
@@ -1034,7 +972,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the isValid method of the Response class
      * Case Invalid Response, Invalid Audience
      *
      * @covers OneLogin\Saml2\Response::isValid
@@ -1064,7 +1001,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the isValid method of the Response class
      * Case Invalid Response, Invalid Issuer
      *
      * @covers OneLogin\Saml2\Response::isValid
@@ -1115,7 +1051,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the isValid method of the Response class
      * Case Invalid Response, Invalid SessionIndex
      *
      * @covers OneLogin\Saml2\Response::isValid
@@ -1142,7 +1077,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the isValid method of the Response class
      * Case Invalid Response, Invalid SubjectConfirmation
      *
      * @covers OneLogin\Saml2\Response::isValid
@@ -1235,7 +1169,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the isValid method of the Response class
      * Case Invalid Response, Invalid requestID
      *
      * @covers OneLogin\Saml2\Response::isValid
@@ -1267,7 +1200,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the isValid method of the Response class
      * Case Invalid Response, Invalid signing issues
      *
      * @covers OneLogin\Saml2\Response::isValid
@@ -1333,7 +1265,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the isValid method of the Response class
      * Case Invalid Response, Invalid encryptation issues
      *
      * @covers OneLogin\Saml2\Response::isValid
@@ -1381,7 +1312,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the isValid method of the Response
      * Case invalid cert
      *
      * @covers OneLogin\Saml2\Response::isValid
@@ -1397,7 +1327,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the isValid method of the Response
      * Case invalid cert2
      *
      * @covers OneLogin\Saml2\Response::isValid
@@ -1413,7 +1342,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the isValid method of the Response
      * Case response with different namespace
      *
      * @covers OneLogin\Saml2\Response::isValid
@@ -1427,7 +1355,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the isValid method of the Response
      * Case response from ADFS
      *
      * @covers OneLogin\Saml2\Response::isValid
@@ -1441,7 +1368,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the isValid method of the Response
      * Case valid response
      *
      * @covers OneLogin\Saml2\Response::isValid
@@ -1452,7 +1378,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the isValid method of the Response
      * Case valid response2
      *
      * @covers OneLogin\Saml2\Response::isValid
@@ -1467,7 +1392,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the isValid method of the Response
      * Case valid encrypted assertion
      *
      * Signed data can't be modified, so Destination will always fail in strict mode
@@ -1505,7 +1429,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the isValid method of the Response
      * Case valid sign response / sign assertion / both signed
      *
      * Strict mode will always fail due destination problem, if we manipulate it
@@ -1557,7 +1480,6 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the isValid method of the Response
      * Case: Using x509certMulti
      *
      * @covers OneLogin\Saml2\Response::isValid

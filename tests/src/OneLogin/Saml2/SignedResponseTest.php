@@ -5,9 +5,6 @@ namespace OneLogin\Saml2\Tests;
 use OneLogin\Saml2\Response;
 use OneLogin\Saml2\Settings;
 
-/**
- * Unit tests for Response messages signed
- */
 class SignedResponseTest extends \PHPUnit\Framework\TestCase
 {
     private $_settings;
@@ -21,7 +18,6 @@ class SignedResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getNameId method of the Response
      * Case valid signed response, unsigned assertion
      *
      * @covers OneLogin\Saml2\Response::getNameId
@@ -39,7 +35,6 @@ class SignedResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getNameId method of the Response
      * Case valid signed response, signed assertion
      *
      * @covers OneLogin\Saml2\Response::getNameId

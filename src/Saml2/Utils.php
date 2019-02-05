@@ -1120,11 +1120,11 @@ class Utils
         return $decryptedElement;
     }
 
-     /**
-      * Converts a XMLSecurityKey to the correct algorithm.
-      *
-      * @throws Exception
-      */
+    /**
+     * Converts a XMLSecurityKey to the correct algorithm.
+     *
+     * @throws Exception
+     */
     public static function castKey(XMLSecurityKey $key, string $algorithm, string $type = 'public'): XMLSecurityKey
     {
         assert($type === 'public' || $type === 'private');

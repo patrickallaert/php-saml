@@ -7,9 +7,6 @@ use OneLogin\Saml2\LogoutResponse;
 use OneLogin\Saml2\Settings;
 use OneLogin\Saml2\Utils;
 
-/**
- * Unit tests for Logout Response
- */
 class LogoutResponseTest extends \PHPUnit\Framework\TestCase
 {
     private $settings;
@@ -23,8 +20,6 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the LogoutResponse Constructor.
-     *
      * @covers OneLogin\Saml2\LogoutResponse
      */
     public function testConstructor()
@@ -39,7 +34,6 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the LogoutResponse Constructor.
      * The creation of a deflated SAML Logout Response
      *
      * @covers OneLogin\Saml2\LogoutResponse
@@ -57,8 +51,6 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getStatus method of the LogoutResponse
-     *
      * @covers OneLogin\Saml2\LogoutResponse::getStatus
      */
     public function testGetStatus()
@@ -74,8 +66,6 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getIssuer of the LogoutResponse
-     *
      * @covers OneLogin\Saml2\LogoutResponse::getIssuer
      */
     public function testGetIssuer()
@@ -86,8 +76,6 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the private method _query of the LogoutResponse
-     *
      * @covers OneLogin\Saml2\LogoutResponse::_query
      */
     public function testQuery()
@@ -98,8 +86,6 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getError method of the LogoutResponse
-     *
      * @covers OneLogin\Saml2\LogoutResponse::getError
      */
     public function testGetError()
@@ -112,8 +98,6 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
 
 
     /**
-     * Tests the getError method of the LogoutResponse
-     *
      * @covers OneLogin\Saml2\LogoutResponse::getErrorException
      */
     public function testGetErrorException()
@@ -127,7 +111,6 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the isValid method of the LogoutResponse
      * Case invalid request Id
      *
      * @covers OneLogin\Saml2\LogoutResponse::isValid
@@ -162,7 +145,6 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the isValid method of the LogoutResponse
      * Case invalid Issuer
      *
      * @covers OneLogin\Saml2\LogoutResponse::isValid
@@ -197,7 +179,6 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the isValid method of the LogoutResponse
      * Case invalid xml
      *
      * @covers OneLogin\Saml2\LogoutResponse::isValid
@@ -235,7 +216,6 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the isValid method of the LogoutResponse
      * Case invalid Destination
      *
      * @covers OneLogin\Saml2\LogoutResponse::isValid
@@ -257,7 +237,6 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the isValid method of the LogoutResponse
      *
      * @covers OneLogin\Saml2\LogoutResponse::isValid
      */
@@ -360,7 +339,6 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the isValid method of the LogoutResponse
      * Case: Using x509certMulti
      *
      * @covers OneLogin\Saml2\LogoutResponse::isValid
@@ -387,8 +365,6 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the isValid method of the LogoutResponse
-     *
      * @covers OneLogin\Saml2\LogoutResponse::isValid
      */
     public function testIsValid()

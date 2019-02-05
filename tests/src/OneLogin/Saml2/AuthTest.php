@@ -11,9 +11,6 @@ use OneLogin\Saml2\Utils;
 use OneLogin\Saml2\ValidationError;
 use RobRichards\XMLSecLibs\XMLSecurityKey;
 
-/**
- * Unit tests for Auth class
- */
 class AuthTest extends \PHPUnit\Framework\TestCase
 {
     /**
@@ -36,7 +33,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getSettings method of the OneLogin\Saml2\Auth class
      * Build a Settings object with a setting array
      * and compare the value returned from the method of the
      * $auth object
@@ -51,8 +47,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getLastRequestID method of the Auth class
-     *
      * @covers OneLogin\Saml2\Auth::getLastRequestID
      */
     public function testGetLastRequestID()
@@ -69,8 +63,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getSSOurl method of the Auth class
-     *
      * @covers OneLogin\Saml2\Auth::getSSOurl
      */
     public function testGetSSOurl()
@@ -79,8 +71,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getSLOurl method of the Auth class
-     *
      * @covers OneLogin\Saml2\Auth::getSLOurl
      */
     public function testGetSLOurl()
@@ -89,7 +79,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the processResponse method of the Auth class
      * Case No Response, An exception is throw
      *
      * @covers OneLogin\Saml2\Auth::processResponse
@@ -107,7 +96,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the processResponse method of the Auth class
      * Case Invalid Response, After processing the response the user
      * is not authenticated, attributes are notreturned, no nameID and
      * the error array is not empty, contains 'invalid_response
@@ -147,7 +135,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the processResponse method of the Auth class
      * Case Invalid Response, Invalid requestID
      *
      * @covers OneLogin\Saml2\Auth::processResponse
@@ -177,7 +164,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the processResponse method of the Auth class
      * Case Valid Response, After processing the response the user
      * is authenticated, attributes are returned, also has a nameID and
      * the error array is empty
@@ -208,7 +194,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getNameIdNameQualifier method of the Auth class
      * Case found
      * @covers OneLogin\Saml2\Auth::getNameIdNameQualifier
      */
@@ -222,7 +207,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getNameIdNameQualifier method of the Auth class
      * Case Null
      * @covers OneLogin\Saml2\Auth::getNameIdNameQualifier
      */
@@ -236,7 +220,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getNameIdSPNameQualifier method of the Auth class
      * Case Found
      * @covers OneLogin\Saml2\Auth::getNameIdSPNameQualifier
      */
@@ -250,7 +233,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getNameIdSPNameQualifier method of the Auth class
      * Case Null
      * @covers OneLogin\Saml2\Auth::getNameIdSPNameQualifier
      */
@@ -264,7 +246,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getAttributes and getAttributesWithFriendlyName methods
      * @covers OneLogin\Saml2\Auth::getAttributes
      * @covers OneLogin\Saml2\Auth::getAttribute
      * @covers OneLogin\Saml2\Auth::getAttributesWithFriendlyName
@@ -324,7 +305,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the redirectTo method of the Auth class
      * (phpunit raises an exception when a redirect is executed, the
      * exception is catched and we check that the targetURL is correct)
      * Case redirect without url parameter
@@ -350,7 +330,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the redirectTo method of the Auth class
      * (phpunit raises an exception when a redirect is executed, the
      * exception is catched and we check that the targetURL is correct)
      * Case redirect with url parameter
@@ -376,7 +355,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the processSLO method of the Auth class
      * Case No Message, An exception is throw
      *
      * @covers OneLogin\Saml2\Auth::processSLO
@@ -394,7 +372,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the processSLO method of the Auth class
      * Case Invalid Logout Response
      *
      * @covers OneLogin\Saml2\Auth::processSLO
@@ -417,7 +394,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the processSLO method of the Auth class
      * Case Logout Response not sucess
      *
      * @covers OneLogin\Saml2\Auth::processSLO
@@ -441,7 +417,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the processSLO method of the Auth class
      * Case Logout Response with valid and invalid Request ID
      *
      * @covers OneLogin\Saml2\Auth::processSLO
@@ -467,7 +442,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the processSLO method of the Auth class
      * Case Valid Logout Response
      *
      * @covers OneLogin\Saml2\Auth::processSLO
@@ -501,7 +475,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the processSLO method of the Auth class
      * Case Valid Logout Response, validating deleting the local session
      *
      * @covers OneLogin\Saml2\Auth::processSLO
@@ -533,7 +506,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the processSLO method of the Auth class
      * Case Valid Logout Response, validating deleting the local session
      *
      * @covers OneLogin\Saml2\Auth::processSLO
@@ -568,7 +540,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the processSLO method of the Auth class
      * Case Invalid Logout Request
      *
      * @covers OneLogin\Saml2\Auth::processSLO
@@ -604,7 +575,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the processSLO method of the Auth class
      * Case Logout Request NotOnOrAfter failed
      *
      * @covers OneLogin\Saml2\Auth::processSLO
@@ -631,7 +601,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the processSLO method of the Auth class
      * Case Valid Logout Request, validating that the local session is deleted,
      * a LogoutResponse is created and a redirection executed
      *
@@ -697,7 +666,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the processSLO method of the Auth class
      * Case Valid Logout Request, validating that the local session is
      * deleted with callback, a LogoutResponse is created and
      * a redirection executed
@@ -753,7 +721,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the processSLO method of the Auth class
      * Case Valid Logout Request, validating the relayState,
      * a LogoutResponse is created and a redirection executed
      *
@@ -793,7 +760,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the processSLO method of the Auth class
      * Case Valid Logout Request, validating the relayState,
      * a signed LogoutResponse is created and a redirection executed
      *
@@ -842,7 +808,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the login method of the Auth class
      * Case Login with no parameters. An AuthnRequest is built an redirection executed
      *
      * @covers OneLogin\Saml2\Auth::login
@@ -870,7 +835,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the login method of the Auth class
      * Case Login with relayState. An AuthnRequest is built. GET with SAMLRequest,
      * and RelayState. A redirection is executed
      *
@@ -900,7 +864,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the login method of the Auth class
      * Case Login with $elaySate and $parameters. An AuthnRequest is built. GET with
      * SAMLRequest, RelayState and extra parameters in the GET. A redirection is executed
      *
@@ -936,7 +899,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the login method of the Auth class
      * Case Login signed. An AuthnRequest signed is built an redirect executed
      *
      * @covers OneLogin\Saml2\Auth::login
@@ -972,7 +934,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the login method of the Auth class
      * Case Login with no parameters. A AuthN Request is built with ForceAuthn and redirect executed
      *
      * @covers OneLogin\Saml2\Auth::login
@@ -1035,7 +996,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the login method of the Auth class
      * Case Login with no parameters. A AuthN Request is built with IsPassive and redirect executed
      *
      * @covers OneLogin\Saml2\Auth::login
@@ -1098,7 +1058,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the login method of the Auth class
      * Case Login with no parameters. A AuthN Request is built with and without NameIDPolicy
      *
      * @covers OneLogin\Saml2\Auth::login
@@ -1159,7 +1118,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the logout method of the Auth class
      * Case Logout with no parameters. A logout Request is built and redirect executed
      *
      * @covers OneLogin\Saml2\Auth::logout
@@ -1187,7 +1145,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the logout method of the Auth class
      * Case Logout with relayState. A logout Request is build. GET with SAMLRequest,
      * RelayState. A redirection is executed
      *
@@ -1217,7 +1174,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the logout method of the Auth class
      * Case Logout with relayState + parameters. A logout Request is build. GET with SAMLRequest,
      * RelayState and extra parameters. A redirection is executed
      *
@@ -1253,7 +1209,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the logout method of the Auth class
      * Case Logout with relayState + NameID + SessionIndex. A logout Request is build. GET with SAMLRequest.
      * A redirection is executed
      *
@@ -1280,7 +1235,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the logout method of the Auth class
      * Case nameID loaded after process SAML Response
      *
      * @covers OneLogin\Saml2\Auth::logout
@@ -1309,7 +1263,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the logout method of the Auth class
      * Case Logout signed. A logout Request signed in
      * the assertion is built and redirect executed
      *
@@ -1346,7 +1299,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the logout method of the Auth class
      * Case IdP no SLO endpoint.
      *
      * @covers OneLogin\Saml2\Auth::logout
@@ -1368,8 +1320,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the setStrict method of the Auth
-     *
      * @covers OneLogin\Saml2\Auth::setStrict
      */
     public function testSetStrict()
@@ -1389,8 +1339,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the buildRequestSignature method of the Auth
-     *
      * @covers OneLogin\Saml2\Auth::buildRequestSignature
      */
     public function testBuildRequestSignature()
@@ -1405,8 +1353,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the buildResponseSignature method of the Auth
-     *
      * @covers OneLogin\Saml2\Auth::buildResponseSignature
      */
     public function testBuildResponseSignature()

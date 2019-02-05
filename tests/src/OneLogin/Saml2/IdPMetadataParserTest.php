@@ -5,14 +5,9 @@ namespace OneLogin\Saml2\Tests;
 use OneLogin\Saml2\Constants;
 use OneLogin\Saml2\IdPMetadataParser;
 
-/**
- * Unit tests for IdPMetadataParser class
- */
 class IdPMetadataParserTest extends \PHPUnit\Framework\TestCase
 {
     /**
-     * Tests the parseFileXML method of IdPMetadataParser.
-     *
      * @covers OneLogin\Saml2\IdPMetadataParser::parseFileXML
      */
     public function testParseFileXML()
@@ -53,7 +48,6 @@ class IdPMetadataParserTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the parseXML method of IdPMetadataParser.
      * Case: Multix509cert
      *
      * @covers OneLogin\Saml2\IdPMetadataParser::parseXML
@@ -87,14 +81,13 @@ class IdPMetadataParserTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-    * Tests the parseXML method of IdPMetadataParser.
-    * Case: Test with testshib metadata.
-    *       Especially test extracting SSO with REDIRECT binding.
-    *       Note that the testshib metadata does not contain an SLO specification
-    *       in the first <IDPSSODescriptor> tag.
-    *
-    * @covers OneLogin\Saml2\IdPMetadataParser::parseXML
-    */
+     * Case: Test with testshib metadata.
+     *       Especially test extracting SSO with REDIRECT binding.
+     *       Note that the testshib metadata does not contain an SLO specification
+     *       in the first <IDPSSODescriptor> tag.
+     *
+     * @covers OneLogin\Saml2\IdPMetadataParser::parseXML
+     */
     public function testParseTestshibDesiredBindingSSORedirect()
     {
         $expectedInfo = [
@@ -113,14 +106,13 @@ class IdPMetadataParserTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($expectedInfo, IdPMetadataParser::parseXML($xml, null, null, Constants::BINDING_HTTP_REDIRECT, Constants::BINDING_HTTP_REDIRECT));
     }
     /**
-    * Tests the parseXML method of IdPMetadataParser.
-    * Case: Test with testshib metadata.
-    *       Especially test extracting SSO with POST binding.
-    *       Note that the testshib metadata does not contain an SLO specification
-    *       in the first <IDPSSODescriptor> tag.
-    *
-    * @covers OneLogin\Saml2\IdPMetadataParser::parseXML
-    */
+     * Case: Test with testshib metadata.
+     *       Especially test extracting SSO with POST binding.
+     *       Note that the testshib metadata does not contain an SLO specification
+     *       in the first <IDPSSODescriptor> tag.
+     *
+     * @covers OneLogin\Saml2\IdPMetadataParser::parseXML
+     */
     public function testParseTestshibDesiredBindingSSOPost()
     {
         $expectedInfo = [
@@ -139,14 +131,13 @@ class IdPMetadataParserTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($expectedInfo, IdPMetadataParser::parseXML($xml, null, null, Constants::BINDING_HTTP_POST, Constants::BINDING_HTTP_POST));
     }
     /**
-    * Tests the parseXML method of IdPMetadataParser.
-    * Case: Test all combinations of the `desiredSSOBinding` and
-    *       `desiredSLOBinding` parameters.
-    *       Note: IdP metadata contains a SSO and SLO
-    *       service and does not specify any endpoint for the POST binding.
-    *
-    * @covers OneLogin\Saml2\IdPMetadataParser::parseXML
-    */
+     * Case: Test all combinations of the `desiredSSOBinding` and
+     *       `desiredSLOBinding` parameters.
+     *       Note: IdP metadata contains a SSO and SLO
+     *       service and does not specify any endpoint for the POST binding.
+     *
+     * @covers OneLogin\Saml2\IdPMetadataParser::parseXML
+     */
     public function testParseDesiredBindingAll()
     {
         $expectedInfo = [
@@ -171,7 +162,6 @@ class IdPMetadataParserTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the parseXML method of IdPMetadataParser.
      * Case: With and without specify EntityId
      *
      * @covers OneLogin\Saml2\IdPMetadataParser::parseXML
@@ -212,7 +202,6 @@ class IdPMetadataParserTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the parseXML method of IdPMetadataParser.
      * Case: With and without specify NameIdFormat
      *
      * @covers OneLogin\Saml2\IdPMetadataParser::parseXML
@@ -253,11 +242,10 @@ class IdPMetadataParserTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-    * Tests the parseXML method of IdPMetadataParser.
-    * Case: IdP metadata contains multiple certs
-    *
-    * @covers OneLogin\Saml2\IdPMetadataParser::parseXML
-    */
+     * Case: IdP metadata contains multiple certs
+     *
+     * @covers OneLogin\Saml2\IdPMetadataParser::parseXML
+     */
     public function testParseMultiCerts()
     {
         $this->assertEquals(
@@ -286,11 +274,10 @@ class IdPMetadataParserTest extends \PHPUnit\Framework\TestCase
         );
     }
     /**
-    * Tests the parseXML method of IdPMetadataParser.
-    * Case: IdP metadata contains multiple certs
-    *
-    * @covers OneLogin\Saml2\IdPMetadataParser::parseXML
-    */
+     * Case: IdP metadata contains multiple certs
+     *
+     * @covers OneLogin\Saml2\IdPMetadataParser::parseXML
+     */
     public function testParseMultiSigningCerts()
     {
         $this->assertEquals(
@@ -320,12 +307,11 @@ class IdPMetadataParserTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-    * Tests the parseXML method of IdPMetadataParser.
-    * Case: IdP metadata contains multiple signature cert and encrypt cert
-    *       that is the same
-    *
-    * @covers OneLogin\Saml2\IdPMetadataParser::parseXML
-    */
+     * Case: IdP metadata contains multiple signature cert and encrypt cert
+     *       that is the same
+     *
+     * @covers OneLogin\Saml2\IdPMetadataParser::parseXML
+     */
     public function testParseMultiSameSigningAndEncryptCert()
     {
         $this->assertEquals(
@@ -362,8 +348,6 @@ class IdPMetadataParserTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the injectIntoSettings method of IdPMetadataParser.
-     *
      * @covers OneLogin\Saml2\IdPMetadataParser::injectIntoSettings
      */
     public function testInjectIntoSettings()

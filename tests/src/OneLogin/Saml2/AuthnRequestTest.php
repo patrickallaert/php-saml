@@ -6,9 +6,6 @@ use OneLogin\Saml2\AuthnRequest;
 use OneLogin\Saml2\Settings;
 use OneLogin\Saml2\Utils;
 
-/**
- * Unit tests for AuthN Request
- */
 class AuthnRequestTest extends \PHPUnit\Framework\TestCase
 {
     private $settings;
@@ -22,7 +19,6 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the AuthnRequest Constructor.
      * The creation of a deflated SAML Request
      *
      * @covers OneLogin\Saml2\AuthnRequest
@@ -37,7 +33,6 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the AuthnRequest Constructor.
      * The creation of a deflated SAML Request with AuthNContext
      *
      * @covers OneLogin\Saml2\AuthnRequest
@@ -79,7 +74,6 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the AuthnRequest Constructor.
      * The creation of a deflated SAML Request with ForceAuthn
      *
      * @covers OneLogin\Saml2\AuthnRequest
@@ -95,7 +89,6 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the AuthnRequest Constructor.
      * The creation of a deflated SAML Request with isPassive
      *
      * @covers OneLogin\Saml2\AuthnRequest
@@ -111,7 +104,6 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the AuthnRequest Constructor.
      * The creation of a deflated SAML Request with and without NameIDPolicy
      *
      * @covers OneLogin\Saml2\AuthnRequest
@@ -127,7 +119,6 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the AuthnRequest Constructor.
      * The creation of a deflated SAML Request
      *
      * @covers OneLogin\Saml2\AuthnRequest

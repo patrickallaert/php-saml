@@ -9,14 +9,9 @@ use OneLogin\Saml2\Utils;
 use RobRichards\XMLSecLibs\XMLSecurityDSig;
 use RobRichards\XMLSecLibs\XMLSecurityKey;
 
-/**
- * Unit tests for Metadata class
- */
 class MetadataTest extends \PHPUnit\Framework\TestCase
 {
     /**
-     * Tests the builder method of the Metadata
-     *
      * @covers OneLogin\Saml2\Metadata::builder
      */
     public function testBuilder()
@@ -65,8 +60,6 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the builder method of the Metadata
-     *
      * @covers OneLogin\Saml2\Metadata::builder
      */
     public function testBuilderWithAttributeConsumingService()
@@ -90,8 +83,6 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the builder method of the Metadata
-     *
      * @covers OneLogin\Saml2\Metadata::builder
      */
     public function testBuilderWithAttributeConsumingServiceWithMultipleAttributeValue()
@@ -116,8 +107,6 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the signMetadata method of the Metadata
-     *
      * @covers OneLogin\Saml2\Metadata::signMetadata
      */
     public function testSignMetadata()
@@ -163,8 +152,6 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the signMetadata method of the Metadata
-     *
      * @covers OneLogin\Saml2\Metadata::signMetadata
      */
     public function testSignMetadataDefaultAlgorithms()
@@ -190,8 +177,6 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the signMetadata method of the Metadata
-     *
      * @covers OneLogin\Saml2\Metadata::signMetadata
      */
     public function testSignMetadataCustomAlgorithms()
@@ -209,8 +194,6 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the addX509KeyDescriptors method of the Metadata
-     *
      * @covers OneLogin\Saml2\Metadata::addX509KeyDescriptors
      */
     public function testAddX509KeyDescriptors()
@@ -257,7 +240,6 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the addX509KeyDescriptors method of the Metadata
      * Case: Execute 2 addX509KeyDescriptors calls
      *
      * @covers OneLogin\Saml2\Metadata::addX509KeyDescriptors

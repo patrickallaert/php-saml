@@ -1,7 +1,5 @@
 <?php
 
-include 'compatibility.php';
-
 ob_start();
 
 $basePath = dirname(__DIR__);
@@ -21,36 +19,29 @@ date_default_timezone_set('America/Los_Angeles');
 
 if (!function_exists('getUrlFromRedirect')) {
     /**
-    * In phpunit when a redirect is executed an Excepion raise,
-    * this funcion Get the target URL of the redirection
-    *
-    * @param array $trace Trace of the Stack when an Exception raised
-    *
-    * @return string $targeturl Target url of the redirection
-    */
-    function getUrlFromRedirect($trace)
+     * In phpunit when a redirect is executed an Exception raise,
+     * this function Get the target URL of the redirection
+     *
+     * @return string $targeturl Target url of the redirection
+     */
+    function getUrlFromRedirect(array $trace)
     {
-        $param_args = $trace[0]['args'][4];
-        $targeturl = $param_args['url'];
-        return $targeturl;
+        return $trace[0]['args'][4]['url'];
     }
 }
 
 if (!function_exists('getParamsFromUrl')) {
     /**
-    * Parsed the Query parameters of an URL.
-    *
-    * @param string $url The URL
-    *
-    * @return array $parsedQuery Parsed query of the url
-    */
-    function getParamsFromUrl($url)
+     * Parsed the Query parameters of an URL.
+     *
+     * @return array $parsedQuery Parsed query of the url
+     */
+    function getParamsFromUrl(string $url)
     {
         $parsedQuery = null;
         $parsedUrl = parse_url($url);
         if (isset($parsedUrl['query'])) {
-            $query = $parsedUrl['query'];
-            parse_str($query, $parsedQuery);
+            parse_str($parsedUrl['query'], $parsedQuery);
         }
         return $parsedQuery;
     }

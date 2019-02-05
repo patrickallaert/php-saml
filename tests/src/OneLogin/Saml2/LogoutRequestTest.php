@@ -10,9 +10,6 @@ use OneLogin\Saml2\Settings;
 use OneLogin\Saml2\Utils;
 use OneLogin\Saml2\ValidationError;
 
-/**
- * Unit tests for Logout Request
- */
 class LogoutRequestTest extends \PHPUnit\Framework\TestCase
 {
     private $settings;
@@ -26,8 +23,6 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the LogoutRequest Constructor.
-     *
      * @covers OneLogin\Saml2\LogoutRequest
      */
     public function testConstructor()
@@ -50,8 +45,6 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the LogoutRequest Constructor.
-     *
      * @covers OneLogin\Saml2\LogoutRequest
      */
     public function testConstructorWithRequest()
@@ -77,8 +70,6 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the LogoutRequest Constructor.
-     *
      * @covers OneLogin\Saml2\LogoutRequest
      */
     public function testConstructorWithSessionIndex()
@@ -103,8 +94,6 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the LogoutRequest Constructor.
-     *
      * @covers OneLogin\Saml2\LogoutRequest
      */
     public function testConstructorWithNameIdFormatOnParameter()
@@ -143,10 +132,8 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-    * Tests the LogoutRequest Constructor.
-    *
-    * @covers OneLogin\Saml2\LogoutRequest
-    */
+     * @covers OneLogin\Saml2\LogoutRequest
+     */
     public function testConstructorWithNameIdFormatOnSettings()
     {
         include TEST_ROOT . '/settings/settings1.php';
@@ -169,10 +156,8 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-    * Tests the LogoutRequest Constructor.
-    *
-    * @covers OneLogin\Saml2\LogoutRequest
-    */
+     * @covers OneLogin\Saml2\LogoutRequest
+     */
     public function testConstructorWithoutNameIdFormat()
     {
         include TEST_ROOT . '/settings/settings1.php';
@@ -194,10 +179,8 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
         $this->assertFalse(isset($logoutNameIdData['Format']));
     }
     /**
-    * Tests the LogoutRequest Constructor.
-    *
-    * @covers OneLogin\Saml2\LogoutRequest
-    */
+     * @covers OneLogin\Saml2\LogoutRequest
+     */
     public function testConstructorWithNameIdNameQualifier()
     {
         include TEST_ROOT . '/settings/settings1.php';
@@ -231,7 +214,6 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the LogoutRequest Constructor.
      * The creation of a deflated SAML Logout Request
      *
      * @covers OneLogin\Saml2\LogoutRequest
@@ -250,7 +232,6 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the LogoutRequest Constructor.
      * Case: Able to generate encryptedID with MultiCert
      *
      * @covers OneLogin\Saml2\LogoutRequest
@@ -275,8 +256,6 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getID method of the LogoutRequest
-     *
      * @covers OneLogin\Saml2\LogoutRequest::getID
      */
     public function testGetIDFromSAMLLogoutRequest()
@@ -290,8 +269,6 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getID method of the LogoutRequest
-     *
      * @covers OneLogin\Saml2\LogoutRequest::getID
      */
     public function testGetIDFromDeflatedSAMLLogoutRequest()
@@ -309,8 +286,6 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getNameIdData method of the LogoutRequest
-     *
      * @covers OneLogin\Saml2\LogoutRequest::getNameIdData
      */
     public function testGetNameIdData()
@@ -402,8 +377,6 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getNameIdmethod of the LogoutRequest
-     *
      * @covers OneLogin\Saml2\LogoutRequest::getNameId
      */
     public function testGetNameId()
@@ -424,8 +397,6 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getIssuer of the LogoutRequest
-     *
      * @covers OneLogin\Saml2\LogoutRequest::getIssuer
      */
     public function testGetIssuer()
@@ -440,8 +411,6 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getSessionIndexes of the LogoutRequest
-     *
      * @covers OneLogin\Saml2\LogoutRequest::getSessionIndexes
      */
     public function testGetSessionIndexes()
@@ -461,8 +430,6 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getError method of the LogoutRequest
-     *
      * @covers OneLogin\Saml2\LogoutRequest::getError
      */
     public function testGetError()
@@ -484,8 +451,6 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the getErrorException method of the LogoutRequest
-     *
      * @covers OneLogin\Saml2\LogoutRequest::getErrorException
      */
     public function testGetErrorException()
@@ -509,7 +474,6 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the isValid method of the LogoutRequest
      * Case Invalid Issuer
      *
      * @covers OneLogin\Saml2\LogoutRequest::isValid
@@ -536,7 +500,6 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the isValid method of the LogoutRequest
      * Case invalid xml
      *
      * @covers OneLogin\Saml2\LogoutRequest::isValid
@@ -571,7 +534,6 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the isValid method of the LogoutRequest
      * Case Invalid Destination
      *
      * @covers OneLogin\Saml2\LogoutRequest::isValid
@@ -590,7 +552,6 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the isValid method of the LogoutRequest
      * Case Invalid NotOnOrAfter
      *
      * @covers OneLogin\Saml2\LogoutRequest::isValid
@@ -617,8 +578,6 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the isValid method of the LogoutRequest
-     *
      * @covers OneLogin\Saml2\LogoutRequest::isValid
      */
     public function testIsValid()
@@ -693,8 +652,6 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the isValid method of the LogoutRequest
-     *
      * @covers OneLogin\Saml2\LogoutRequest::isValid
      */
     public function testIsInValidSign()
@@ -793,7 +750,6 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests the isValid method of the LogoutRequest
      * Case: Using x509certMulti
      *
      * @covers OneLogin\Saml2\LogoutRequest::isValid
