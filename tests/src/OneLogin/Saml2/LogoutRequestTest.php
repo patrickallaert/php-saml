@@ -455,7 +455,8 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     {
         (
             new LogoutRequest(
-                $this->settings, base64_encode(gzdeflate(file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request.xml')))
+                $this->settings,
+                base64_encode(gzdeflate(file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request.xml')))
             )
         )->getErrorException();
     }
