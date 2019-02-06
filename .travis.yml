@@ -23,6 +23,6 @@ script:
   - php vendor/bin/phpcs -n --standard=phpcs.xml --extensions=php src/ demo1 demo2 endpoints tests
 
 after_script:
-  - export TRAVIS=https://travis-ci.org/patrickallaert/php-saml
+  - export TRAVIS=https://travis-ci.com/patrickallaert/php-saml
   - echo $TRAVIS
   - echo $TRAVIS_JOB_ID
