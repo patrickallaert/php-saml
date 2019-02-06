@@ -22,7 +22,12 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
         $settings = new Settings($settingsInfo);
         $spData = $settings->getSPData();
         $security = $settings->getSecurityData();
-        $metadata = Metadata::builder($spData, $security['authnRequestsSigned'], $security['wantAssertionsSigned'], null, null,
+        $metadata = Metadata::builder(
+            $spData,
+            $security['authnRequestsSigned'],
+            $security['wantAssertionsSigned'],
+            null,
+            null,
             $settings->getContacts(),
             $settings->getOrganization()
         );
