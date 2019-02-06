@@ -45,12 +45,14 @@ class Utils
      * This function load an XML string in a save way.
      * Prevent XEE/XXE Attacks
      *
-     * @return DOMDocument|false $dom The result of load the XML at the DOMDocument
-     *
      * @throws Exception
      */
-    public static function loadXML(DOMDocument $dom, string $xml)
+    public static function loadXML(DOMDocument $dom, string $xml): void
     {
+        if ($xml === "") {
+            throw new Exception('Empty string supplied as input');
+        }
+
         $oldEntityLoader = libxml_disable_entity_loader(true);
 
         $res = $dom->loadXML($xml);
@@ -66,10 +68,8 @@ class Utils
         }
 
         if (!$res) {
-            return false;
+            throw new Exception('An error occurred while loading the XML data');
         }
-
-        return $dom;
     }
 
     /**
@@ -95,10 +95,7 @@ class Utils
             $dom = $xml;
         } else {
             $dom = new DOMDocument();
-            $dom = self::loadXML($dom, $xml);
-            if (!$dom) {
-                return 'unloaded_xml';
-            }
+            self::loadXML($dom, $xml);
         }
 
         $oldEntityLoader = libxml_disable_entity_loader(false);
@@ -1088,14 +1085,15 @@ class Utils
             $newDoc->preserveWhiteSpace = false;
             $newDoc->formatOutput = true;
         }
-        $newDoc = self::loadXML(
-            $newDoc,
-            '<root xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' . $enc->decryptNode(
-                $symmetricKey,
-                false
-            ) . '</root>'
-        );
-        if (!$newDoc) {
+        try {
+            self::loadXML(
+                $newDoc,
+                '<root xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' . $enc->decryptNode(
+                    $symmetricKey,
+                    false
+                ) . '</root>'
+            );
+        } catch (Exception $e) {
             throw new ValidationError(
                 'Failed to parse decrypted XML.',
                 ValidationError::INVALID_XML_FORMAT
@@ -1169,10 +1167,7 @@ class Utils
         if ($xml instanceof DOMDocument) {
             $dom = $xml;
         } else {
-            $dom = self::loadXML(new DOMDocument(), $xml);
-            if (!$dom) {
-                throw new Exception('Error parsing xml string');
-            }
+            self::loadXML($dom = new DOMDocument(), $xml);
         }
 
         /* Load the private key. */
@@ -1235,7 +1230,7 @@ class Utils
         } elseif ($xml instanceof DOMElement) {
             $dom = clone $xml->ownerDocument;
         } else {
-            $dom = self::loadXML(new DOMDocument(), $xml);
+            self::loadXML($dom = new DOMDocument(), $xml);
         }
 
         $objXMLSecDSig = new XMLSecurityDSig();

@@ -171,14 +171,14 @@ LOGOUTREQUEST;
         if ($request instanceof DOMDocument) {
             $dom = $request;
         } else {
-            $dom = Utils::loadXML(new DOMDocument(), $request);
-        }
-
-        if ($dom === false) {
-            throw new Error(
-                "LogoutRequest could not be processed",
-                Error::SAML_LOGOUTREQUEST_INVALID
-            );
+            try {
+                Utils::loadXML($dom = new DOMDocument(), $request);
+            } catch (Exception $e) {
+                throw new Error(
+                    "LogoutRequest could not be processed",
+                    Error::SAML_LOGOUTREQUEST_INVALID
+                );
+            }
         }
 
         return $dom->documentElement->getAttribute('ID');
@@ -202,7 +202,7 @@ LOGOUTREQUEST;
             $dom = $request;
         } else {
             $dom = new DOMDocument();
-            $dom = Utils::loadXML($dom, $request);
+            Utils::loadXML($dom, $request);
         }
 
         $encryptedEntries = Utils::query($dom, '/samlp:LogoutRequest/saml:EncryptedID');
@@ -277,15 +277,14 @@ LOGOUTREQUEST;
         if ($request instanceof DOMDocument) {
             $dom = $request;
         } else {
-            $dom = Utils::loadXML(new DOMDocument(), $request);
+            Utils::loadXML($dom = new DOMDocument(), $request);
         }
 
-        $issuer = null;
         $issuerNodes = Utils::query($dom, '/samlp:LogoutRequest/saml:Issuer');
         if ($issuerNodes->length === 1) {
-            $issuer = $issuerNodes->item(0)->textContent;
+            return $issuerNodes->item(0)->textContent;
         }
-        return $issuer;
+        return null;
     }
 
     /**
@@ -303,7 +302,7 @@ LOGOUTREQUEST;
         if ($request instanceof DOMDocument) {
             $dom = $request;
         } else {
-            $dom = Utils::loadXML(new DOMDocument(), $request);
+            Utils::loadXML($dom = new DOMDocument(), $request);
         }
 
         $sessionIndexes = [];
@@ -329,7 +328,7 @@ LOGOUTREQUEST;
         $this->error = null;
         try {
             $dom = new DOMDocument();
-            $dom = Utils::loadXML($dom, $this->logoutRequest);
+            Utils::loadXML($dom, $this->logoutRequest);
 
             $idpData = $this->settings->getIdPData();
             $idPEntityId = $idpData['entityId'];

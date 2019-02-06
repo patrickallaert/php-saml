@@ -96,10 +96,7 @@ class IdPMetadataParser
         $dom->preserveWhiteSpace = false;
         $dom->formatOutput = true;
         try {
-            $dom = Utils::loadXML($dom, $xml);
-            if (!$dom) {
-                throw new Exception('Error parsing metadata');
-            }
+            Utils::loadXML($dom, $xml);
 
             $customIdPStr = '';
             if (!empty($entityId)) {

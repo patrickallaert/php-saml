@@ -4,6 +4,7 @@ namespace OneLogin\Saml2\Tests;
 
 use DOMDocument;
 use DOMElement;
+use DOMXPath;
 use Exception;
 use OneLogin\Saml2\Constants;
 use OneLogin\Saml2\Settings;
@@ -23,10 +24,26 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     public function testLoadXML()
     {
         $dom = new DOMDocument();
+        Utils::loadXML($dom, file_get_contents(TEST_ROOT . '/data/metadata/noentity_metadata_settings1.xml'));
+        $xpath = new DOMXPath($dom);
+        $xpath->registerNamespace('md', Constants::NS_MD);
+        $this->assertSame("urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified", $xpath->query("//md:NameIDFormat")->item(0)->textContent);
 
-        $this->assertFalse(Utils::loadXML($dom, '<xml><EntityDescriptor>'));
-        $this->assertTrue(Utils::loadXML($dom, file_get_contents(TEST_ROOT . '/data/metadata/noentity_metadata_settings1.xml')) instanceof DOMDocument);
-        $this->assertTrue(Utils::loadXML($dom, file_get_contents(TEST_ROOT . '/data/metadata/metadata_settings1.xml')) instanceof DOMDocument);
+        $dom = new DOMDocument();
+        Utils::loadXML($dom, file_get_contents(TEST_ROOT . '/data/metadata/metadata_settings1.xml'));
+        $xpath = new DOMXPath($dom);
+        $xpath->registerNamespace('md', Constants::NS_MD);
+        $this->assertSame("urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified", $xpath->query("//md:NameIDFormat")->item(0)->textContent);
+    }
+
+    /**
+     * @covers OneLogin\Saml2\Utils::loadXML
+     * @expectedException Exception
+     * @expectedExceptionMessage An error occurred while loading the XML data
+     */
+    public function testLoadInvalidXML()
+    {
+        Utils::loadXML(new DOMDocument(), '<xml><EntityDescriptor>');
     }
 
     /**
@@ -50,52 +67,49 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         }
 
         try {
-            $this->assertFalse(
-                Utils::loadXML(
-                    $dom,
-                    '<?xml version="1.0"?>
-                     <!DOCTYPE results [
-                       <!ELEMENT results (result+)>
-                       <!ELEMENT result (#PCDATA)>
-                     ]>
-                     <results>
-                       <result>test</result>
-                     </results>'
-                )
+            Utils::loadXML(
+                $dom,
+                '<?xml version="1.0"?>
+                 <!DOCTYPE results [
+                   <!ELEMENT results (result+)>
+                   <!ELEMENT result (#PCDATA)>
+                 ]>
+                 <results>
+                   <result>test</result>
+                 </results>'
             );
+            $this->fail('Exception was not raised');
         } catch (Exception $e) {
             $this->assertEquals('Detected use of DOCTYPE/ENTITY in XML, disabled to prevent XXE/XEE attacks', $e->getMessage());
         }
 
         try {
-            $this->assertFalse(
-                Utils::loadXML(
-                    $dom,
-                    '<?xml version="1.0"?>
+            Utils::loadXML(
+                $dom,
+                '<?xml version="1.0"?>
+                 <!DOCTYPE results [<!ENTITY harmless "completely harmless">]>
+                 <results>
+                   <result>This result is &harmless;</result>
+                 </results>'
+            );
+            $this->fail('Exception was not raised');
+        } catch (Exception $e) {
+            $this->assertEquals('Detected use of DOCTYPE/ENTITY in XML, disabled to prevent XXE/XEE attacks', $e->getMessage());
+        }
+
+        try {
+            Utils::loadXML(
+                $dom,
+                mb_convert_encoding(
+                    '<?xml version="1.0" encoding="UTF-16"?>
                      <!DOCTYPE results [<!ENTITY harmless "completely harmless">]>
                      <results>
                        <result>This result is &harmless;</result>
-                     </results>'
+                     </results>',
+                    'UTF-16'
                 )
             );
-        } catch (Exception $e) {
-            $this->assertEquals('Detected use of DOCTYPE/ENTITY in XML, disabled to prevent XXE/XEE attacks', $e->getMessage());
-        }
-
-        try {
-            $this->assertFalse(
-                Utils::loadXML(
-                    $dom,
-                    mb_convert_encoding(
-                        '<?xml version="1.0" encoding="UTF-16"?>
-                         <!DOCTYPE results [<!ENTITY harmless "completely harmless">]>
-                         <results>
-                           <result>This result is &harmless;</result>
-                         </results>',
-                        'UTF-16'
-                    )
-                )
-            );
+            $this->fail('Exception was not raised');
         } catch (Exception $e) {
             $this->assertEquals('Detected use of DOCTYPE/ENTITY in XML, disabled to prevent XXE/XEE attacks', $e->getMessage());
         }
@@ -103,11 +117,19 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
 
     /**
      * @covers OneLogin\Saml2\Utils::validateXML
+     * @expectedException Exception
+     * @expectedExceptionMessage An error occurred while loading the XML data
+     */
+    public function testValidateInvalidXML()
+    {
+        Utils::validateXML('<xml><EntityDescriptor>', 'saml-schema-metadata-2.0.xsd');
+    }
+
+    /**
+     * @covers OneLogin\Saml2\Utils::validateXML
      */
     public function testValidateXML()
     {
-        $this->assertEquals('unloaded_xml', Utils::validateXML('<xml><EntityDescriptor>', 'saml-schema-metadata-2.0.xsd'));
-
         $this->assertEquals(
             'invalid_xml',
             Utils::validateXML(file_get_contents(TEST_ROOT . '/data/metadata/noentity_metadata_settings1.xml'), 'saml-schema-metadata-2.0.xsd')

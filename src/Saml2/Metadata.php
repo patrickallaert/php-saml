@@ -210,10 +210,7 @@ METADATA_TEMPLATE;
         $xml->preserveWhiteSpace = false;
         $xml->formatOutput = true;
         try {
-            $xml = Utils::loadXML($xml, $metadata);
-            if (!$xml) {
-                throw new Exception('Error parsing metadata');
-            }
+            Utils::loadXML($xml, $metadata);
         } catch (Exception $e) {
             throw new Exception('Error parsing metadata. ' . $e->getMessage());
         }

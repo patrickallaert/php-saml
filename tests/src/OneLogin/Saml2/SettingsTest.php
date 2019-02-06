@@ -608,27 +608,31 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Case no metadata
+     * Case no metadata XML
      *
      * @covers OneLogin\Saml2\Settings::validateMetadata
+     * @expectedException Exception
+     * @expectedExceptionMessage Empty string supplied as input
      */
     public function testValidateMetadataNoXML()
     {
         include TEST_ROOT . '/settings/settings1.php';
 
-        $settings = new Settings($settingsInfo);
+        (new Settings($settingsInfo))->validateMetadata('');
+    }
 
-        try {
-            $settings->validateMetadata('');
-            $this->fail('Exception was not raised');
-        } catch (Exception $e) {
-            $this->assertContains('Empty string supplied as input', $e->getMessage());
-        }
+    /**
+     * Case invalid metadata XML
+     *
+     * @covers OneLogin\Saml2\Settings::validateMetadata
+     * @expectedException Exception
+     * @expectedExceptionMessage An error occurred while loading the XML data
+     */
+    public function testValidateMetadataInvalidXML()
+    {
+        include TEST_ROOT . '/settings/settings1.php';
 
-        $errors = $settings->validateMetadata('<no xml>');
-
-        $this->assertNotEmpty($errors);
-        $this->assertContains('unloaded_xml', $errors);
+        (new Settings($settingsInfo))->validateMetadata('<no xml>');
     }
 
     /**

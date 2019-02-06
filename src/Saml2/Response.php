@@ -69,8 +69,9 @@ class Response
             Utils::setBaseURL($baseURL);
         }
 
-        $this->document = Utils::loadXML(new DOMDocument(), base64_decode($response));
-        if (!$this->document) {
+        try {
+            Utils::loadXML($this->document = new DOMDocument(), base64_decode($response));
+        } catch (Exception $e) {
             throw new ValidationError(
                 "SAML Response could not be processed",
                 ValidationError::INVALID_XML_FORMAT
@@ -1006,12 +1007,10 @@ class Response
      *
      * @param \DomNode $dom DomDocument
      *
-     * @return DOMDocument Decrypted Assertion
-     *
      * @throws Exception
      * @throws ValidationError
      */
-    protected function decryptAssertion(\DomNode $dom)
+    protected function decryptAssertion(\DomNode $dom): DOMDocument
     {
         $pem = $this->settings->getSPkey();
 
@@ -1059,8 +1058,9 @@ class Response
         }
 
         $decrypted = new DOMDocument();
-        $check = Utils::loadXML($decrypted, $objenc->decryptNode($objKey, false));
-        if ($check === false) {
+        try {
+            Utils::loadXML($decrypted, $objenc->decryptNode($objKey, false));
+        } catch (Exception $e) {
             throw new Exception('Error: string from decrypted assertion could not be loaded into a XML document');
         }
         if ($encData->parentNode instanceof DOMDocument) {
@@ -1093,7 +1093,8 @@ class Response
         Utils::treeCopyReplace($encryptedAssertion, $decrypted);
 
         // Rebuild the DOM will fix issues with namespaces as well
-        return Utils::loadXML(new DOMDocument(), $container->ownerDocument->saveXML());
+        Utils::loadXML($newDom = new DOMDocument(), $container->ownerDocument->saveXML());
+        return $newDom;
     }
 
     /**

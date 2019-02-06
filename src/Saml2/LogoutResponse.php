@@ -75,9 +75,9 @@ class LogoutResponse
                 $this->logoutResponse = $decoded;
             }
             $this->document = new DOMDocument();
-            $this->document = Utils::loadXML($this->document, $this->logoutResponse);
-
-            if ($this->document === false) {
+            try {
+                Utils::loadXML($this->document, $this->logoutResponse);
+            } catch (Exception $e) {
                 throw new Error(
                     "LogoutResponse could not be processed",
                     Error::SAML_LOGOUTRESPONSE_INVALID
