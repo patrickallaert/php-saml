@@ -77,37 +77,18 @@ class Utils
      *
      * It will parse the string into a DOMDocument and validate this document against the schema.
      *
-     * @param string|DOMDocument $xml    The XML string or document which should be validated.
-     * @param string             $schema The schema filename which should be used.
-     *
-     * @return string|DOMDocument $dom  string that explains the problem or the DOMDocument
-     *
      * @throws Exception
      */
-    public static function validateXML($xml, string $schema)
+    public static function validateXML(DOMDocument $xml, string $schema): bool
     {
-        assert(is_string($xml) || $xml instanceof DOMDocument);
-
         libxml_clear_errors();
         libxml_use_internal_errors(true);
 
-        if ($xml instanceof DOMDocument) {
-            $dom = $xml;
-        } else {
-            $dom = new DOMDocument();
-            self::loadXML($dom, $xml);
-        }
-
         $oldEntityLoader = libxml_disable_entity_loader(false);
-        $res = $dom->schemaValidate(__DIR__ . '/schemas/' . $schema);
+        $res = $xml->schemaValidate(__DIR__ . '/schemas/' . $schema);
         libxml_disable_entity_loader($oldEntityLoader);
-        if (!$res) {
-            syslog(LOG_INFO, 'Error validating the metadata: ' . var_export(libxml_get_errors(), true));
 
-            return 'invalid_xml';
-        }
-
-        return $dom;
+        return $res;
     }
 
     /**
@@ -1158,12 +1139,15 @@ class Utils
     /**
      * Adds signature key and senders certificate to an element (Message or Assertion).
      *
-     * @param string|DOMDocument $xml             The element we should sign
-     *
      * @throws Exception
      */
-    public static function addSign($xml, string $key, string $cert, string $signAlgorithm = XMLSecurityKey::RSA_SHA256, string $digestAlgorithm = XMLSecurityDSig::SHA256): string
-    {
+    public static function addSign(
+        string $xml,
+        string $key,
+        string $cert,
+        string $signAlgorithm = XMLSecurityKey::RSA_SHA256,
+        string $digestAlgorithm = XMLSecurityDSig::SHA256
+    ): string {
         if ($xml instanceof DOMDocument) {
             $dom = $xml;
         } else {

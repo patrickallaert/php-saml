@@ -177,18 +177,17 @@ METADATA_TEMPLATE;
     /**
      * Signs the metadata with the key/cert provided
      *
-     * @param string $metadata        SAML Metadata XML
-     * @param string $key             x509 key
-     * @param string $cert            x509 cert
-     * @param string $signAlgorithm   Signature algorithm method
-     * @param string $digestAlgorithm Digest algorithm method
-     *
      * @return string Signed Metadata
      *
      * @throws Exception
      */
-    public static function signMetadata($metadata, $key, $cert, $signAlgorithm = XMLSecurityKey::RSA_SHA256, $digestAlgorithm = XMLSecurityDSig::SHA256)
-    {
+    public static function signMetadata(
+        string $metadata,
+        string $key,
+        string $cert,
+        string $signAlgorithm = XMLSecurityKey::RSA_SHA256,
+        string $digestAlgorithm = XMLSecurityDSig::SHA256
+    ): string {
         return Utils::addSign($metadata, $key, $cert, $signAlgorithm, $digestAlgorithm);
     }
 
@@ -198,13 +197,12 @@ METADATA_TEMPLATE;
      *
      * @param string $metadata       SAML Metadata XML
      * @param string $cert           x509 cert
-     * @param bool   $wantsEncrypted Whether to include the KeyDescriptor for encryption
      *
      * @return string Metadata with KeyDescriptors
      *
      * @throws Exception
      */
-    public static function addX509KeyDescriptors($metadata, $cert, $wantsEncrypted = true)
+    public static function addX509KeyDescriptors(string $metadata, string $cert, bool $wantsEncrypted = true)
     {
         $xml = new DOMDocument();
         $xml->preserveWhiteSpace = false;
@@ -215,11 +213,8 @@ METADATA_TEMPLATE;
             throw new Exception('Error parsing metadata. ' . $e->getMessage());
         }
 
-        $formatedCert = Utils::formatCert($cert, false);
-        $x509Certificate = $xml->createElementNS(Constants::NS_DS, 'X509Certificate', $formatedCert);
-
         $keyData = $xml->createElementNS(Constants::NS_DS, 'ds:X509Data');
-        $keyData->appendChild($x509Certificate);
+        $keyData->appendChild($xml->createElementNS(Constants::NS_DS, 'X509Certificate', Utils::formatCert($cert, false)));
 
         $keyInfo = $xml->createElementNS(Constants::NS_DS, 'ds:KeyInfo');
         $keyInfo->appendChild($keyData);
@@ -227,6 +222,7 @@ METADATA_TEMPLATE;
         $keyDescriptor = $xml->createElementNS(Constants::NS_MD, "md:KeyDescriptor");
 
         $SPSSODescriptor = $xml->getElementsByTagName('SPSSODescriptor')->item(0);
+        assert($SPSSODescriptor instanceof DOMElement);
         $SPSSODescriptor->insertBefore($keyDescriptor->cloneNode(), $SPSSODescriptor->firstChild);
         if ($wantsEncrypted === true) {
             $SPSSODescriptor->insertBefore($keyDescriptor->cloneNode(), $SPSSODescriptor->firstChild);

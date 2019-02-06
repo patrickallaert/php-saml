@@ -260,12 +260,12 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetIDFromSAMLLogoutRequest()
     {
-        $logoutRequest = file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request.xml');
-        $this->assertEquals('ONELOGIN_21584ccdfaca36a145ae990442dcd96bfe60151e', LogoutRequest::getID($logoutRequest));
-
-        $dom = new DOMDocument();
-        $dom->loadXML($logoutRequest);
-        $this->assertEquals('ONELOGIN_21584ccdfaca36a145ae990442dcd96bfe60151e', LogoutRequest::getID($dom));
+        $this->assertEquals(
+            'ONELOGIN_21584ccdfaca36a145ae990442dcd96bfe60151e',
+            LogoutRequest::getID(
+                file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request.xml')
+            )
+        );
     }
 
     /**
@@ -290,19 +290,14 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetNameIdData()
     {
-        $expectedNameIdData = [
-            'Value' => 'ONELOGIN_1e442c129e1f822c8096086a1103c5ee2c7cae1c',
-            'Format' => 'urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified',
-            'SPNameQualifier' => 'http://idp.example.com/',
-        ];
-
-        $request = file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request.xml');
-
-        $this->assertEquals($expectedNameIdData, LogoutRequest::getNameIdData($request));
-
-        $dom = new DOMDocument();
-        $dom->loadXML($request);
-        $this->assertEquals($expectedNameIdData, LogoutRequest::getNameIdData($dom));
+        $this->assertEquals(
+            [
+                'Value' => 'ONELOGIN_1e442c129e1f822c8096086a1103c5ee2c7cae1c',
+                'Format' => 'urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified',
+                'SPNameQualifier' => 'http://idp.example.com/',
+            ],
+            LogoutRequest::getNameIdData(file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request.xml'))
+        );
 
         $request2 = file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request_encrypted_nameid.xml');
 
@@ -401,12 +396,8 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetIssuer()
     {
-        $request = file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request.xml');
-
-        $this->assertEquals('http://idp.example.com/', LogoutRequest::getIssuer($request));
-
         $dom = new DOMDocument();
-        $dom->loadXML($request);
+        $dom->loadXML(file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request.xml'));
         $this->assertEquals('http://idp.example.com/', LogoutRequest::getIssuer($dom));
     }
 
@@ -415,13 +406,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetSessionIndexes()
     {
-        $request = file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request.xml');
-
-        $this->assertEmpty(LogoutRequest::getSessionIndexes($request));
-
-        $dom = new DOMDocument();
-        $dom->loadXML($request);
-        $this->assertEmpty(LogoutRequest::getSessionIndexes($dom));
+        $this->assertEmpty(LogoutRequest::getSessionIndexes(file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request.xml')));
 
         $this->assertEquals(
             ['_ac72a76526cb6ca19f8438e73879a0e6c8ae5131'],

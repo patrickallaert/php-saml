@@ -117,51 +117,28 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
 
     /**
      * @covers OneLogin\Saml2\Utils::validateXML
-     * @expectedException Exception
-     * @expectedExceptionMessage An error occurred while loading the XML data
-     */
-    public function testValidateInvalidXML()
-    {
-        Utils::validateXML('<xml><EntityDescriptor>', 'saml-schema-metadata-2.0.xsd');
-    }
-
-    /**
-     * @covers OneLogin\Saml2\Utils::validateXML
      */
     public function testValidateXML()
     {
-        $this->assertEquals(
-            'invalid_xml',
-            Utils::validateXML(file_get_contents(TEST_ROOT . '/data/metadata/noentity_metadata_settings1.xml'), 'saml-schema-metadata-2.0.xsd')
-        );
-
-        $this->assertTrue(
-            Utils::validateXML(
-                file_get_contents(TEST_ROOT . '/data/metadata/expired_metadata_settings1.xml'),
-                'saml-schema-metadata-2.0.xsd'
-            ) instanceof DOMDocument
-        );
-
-        $metadataOk = file_get_contents(TEST_ROOT . '/data/metadata/metadata_settings1.xml');
-        $this->assertTrue(Utils::validateXML($metadataOk, 'saml-schema-metadata-2.0.xsd') instanceof DOMDocument);
-
-        $this->assertFalse(
-            Utils::validateXML(
-                file_get_contents(TEST_ROOT . '/data/metadata/metadata_bad_order_settings1.xml'),
-                'saml-schema-metadata-2.0.xsd'
-            ) instanceof DOMDocument
-        );
-
-        $this->assertTrue(
-            Utils::validateXML(
-                file_get_contents(TEST_ROOT . '/data/metadata/signed_metadata_settings1.xml'),
-                'saml-schema-metadata-2.0.xsd'
-            ) instanceof DOMDocument
-        );
+        $dom = new DOMDocument();
+        Utils::loadXML($dom, file_get_contents(TEST_ROOT . '/data/metadata/noentity_metadata_settings1.xml'));
+        $this->assertFalse(Utils::validateXML($dom, 'saml-schema-metadata-2.0.xsd'));
 
         $dom = new DOMDocument();
-        Utils::loadXML($dom, $metadataOk);
-        $this->assertTrue(Utils::validateXML($dom, 'saml-schema-metadata-2.0.xsd') instanceof DOMDocument);
+        Utils::loadXML($dom, file_get_contents(TEST_ROOT . '/data/metadata/expired_metadata_settings1.xml'));
+        $this->assertTrue(Utils::validateXML($dom, 'saml-schema-metadata-2.0.xsd'));
+
+        $dom = new DOMDocument();
+        Utils::loadXML($dom, file_get_contents(TEST_ROOT . '/data/metadata/metadata_settings1.xml'));
+        $this->assertTrue(Utils::validateXML($dom, 'saml-schema-metadata-2.0.xsd'));
+
+        $dom = new DOMDocument();
+        Utils::loadXML($dom, file_get_contents(TEST_ROOT . '/data/metadata/metadata_bad_order_settings1.xml'));
+        $this->assertFalse(Utils::validateXML($dom, 'saml-schema-metadata-2.0.xsd'));
+
+        $dom = new DOMDocument();
+        Utils::loadXML($dom, file_get_contents(TEST_ROOT . '/data/metadata/signed_metadata_settings1.xml'));
+        $this->assertTrue(Utils::validateXML($dom, 'saml-schema-metadata-2.0.xsd'));
     }
 
     /**
@@ -1032,9 +1009,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         assert($signature instanceof DOMElement);
         $this->assertContains('ds:Signature', $signature->tagName);
 
-        $dom = new DOMDocument();
-        $dom->loadXML($xmlAuthn);
-        $xmlAuthnSigned2 = Utils::addSign($dom, $key, $cert, XMLSecurityKey::RSA_SHA384, XMLSecurityDSig::SHA512);
+        $xmlAuthnSigned2 = Utils::addSign($xmlAuthn, $key, $cert, XMLSecurityKey::RSA_SHA384, XMLSecurityDSig::SHA512);
         $this->assertContains('<ds:SignatureValue>', $xmlAuthnSigned2);
         $this->assertContains('<ds:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha384"/>', $xmlAuthnSigned2);
         $this->assertContains('<ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha512"/>', $xmlAuthnSigned2);

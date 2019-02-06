@@ -139,8 +139,7 @@ class Response
 
                 if ($security['wantXMLValidation']) {
                     $errorXmlMsg = "Invalid SAML Response. Not match the saml-schema-protocol-2.0.xsd";
-                    $res = Utils::validateXML($this->document, 'saml-schema-protocol-2.0.xsd');
-                    if (!$res instanceof DOMDocument) {
+                    if (!Utils::validateXML($this->document, 'saml-schema-protocol-2.0.xsd')) {
                         throw new ValidationError(
                             $errorXmlMsg,
                             ValidationError::INVALID_XML_FORMAT
@@ -148,14 +147,11 @@ class Response
                     }
 
                     // If encrypted, check also the decrypted document
-                    if ($this->encrypted) {
-                        $res = Utils::validateXML($this->decryptedDocument, 'saml-schema-protocol-2.0.xsd');
-                        if (!$res instanceof DOMDocument) {
-                            throw new ValidationError(
-                                $errorXmlMsg,
-                                ValidationError::INVALID_XML_FORMAT
-                            );
-                        }
+                    if ($this->encrypted && !Utils::validateXML($this->decryptedDocument, 'saml-schema-protocol-2.0.xsd')) {
+                        throw new ValidationError(
+                            $errorXmlMsg,
+                            ValidationError::INVALID_XML_FORMAT
+                        );
                     }
                 }
 
@@ -1046,20 +1042,27 @@ class Response
         if ($objKeyInfo = $objenc->locateKeyInfo($objKey)) {
             if ($objKeyInfo->isEncrypted) {
                 $objKeyInfo->loadKey($pem, false, false);
-                $key = $objKeyInfo->encryptedCtx->decryptKey($objKeyInfo);
+                $encryptedContext = $objKeyInfo->encryptedCtx;
+                if ($encryptedContext instanceof XMLSecEnc) {
+                    $key = $encryptedContext->decryptKey($objKeyInfo);
+                }
             } else {
                 // symmetric encryption key support
                 $objKeyInfo->loadKey($pem, false, false);
             }
         }
 
-        if (empty($objKey->key)) {
+        if (empty($objKey->key) && is_string($key)) {
             $objKey->loadKey($key);
         }
 
         $decrypted = new DOMDocument();
         try {
-            Utils::loadXML($decrypted, $objenc->decryptNode($objKey, false));
+            $xml = $objenc->decryptNode($objKey, false);
+            if (!is_string($xml)) {
+                throw new Exception("Assertion decryption failed");
+            }
+            Utils::loadXML($decrypted, $xml);
         } catch (Exception $e) {
             throw new Exception('Error: string from decrypted assertion could not be loaded into a XML document');
         }

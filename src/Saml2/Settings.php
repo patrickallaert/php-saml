@@ -823,37 +823,36 @@ class Settings
      *
      * @throws Exception
      */
-    public function validateMetadata(string $xml)
+    public function validateMetadata(string $xml): array
     {
-        $errors = [];
-        $res = Utils::validateXML($xml, 'saml-schema-metadata-2.0.xsd');
-        if (!$res instanceof DOMDocument) {
-            $errors[] = $res;
-        } else {
-            $dom = $res;
-            $element = $dom->documentElement;
-            if ($element->tagName !== 'md:EntityDescriptor') {
-                $errors[] = 'noEntityDescriptor_xml';
-            } else {
-                $validUntil = $cacheDuration = null;
+        $dom = new DOMDocument();
+        Utils::loadXML($dom, $xml);
+        if (!Utils::validateXML($dom, 'saml-schema-metadata-2.0.xsd')) {
+            return ["invalid_xml"];
+        }
 
-                if ($element->hasAttribute('validUntil')) {
-                    $validUntil = Utils::parseSAML2Time($element->getAttribute('validUntil'));
-                }
-                if ($element->hasAttribute('cacheDuration')) {
-                    $cacheDuration = $element->getAttribute('cacheDuration');
-                }
+        $element = $dom->documentElement;
+        if ($element->tagName !== 'md:EntityDescriptor') {
+            return ['noEntityDescriptor_xml'];
+        }
 
-                $expireTime = Utils::getExpireTime($cacheDuration, $validUntil);
-                if (isset($expireTime) && time() > $expireTime) {
-                    $errors[] = 'expired_xml';
-                }
-            }
+        $validUntil = $cacheDuration = null;
+
+        if ($element->hasAttribute('validUntil')) {
+            $validUntil = Utils::parseSAML2Time($element->getAttribute('validUntil'));
+        }
+        if ($element->hasAttribute('cacheDuration')) {
+            $cacheDuration = $element->getAttribute('cacheDuration');
+        }
+
+        $expireTime = Utils::getExpireTime($cacheDuration, $validUntil);
+        if ($expireTime !== null && time() > $expireTime) {
+            return ['expired_xml'];
         }
 
         // TODO: Support Metadata Sign Validation
 
-        return $errors;
+        return [];
     }
 
     /**

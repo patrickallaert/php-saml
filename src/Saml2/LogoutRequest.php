@@ -158,27 +158,17 @@ LOGOUTREQUEST;
     }
 
     /**
-     * Returns the ID of the Logout Request.
-     *
-     * @param string|DOMDocument $request Logout Request Message
-     *
-     * @return string ID
-     *
      * @throws Error
      */
-    public static function getID($request)
+    public static function getID(string $request): string
     {
-        if ($request instanceof DOMDocument) {
-            $dom = $request;
-        } else {
-            try {
-                Utils::loadXML($dom = new DOMDocument(), $request);
-            } catch (Exception $e) {
-                throw new Error(
-                    "LogoutRequest could not be processed",
-                    Error::SAML_LOGOUTREQUEST_INVALID
-                );
-            }
+        try {
+            Utils::loadXML($dom = new DOMDocument(), $request);
+        } catch (Exception $e) {
+            throw new Error(
+                "LogoutRequest could not be processed",
+                Error::SAML_LOGOUTREQUEST_INVALID
+            );
         }
 
         return $dom->documentElement->getAttribute('ID');
@@ -187,16 +177,13 @@ LOGOUTREQUEST;
     /**
      * Gets the NameID Data of the the Logout Request.
      *
-     * @param string|DOMDocument $request Logout Request Message
-     * @param string|null        $key     The SP key
-     *
-     * @return array Name ID Data (Value, Format, NameQualifier, SPNameQualifier)
+     * @return array{Value:string,?Format:string,?NameQualifier:string,?SPNameQualifier:string}
      *
      * @throws Error
      * @throws Exception
      * @throws ValidationError
      */
-    public static function getNameIdData($request, $key = null)
+    public static function getNameIdData(string $request, ?string $key = null): array
     {
         if ($request instanceof DOMDocument) {
             $dom = $request;
@@ -249,38 +236,21 @@ LOGOUTREQUEST;
     }
 
     /**
-     * @param string|DOMDocument $request Logout Request Message
-     *
-     * @return string Name ID Value
-     *
      * @throws Error
      * @throws Exception
      * @throws ValidationError
      */
-    public static function getNameId($request, ?string $key = null)
+    public static function getNameId(string $request, ?string $key = null): string
     {
-        $nameId = self::getNameIdData($request, $key);
-        return $nameId['Value'];
+        return self::getNameIdData($request, $key)['Value'];
     }
 
     /**
-     * Gets the Issuer of the Logout Request.
-     *
-     * @param string|DOMDocument $request Logout Request Message
-     *
-     * @return string|null $issuer The Issuer
-     *
      * @throws Exception
      */
-    public static function getIssuer($request)
+    public static function getIssuer(DOMDocument $request): ?string
     {
-        if ($request instanceof DOMDocument) {
-            $dom = $request;
-        } else {
-            Utils::loadXML($dom = new DOMDocument(), $request);
-        }
-
-        $issuerNodes = Utils::query($dom, '/samlp:LogoutRequest/saml:Issuer');
+        $issuerNodes = Utils::query($request, '/samlp:LogoutRequest/saml:Issuer');
         if ($issuerNodes->length === 1) {
             return $issuerNodes->item(0)->textContent;
         }
@@ -293,17 +263,11 @@ LOGOUTREQUEST;
      *         extracts an array of all the  SessionIndex found on a
      *         Logout Request, that could be many.
      *
-     * @param string|DOMDocument $request Logout Request Message
-     *
      * @throws Exception
      */
-    public static function getSessionIndexes($request): array
+    public static function getSessionIndexes(string $request): array
     {
-        if ($request instanceof DOMDocument) {
-            $dom = $request;
-        } else {
-            Utils::loadXML($dom = new DOMDocument(), $request);
-        }
+        Utils::loadXML($dom = new DOMDocument(), $request);
 
         $sessionIndexes = [];
         $sessionIndexNodes = Utils::query($dom, '/samlp:LogoutRequest/samlp:SessionIndex');
@@ -337,8 +301,7 @@ LOGOUTREQUEST;
                 $security = $this->settings->getSecurityData();
 
                 if ($security['wantXMLValidation']) {
-                    $res = Utils::validateXML($dom, 'saml-schema-protocol-2.0.xsd');
-                    if (!$res instanceof DOMDocument) {
+                    if (!Utils::validateXML($dom, 'saml-schema-protocol-2.0.xsd')) {
                         throw new ValidationError(
                             "Invalid SAML Logout Request. Not match the saml-schema-protocol-2.0.xsd",
                             ValidationError::INVALID_XML_FORMAT

@@ -2,6 +2,7 @@
 
 namespace OneLogin\Saml2\Tests;
 
+use DOMDocument;
 use Exception;
 use OneLogin\Saml2\Metadata;
 use OneLogin\Saml2\Settings;
@@ -21,10 +22,10 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
         $settings = new Settings($settingsInfo);
         $spData = $settings->getSPData();
         $security = $settings->getSecurityData();
-        $organization = $settings->getOrganization();
-        $contacts = $settings->getContacts();
-
-        $metadata = Metadata::builder($spData, $security['authnRequestsSigned'], $security['wantAssertionsSigned'], null, null, $contacts, $organization);
+        $metadata = Metadata::builder($spData, $security['authnRequestsSigned'], $security['wantAssertionsSigned'], null, null,
+            $settings->getContacts(),
+            $settings->getOrganization()
+        );
 
         $this->assertNotEmpty($metadata);
 
@@ -66,19 +67,25 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
     {
         include TEST_ROOT . '/settings/settings3.php';
         $settings = new Settings($settingsInfo);
-        $spData = $settings->getSPData();
         $security = $settings->getSecurityData();
-        $organization = $settings->getOrganization();
-        $contacts = $settings->getContacts();
-
-        $metadata = Metadata::builder($spData, $security['authnRequestsSigned'], $security['wantAssertionsSigned'], null, null, $contacts, $organization);
+        $metadata = Metadata::builder(
+            $settings->getSPData(),
+            $security['authnRequestsSigned'],
+            $security['wantAssertionsSigned'],
+            null,
+            null,
+            $settings->getContacts(),
+            $settings->getOrganization()
+        );
 
         $this->assertContains('<md:ServiceName xml:lang="en">Service Name</md:ServiceName>', $metadata);
         $this->assertContains('<md:ServiceDescription xml:lang="en">Service Description</md:ServiceDescription>', $metadata);
         $this->assertContains('<md:RequestedAttribute Name="FirstName" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri" isRequired="true" />', $metadata);
         $this->assertContains('<md:RequestedAttribute Name="LastName" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri" isRequired="true" />', $metadata);
 
-        $this->assertInstanceOf('DOMDocument', Utils::validateXML($metadata, 'saml-schema-metadata-2.0.xsd'));
+        $dom = new DOMDocument();
+        Utils::loadXML($dom, $metadata);
+        $this->assertTrue(Utils::validateXML($dom, 'saml-schema-metadata-2.0.xsd'));
     }
 
     /**
@@ -88,12 +95,16 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
     {
         include TEST_ROOT . '/settings/settings4.php';
         $settings = new Settings($settingsInfo);
-        $spData = $settings->getSPData();
         $security = $settings->getSecurityData();
-        $organization = $settings->getOrganization();
-        $contacts = $settings->getContacts();
-
-        $metadata = Metadata::builder($spData, $security['authnRequestsSigned'], $security['wantAssertionsSigned'], null, null, $contacts, $organization);
+        $metadata = Metadata::builder(
+            $settings->getSPData(),
+            $security['authnRequestsSigned'],
+            $security['wantAssertionsSigned'],
+            null,
+            null,
+            $settings->getContacts(),
+            $settings->getOrganization()
+        );
 
         $this->assertContains('<md:ServiceName xml:lang="en">Service Name</md:ServiceName>', $metadata);
         $this->assertContains('<md:ServiceDescription xml:lang="en">Service Description</md:ServiceDescription>', $metadata);
@@ -101,7 +112,9 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
         $this->assertContains('<saml:AttributeValue xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">userType</saml:AttributeValue>', $metadata);
         $this->assertContains('<saml:AttributeValue xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">admin</saml:AttributeValue>', $metadata);
 
-        $this->assertInstanceOf('DOMDocument', Utils::validateXML($metadata, 'saml-schema-metadata-2.0.xsd'));
+        $dom = new DOMDocument();
+        Utils::loadXML($dom, $metadata);
+        $this->assertTrue(Utils::validateXML($dom, 'saml-schema-metadata-2.0.xsd'));
     }
 
     /**
@@ -185,7 +198,13 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
         $security = $settings->getSecurityData();
 
         $certPath = $settings->getCertPath();
-        $signedMetadata = Metadata::signMetadata(Metadata::builder($settings->getSPData(), $security['authnRequestsSigned'], $security['wantAssertionsSigned']), file_get_contents($certPath . 'sp.key'), file_get_contents($certPath . 'sp.crt'), XMLSecurityKey::RSA_SHA256, XMLSecurityDSig::SHA512);
+        $signedMetadata = Metadata::signMetadata(
+            Metadata::builder($settings->getSPData(), $security['authnRequestsSigned'], $security['wantAssertionsSigned']),
+            file_get_contents($certPath . 'sp.key'),
+            file_get_contents($certPath . 'sp.crt'),
+            XMLSecurityKey::RSA_SHA256,
+            XMLSecurityDSig::SHA512
+        );
 
         $this->assertContains('<ds:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/>', $signedMetadata);
         $this->assertContains('<ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha512"/>', $signedMetadata);
@@ -212,11 +231,6 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
         $this->assertContains('<md:KeyDescriptor use="encryption"', $metadataWithDescriptors);
 
         $metadataWithDescriptors = Metadata::addX509KeyDescriptors($metadata, $cert, false);
-
-        $this->assertContains('<md:KeyDescriptor use="signing"', $metadataWithDescriptors);
-        $this->assertNotContains('<md:KeyDescriptor use="encryption"', $metadataWithDescriptors);
-
-        $metadataWithDescriptors = Metadata::addX509KeyDescriptors($metadata, $cert, 'foobar');
 
         $this->assertContains('<md:KeyDescriptor use="signing"', $metadataWithDescriptors);
         $this->assertNotContains('<md:KeyDescriptor use="encryption"', $metadataWithDescriptors);
