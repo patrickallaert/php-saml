@@ -6,7 +6,7 @@
 
 session_start();
 
-require_once dirname(__DIR__) . '/_toolkit_loader.php';
+require_once __DIR__ . "/../vendor/autoload.php";
 
 use OneLogin\Saml2\Auth;
 use OneLogin\Saml2\Utils;

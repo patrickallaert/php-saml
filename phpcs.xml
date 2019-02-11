@@ -10,7 +10,6 @@
     <file>tests/</file>
     <file>advanced_settings_example.php</file>
     <file>settings_example.php</file>
-    <file>_toolkit_loader.php</file>
 
     <exclude-pattern>*\.(css|js)</exclude-pattern>
     <exclude-pattern>vendor</exclude-pattern>

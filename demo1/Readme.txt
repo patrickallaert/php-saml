@@ -19,8 +19,7 @@ file is loaded in order to get the $settingsInfo var to be used to initialize
 the Setting class.
 
 Notice that in this demo, the setting.php file that could be defined at the base
-folder of the toolkit is ignored and the libs are loaded using the
-_toolkit_loader.php located at the base folder of the toolkit.
+folder of the toolkit is ignored.
 
 
 IdP setup

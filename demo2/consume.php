@@ -7,7 +7,7 @@
  * link where it will send a certified response via $_POST.
  */
 
-require_once dirname(__DIR__) . '/_toolkit_loader.php';
+require_once __DIR__ . "/../vendor/autoload.php";
 
 use OneLogin\Saml2\Response;
 use OneLogin\Saml2\Settings;

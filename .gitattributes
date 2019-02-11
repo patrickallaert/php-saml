@@ -7,5 +7,4 @@
 /endpoints export-ignore
 /locale export-ignore
 /tests export-ignore
-/_toolkit_loader.php
 /phpdoc.xml export-ignore

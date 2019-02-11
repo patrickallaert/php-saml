@@ -6,7 +6,7 @@
  * or expose it on a URL so your IdP can check it periodically.
  */
 
-require_once dirname(__DIR__) . '/_toolkit_loader.php';
+require_once __DIR__ . "/../vendor/autoload.php";
 
 use OneLogin\Saml2\Metadata;
 use OneLogin\Saml2\Settings;

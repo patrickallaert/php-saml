@@ -172,7 +172,6 @@ and support multiple languages.
 * `advanced_settings_example.php` - A template to be used in order to create a
   advanced_settings.php file which contains extra configuration info related to
   the security, the contact person, and the organization associated to the SP.
-* `_toolkit_loader.php` - This file load the toolkit libraries (The SAML2 lib).
 
 
 #### Miscellaneous ####
@@ -505,31 +504,12 @@ require_once 'custom_settings.php';  // The custom_settings.php contains a
 $auth = new OneLogin\Saml2\Auth($settingsInfo);
 ```
 
-
 #### How load the library ####
 
+Use composer's `vendor/autoload.php` script if you used composer to install this library.
 
-In order to use the toolkit library, if your project support composer you only
-need to install it with composer (See the installation section) and you are done.
-
-
-If your project doesn't use composer you need to import the `_toolkit_loader.php`
-file located on the base folder of the toolkit. You can load this file in this way:
-
-```php
-<?php
-
-define("TOOLKIT_PATH", '/var/www/php-saml/');
-require_once(TOOLKIT_PATH . '_toolkit_loader.php');
-```
-
-After that line we will be able to use the classes (and their methods) of the
-toolkit (because the external and the Saml2 libraries files are loaded).
-
-That toolkit depends on [xmlseclibs](https://github.com/robrichards/xmlseclibs) 3.X.X branch,
-you will need to get its code and place on your project and reuse the _toolkit_loader.php 
-file to include xmlseclibs as well.
-
+Otherwise, use a *PSR-4* capable loader mechanism, knowing that namespace `OneLogin\` should
+be matched against the `src/` folder.
 
 #### Initiate SSO ####
 
@@ -537,9 +517,6 @@ In order to send an `AuthNRequest` to the IdP:
 
 ```php
 <?php
-
-define("TOOLKIT_PATH", '/var/www/php-saml/');
-require_once(TOOLKIT_PATH . '_toolkit_loader.php');   // We load the SAML2 lib
 
 $auth = new OneLogin\Saml2\Auth(); // Constructor of the SP, loads settings.php
                                    // and advanced_settings.php
@@ -591,9 +568,6 @@ This code will provide the XML metadata file of our SP, based on the info that w
 ```php
 <?php
 
-define("TOOLKIT_PATH", '/var/www/php-saml/');
-require_once dirname(TOOLKIT_PATH.'/_toolkit_loader.php';
-
 try {
     $auth = new OneLogin\Saml2\Auth();
     $settings = $auth->getSettings();
@@ -635,9 +609,6 @@ This code handles the SAML response that the IdP forwards to the SP through the 
 
 session_start();  // IMPORTANT: This is required in order to be able
                   // to store the user data in the session.
-
-define("TOOLKIT_PATH", '/var/www/php-saml/');
-require_once dirname(TOOLKIT_PATH.'/_toolkit_loader.php';
 
 $auth = new OneLogin\Saml2\Auth();
 
@@ -778,9 +749,6 @@ This code handles the Logout Request and the Logout Responses.
 session_start();  // IMPORTANT: This is required in order to be able
                   // to close the user session.
 
-define("TOOLKIT_PATH", '/var/www/php-saml/');
-require_once dirname(TOOLKIT_PATH.'/_toolkit_loader.php';
-
 $auth = new OneLogin\Saml2\Auth();
 
 if (isset($_SESSION) && isset($_SESSION['LogoutRequestID'])) {
@@ -886,9 +854,6 @@ In order to send a Logout Request to the IdP:
 ```php
 <?php
 
-define("TOOLKIT_PATH", '/var/www/php-saml/');
-require_once(TOOLKIT_PATH . '_toolkit_loader.php');
-
 $auth = new OneLogin\Saml2\Auth();
 
 $auth->logout();   // Method that sent the Logout Request.
@@ -977,7 +942,7 @@ session_start();    // Initialize the session, we do that because
                     // Note that processResponse and processSLO
                     // methods could manipulate/close that session
 
-require_once dirname(__DIR__) . '/_toolkit_loader.php'; // Load Saml2 and xmlseclibs
+require_once __DIR__ . "/../vendor/autoload.php";
 require_once 'settings.php';    // Load the setting info as an Array
 
 $auth = new OneLogin\Saml2\Auth($settingsInfo);  // Initialize the SP SAML instance
@@ -1327,8 +1292,7 @@ file is loaded in order to get the `$settingsInfo` var to be used in order to in
 the `Setting` class.
 
 Notice that in this demo, the `setting.php` file that could be defined at the base
-folder of the toolkit is ignored and the libs are loaded using the
-`_toolkit_loader.php` located at the base folder of the toolkit.
+folder of the toolkit is ignored.
 
 
 ### IdP setup ###

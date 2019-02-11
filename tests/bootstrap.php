@@ -2,9 +2,7 @@
 
 ob_start();
 
-$basePath = dirname(__DIR__);
-
-require_once $basePath . '/_toolkit_loader.php';
+require_once __DIR__ . "/../vendor/autoload.php";
 
 if (!defined('TEST_ROOT')) {
     define('TEST_ROOT', __DIR__);
