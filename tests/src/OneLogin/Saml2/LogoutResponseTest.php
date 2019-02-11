@@ -292,7 +292,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
         $_GET['SigAlg'] = 'http://www.w3.org/2000/09/xmldsig#dsa-sha1';
         $response8 = new LogoutResponse($this->settings, $_GET['SAMLResponse']);
         $this->assertFalse($response8->isValid());
-        $this->assertEquals('Invalid signAlg in the recieved Logout Response', $response8->getErrorException()->getMessage());
+        $this->assertEquals('Invalid signAlg in the received Logout Response', $response8->getErrorException()->getMessage());
 
         include TEST_ROOT . '/settings/settings1.php';
         $settingsInfo['strict'] = true;

@@ -698,7 +698,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
         $_GET['SigAlg'] = 'http://www.w3.org/2000/09/xmldsig#dsa-sha1';
 
         $this->assertFalse($logoutRequest5->isValid());
-        $this->assertEquals('Invalid signAlg in the recieved Logout Request', $logoutRequest5->getErrorException()->getMessage());
+        $this->assertEquals('Invalid signAlg in the received Logout Request', $logoutRequest5->getErrorException()->getMessage());
 
         include TEST_ROOT . '/settings/settings1.php';
         $settingsInfo['strict'] = true;
