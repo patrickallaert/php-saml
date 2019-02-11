@@ -18,23 +18,22 @@ use OneLogin\Saml2\Utils;
 
 if (!isset($_SESSION['samlUserdata'])) {
     $settings = new Settings();
-    $authRequest = new AuthnRequest($settings);
-    $samlRequest = $authRequest->getRequest();
-
-    $parameters = ['SAMLRequest' => $samlRequest];
-    $parameters['RelayState'] = Utils::getSelfURLNoQuery();
-
     $idpData = $settings->getIdPData();
-    $ssoUrl = $idpData['singleSignOnService']['url'];
-    $url = Utils::redirect($ssoUrl, $parameters, true);
-
-    header("Location: $url");
+    header(
+        "Location: " . Utils::redirect(
+            $idpData['singleSignOnService']['url'],
+            [
+                'SAMLRequest' => (new AuthnRequest($settings))->getRequest(),
+                'RelayState' => Utils::getSelfURLNoQuery(),
+            ],
+            true
+        )
+    );
 } else {
     if (!empty($_SESSION['samlUserdata'])) {
-        $attributes = $_SESSION['samlUserdata'];
         echo 'You have the following attributes:<br>';
         echo '<table><thead><th>Name</th><th>Values</th></thead><tbody>';
-        foreach ($attributes as $attributeName => $attributeValues) {
+        foreach ($_SESSION['samlUserdata'] as $attributeName => $attributeValues) {
             echo '<tr><td>' . htmlentities($attributeName) . '</td><td><ul>';
             foreach ($attributeValues as $attributeValue) {
                 echo '<li>' . htmlentities($attributeValue) . '</li>';

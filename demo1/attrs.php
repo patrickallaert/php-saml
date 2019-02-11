@@ -4,10 +4,9 @@ session_start();
 
 if (isset($_SESSION['samlUserdata'])) {
     if (!empty($_SESSION['samlUserdata'])) {
-        $attributes = $_SESSION['samlUserdata'];
         echo 'You have the following attributes:<br>';
         echo '<table><thead><th>Name</th><th>Values</th></thead><tbody>';
-        foreach ($attributes as $attributeName => $attributeValues) {
+        foreach ($_SESSION['samlUserdata'] as $attributeName => $attributeValues) {
             echo '<tr><td>' . htmlentities($attributeName) . '</td><td><ul>';
             foreach ($attributeValues as $attributeValue) {
                 echo '<li>' . htmlentities($attributeValue) . '</li>';

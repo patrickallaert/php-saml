@@ -14,8 +14,7 @@ use OneLogin\Saml2\Settings;
 
 try {
     if (isset($_POST['SAMLResponse'])) {
-        $samlSettings = new Settings();
-        $samlResponse = new Response($samlSettings, $_POST['SAMLResponse']);
+        $samlResponse = new Response(new Settings(), $_POST['SAMLResponse']);
         if ($samlResponse->isValid()) {
             echo 'You are: ' . $samlResponse->getNameId() . '<br>';
             $attributes = $samlResponse->getAttributes();

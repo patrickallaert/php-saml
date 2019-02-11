@@ -29,10 +29,4 @@ if (isset($_SESSION['IdPSessionIndex']) && !empty($_SESSION['IdPSessionIndex']))
     $logoutRequest = new LogoutRequest($samlSettings);
 }
 
-$samlRequest = $logoutRequest->getRequest();
-
-$parameters = ['SAMLRequest' => $samlRequest];
-
-$url = Utils::redirect($sloUrl, $parameters, true);
-
-header("Location: $url");
+header("Location: " . Utils::redirect($sloUrl, ['SAMLRequest' => $logoutRequest->getRequest()], true));

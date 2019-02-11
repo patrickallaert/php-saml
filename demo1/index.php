@@ -26,50 +26,28 @@ if (isset($_GET['sso'])) {
     // header('Location: ' . $ssoBuiltUrl);
     // exit();
 } elseif (isset($_GET['sso2'])) {
-    $returnTo = $spBaseUrl . '/demo1/attrs.php';
-    $auth->login($returnTo);
+    $auth->login($spBaseUrl . '/demo1/attrs.php');
 } elseif (isset($_GET['slo'])) {
-    $returnTo = null;
-    $paramters = [];
-    $nameId = null;
-    $sessionIndex = null;
-    $nameIdFormat = null;
-    $nameIdNameQualifier = null;
-    $nameIdSPNameQualifier = null;
-
-    if (isset($_SESSION['samlNameId'])) {
-        $nameId = $_SESSION['samlNameId'];
-    }
-    if (isset($_SESSION['samlNameIdFormat'])) {
-        $nameIdFormat = $_SESSION['samlNameIdFormat'];
-    }
-    if (isset($_SESSION['samlNameIdNameQualifier'])) {
-        $nameIdNameQualifier = $_SESSION['samlNameIdNameQualifier'];
-    }
-    if (isset($_SESSION['samlNameIdSPNameQualifier'])) {
-        $nameIdSPNameQualifier = $_SESSION['samlNameIdSPNameQualifier'];
-    }
-    if (isset($_SESSION['samlSessionIndex'])) {
-        $sessionIndex = $_SESSION['samlSessionIndex'];
-    }
-
-    $auth->logout($returnTo, $paramters, $nameId, $sessionIndex, false, $nameIdFormat, $nameIdNameQualifier, $nameIdSPNameQualifier);
+    $auth->logout(
+        null,
+        [],
+        $_SESSION['samlNameId'] ?? null,
+        $_SESSION['samlSessionIndex'] ?? null,
+        false,
+        $_SESSION['samlNameIdFormat'] ?? null,
+        $_SESSION['samlNameIdNameQualifier'] ?? null,
+        $_SESSION['samlNameIdSPNameQualifier'] ?? null
+    );
 
     // If LogoutRequest ID need to be saved in order to later validate it, do instead
-    // $sloBuiltUrl = $auth->logout(null, $paramters, $nameId, $sessionIndex, true);
+    // $sloBuiltUrl = $auth->logout(null, [], $_SESSION['samlNameId'] ?? null, $_SESSION['samlSessionIndex'] ?? null, true);
     // $_SESSION['LogoutRequestID'] = $auth->getLastRequestID();
     // header('Pragma: no-cache');
     // header('Cache-Control: no-cache, must-revalidate');
     // header('Location: ' . $sloBuiltUrl);
     // exit();
 } elseif (isset($_GET['acs'])) {
-    if (isset($_SESSION) && isset($_SESSION['AuthNRequestID'])) {
-        $requestID = $_SESSION['AuthNRequestID'];
-    } else {
-        $requestID = null;
-    }
-
-    $auth->processResponse($requestID);
+    $auth->processResponse($_SESSION['AuthNRequestID'] ?? null);
 
     $errors = $auth->getErrors();
 
@@ -94,13 +72,7 @@ if (isset($_GET['sso'])) {
         $auth->redirectTo($_POST['RelayState']);
     }
 } elseif (isset($_GET['sls'])) {
-    if (isset($_SESSION) && isset($_SESSION['LogoutRequestID'])) {
-        $requestID = $_SESSION['LogoutRequestID'];
-    } else {
-        $requestID = null;
-    }
-
-    $auth->processSLO(false, $requestID);
+    $auth->processSLO(false, $_SESSION['LogoutRequestID'] ?? null);
     $errors = $auth->getErrors();
     if (empty($errors)) {
         echo '<p>Sucessfully logged out</p>';
@@ -111,10 +83,9 @@ if (isset($_GET['sso'])) {
 
 if (isset($_SESSION['samlUserdata'])) {
     if (!empty($_SESSION['samlUserdata'])) {
-        $attributes = $_SESSION['samlUserdata'];
         echo 'You have the following attributes:<br>';
         echo '<table><thead><th>Name</th><th>Values</th></thead><tbody>';
-        foreach ($attributes as $attributeName => $attributeValues) {
+        foreach ($_SESSION['samlUserdata'] as $attributeName => $attributeValues) {
             echo '<tr><td>' . htmlentities($attributeName) . '</td><td><ul>';
             foreach ($attributeValues as $attributeValue) {
                 echo '<li>' . htmlentities($attributeValue) . '</li>';

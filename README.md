@@ -612,13 +612,7 @@ session_start();  // IMPORTANT: This is required in order to be able
 
 $auth = new OneLogin\Saml2\Auth();
 
-if (isset($_SESSION) && isset($_SESSION['AuthNRequestID'])) {
-    $requestID = $_SESSION['AuthNRequestID'];
-} else {
-    $requestID = null;
-}
-
-$auth->processResponse($requestID);
+$auth->processResponse($_SESSION['AuthNRequestID'] ?? null);
 unset($_SESSION['AuthNRequestID']);
 
 $errors = $auth->getErrors();
@@ -751,13 +745,7 @@ session_start();  // IMPORTANT: This is required in order to be able
 
 $auth = new OneLogin\Saml2\Auth();
 
-if (isset($_SESSION) && isset($_SESSION['LogoutRequestID'])) {
-    $requestID = $_SESSION['LogoutRequestID'];
-} else {
-    $requestID = null;
-}
-
-$auth->processSLO(false, $requestID);
+$auth->processSLO(false, $_SESSION['LogoutRequestID'] ?? null);
 
 $errors = $auth->getErrors();
 
@@ -795,8 +783,7 @@ the IdP.
 ```php
 // part of the processSLO method
 
-$decoded = base64_decode($_GET['SAMLRequest']);
-$request = gzinflate($decoded);
+$request = gzinflate(base64_decode($_GET['SAMLRequest']));
 if (!OneLogin\Saml2\LogoutRequest::isValid($this->_settings, $request)) {
     $this->_errors[] = 'invalid_logout_request';
 } else {
@@ -890,36 +877,23 @@ $auth->logout($newTargetUrl);
 A more complex logout with all the parameters:
 ```
 $auth = new OneLogin\Saml2\Auth();
-$returnTo = null;
-$paramters = array();
-$nameId = null;
-$sessionIndex = null;
-$nameIdFormat = null;
-$nameIdNameQualifier = null;
-$nameIdSPNameQualifier = null;
 
-if (isset($_SESSION['samlNameId'])) {
-    $nameId = $_SESSION['samlNameId'];
-}
-if (isset($_SESSION['samlSessionIndex'])) {
-    $sessionIndex = $_SESSION['samlSessionIndex'];
-}
-if (isset($_SESSION['samlNameIdFormat'])) {
-    $nameIdFormat = $_SESSION['samlNameIdFormat'];
-}
-if (isset($_SESSION['samlNameIdNameQualifier'])) {
-    $nameIdNameQualifier = $_SESSION['samlNameIdNameQualifier'];
-}
-if (isset($_SESSION['samlNameIdSPNameQualifier'])) {
-    $nameIdSPNameQualifier = $_SESSION['samlNameIdSPNameQualifier'];
-}
-$auth->logout($returnTo, $paramters, $nameId, $sessionIndex, false, $nameIdFormat, $nameIdNameQualifier, $nameIdSPNameQualifier);
+$auth->logout(
+    null,
+    [],
+    $_SESSION['samlNameId'] ?? null,
+    $_SESSION['samlSessionIndex'] ?? null,
+    false,
+    $_SESSION['samlNameIdFormat'] ?? null,
+    $_SESSION['samlNameIdNameQualifier'] ?? null,
+    $_SESSION['samlNameIdSPNameQualifier'] ?? null
+);
 ```
 
 If a match on the future LogoutResponse ID and the LogoutRequest ID to be sent is required, that LogoutRequest ID must to be extracted and stored.
 
 ```php
-$sloBuiltUrl = $auth->logout(null, $paramters, $nameId, $sessionIndex, true);
+$sloBuiltUrl = $auth->logout(null, [], $nameId, $sessionIndex, true);
 $_SESSION['LogoutRequestID'] = $auth->getLastRequestID();
 header('Pragma: no-cache');
 header('Cache-Control: no-cache, must-revalidate');

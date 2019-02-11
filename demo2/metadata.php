@@ -13,8 +13,4 @@ use OneLogin\Saml2\Settings;
 
 header('Content-Type: text/xml');
 
-$samlSettings = new Settings();
-$sp = $samlSettings->getSPData();
-
-$samlMetadata = Metadata::builder($sp);
-echo $samlMetadata;
+echo Metadata::builder((new Settings())->getSPData());
