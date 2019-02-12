@@ -446,7 +446,6 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         unset($_SERVER['PATH_INFO']);
 
         Utils::setBaseURL("no-valid-url");
-        $this->assertEquals('https', Utils::getSelfProtocol());
         $this->assertEquals('sp.example.com', Utils::getSelfHost());
         $this->assertNull(Utils::getSelfPort());
         $this->assertNull(Utils::getBaseURLPath());
@@ -459,7 +458,6 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         $expectedRoutedUrlNQ2 = 'http://anothersp.example.com:81/example2/route.php';
         $expectedUrl2 = 'http://anothersp.example.com:81/example2/route.php?x=test';
 
-        $this->assertEquals('http', Utils::getSelfProtocol());
         $this->assertEquals('anothersp.example.com', Utils::getSelfHost());
         $this->assertEquals('81', Utils::getSelfPort());
         $this->assertEquals('/example2/', Utils::getBaseURLPath());
