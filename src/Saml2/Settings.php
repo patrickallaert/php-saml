@@ -121,11 +121,34 @@ class Settings
             }
         }
 
-        $this->formatIdPCert();
-        $this->formatSPCert();
-        $this->formatSPKey();
-        $this->formatSPCertNew();
-        $this->formatIdPCertMulti();
+        if (isset($this->idp['x509cert'])) {
+            $this->idp['x509cert'] = Utils::formatCert($this->idp['x509cert']);
+        }
+
+        if (isset($this->sp['x509cert'])) {
+            $this->sp['x509cert'] = Utils::formatCert($this->sp['x509cert']);
+        }
+
+        if (isset($this->sp['privateKey'])) {
+            $this->sp['privateKey'] = Utils::formatPrivateKey($this->sp['privateKey']);
+        }
+
+        if (isset($this->sp['x509certNew'])) {
+            $this->sp['x509certNew'] = Utils::formatCert($this->sp['x509certNew']);
+        }
+
+        if (isset($this->idp['x509certMulti'])) {
+            if (isset($this->idp['x509certMulti']['signing'])) {
+                foreach ($this->idp['x509certMulti']['signing'] as $i => $cert) {
+                    $this->idp['x509certMulti']['signing'][$i] = Utils::formatCert($cert);
+                }
+            }
+            if (isset($this->idp['x509certMulti']['encryption'])) {
+                foreach ($this->idp['x509certMulti']['encryption'] as $i => $cert) {
+                    $this->idp['x509certMulti']['encryption'][$i] = Utils::formatCert($cert);
+                }
+            }
+        }
     }
 
     /**
@@ -786,11 +809,8 @@ class Settings
                         Error::SETTINGS_INVALID_SYNTAX
                     );
                 }
-                $keyFileName = $this->security['signMetadata']['keyFileName'];
-                $certFileName = $this->security['signMetadata']['certFileName'];
-
-                $keyMetadataFile = $this->paths['cert'] . $keyFileName;
-                $certMetadataFile = $this->paths['cert'] . $certFileName;
+                $keyMetadataFile = $this->paths['cert'] . $this->security['signMetadata']['keyFileName'];
+                $certMetadataFile = $this->paths['cert'] . $this->security['signMetadata']['certFileName'];
 
                 if (!file_exists($keyMetadataFile)) {
                     throw new Error(
@@ -811,9 +831,7 @@ class Settings
                 $certMetadata = file_get_contents($certMetadataFile);
             }
 
-            $signatureAlgorithm = $this->security['signatureAlgorithm'];
-            $digestAlgorithm = $this->security['digestAlgorithm'];
-            $metadata = Metadata::signMetadata($metadata, $keyMetadata, $certMetadata, $signatureAlgorithm, $digestAlgorithm);
+            $metadata = Metadata::signMetadata($metadata, $keyMetadata, $certMetadata, $this->security['signatureAlgorithm'], $this->security['digestAlgorithm']);
         }
         return $metadata;
     }
@@ -853,65 +871,6 @@ class Settings
         // TODO: Support Metadata Sign Validation
 
         return [];
-    }
-
-    /**
-     * Formats the IdP cert.
-     */
-    public function formatIdPCert()
-    {
-        if (isset($this->idp['x509cert'])) {
-            $this->idp['x509cert'] = Utils::formatCert($this->idp['x509cert']);
-        }
-    }
-
-    /**
-     * Formats the Multple IdP certs.
-     */
-    public function formatIdPCertMulti()
-    {
-        if (isset($this->idp['x509certMulti'])) {
-            if (isset($this->idp['x509certMulti']['signing'])) {
-                foreach ($this->idp['x509certMulti']['signing'] as $i => $cert) {
-                    $this->idp['x509certMulti']['signing'][$i] = Utils::formatCert($cert);
-                }
-            }
-            if (isset($this->idp['x509certMulti']['encryption'])) {
-                foreach ($this->idp['x509certMulti']['encryption'] as $i => $cert) {
-                    $this->idp['x509certMulti']['encryption'][$i] = Utils::formatCert($cert);
-                }
-            }
-        }
-    }
-
-    /**
-     * Formats the SP cert.
-     */
-    public function formatSPCert()
-    {
-        if (isset($this->sp['x509cert'])) {
-            $this->sp['x509cert'] = Utils::formatCert($this->sp['x509cert']);
-        }
-    }
-
-    /**
-     * Formats the SP cert.
-     */
-    public function formatSPCertNew()
-    {
-        if (isset($this->sp['x509certNew'])) {
-            $this->sp['x509certNew'] = Utils::formatCert($this->sp['x509certNew']);
-        }
-    }
-
-    /**
-     * Formats the SP private key.
-     */
-    public function formatSPKey()
-    {
-        if (isset($this->sp['privateKey'])) {
-            $this->sp['privateKey'] = Utils::formatPrivateKey($this->sp['privateKey']);
-        }
     }
 
     /**
@@ -957,16 +916,5 @@ class Settings
     public function getBaseURL()
     {
         return $this->baseurl;
-    }
-
-    /**
-     * Sets the IdP certificate.
-     *
-     * @param string $cert IdP certificate
-     */
-    public function setIdPCert($cert)
-    {
-        $this->idp['x509cert'] = $cert;
-        $this->formatIdPCert();
     }
 }

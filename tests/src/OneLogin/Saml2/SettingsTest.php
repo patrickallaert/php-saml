@@ -543,30 +543,6 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
         }
     }
 
-
-    /**
-     * @covers OneLogin\Saml2\Settings::setIdPCert
-     */
-    public function testSetIdPCert()
-    {
-        include TEST_ROOT . '/settings/settings1.php';
-
-        $cert = $settingsInfo['idp']['x509cert'];
-        $settingsInfo['idp']['certFingerprint'] = 'AF:E7:1C:28:EF:74:0B:C8:74:25:BE:13:A2:26:3D:37:97:1D:A1:F9';
-        unset($settingsInfo['idp']['x509cert']);
-
-        $settings = new Settings($settingsInfo);
-        $idpData = $settings->getIdPData();
-        $this->assertEquals($idpData['x509cert'], '');
-
-        $settings->setIdPCert($cert);
-        $idpData2 = $settings->getIdPData();
-        $this->assertNotEquals($idpData2['x509cert'], '');
-        $this->assertNotEquals($idpData2['x509cert'], $cert);
-
-        $this->assertEquals($idpData2['x509cert'], Utils::formatCert($cert));
-    }
-
     /**
      * Case valid metadata
      *

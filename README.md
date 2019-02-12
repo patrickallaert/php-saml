@@ -1163,10 +1163,6 @@ Configuration of the SAML PHP Toolkit
  * `getOrganization` - Gets organization data.
  * `getSPMetadata` - Gets the SP metadata. The XML representation.
  * `validateMetadata` - Validates an XML SP Metadata.
- * `formatIdPCert` - Formats the IdP cert.
- * `formatSPCert` - Formats the SP cert.
- * `formatSPCertNew` - Formats the SP cert new.
- * `formatSPKey` - Formats the SP private key.
  * `getErrors` - Returns an array with the errors, the array is empty when
    the settings is ok.
  * `getLastErrorException` - Returns the exception related to the last error
