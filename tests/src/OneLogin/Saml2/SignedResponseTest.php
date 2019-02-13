@@ -7,16 +7,6 @@ use OneLogin\Saml2\Settings;
 
 class SignedResponseTest extends \PHPUnit\Framework\TestCase
 {
-    private $_settings;
-
-
-    public function setUp()
-    {
-        include TEST_ROOT . '/settings/settings1.php';
-
-        $this->_settings = new Settings($settingsInfo);
-    }
-
     /**
      * Case valid signed response, unsigned assertion
      *
@@ -24,11 +14,13 @@ class SignedResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function testResponseSignedAssertionNot()
     {
+        include TEST_ROOT . '/settings/settings1.php';
+
         // The Response is signed, the Assertion is not
         $this->assertEquals(
             'someone@example.org',
             (new Response(
-                $this->_settings,
+                new Settings($settingsInfo),
                 base64_encode(file_get_contents(TEST_ROOT . '/data/responses/open_saml_response.xml'))
             ))->getNameId()
         );
