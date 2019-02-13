@@ -27,13 +27,13 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         Utils::loadXML($dom, file_get_contents(TEST_ROOT . '/data/metadata/noentity_metadata_settings1.xml'));
         $xpath = new DOMXPath($dom);
         $xpath->registerNamespace('md', Constants::NS_MD);
-        $this->assertSame("urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified", $xpath->query("//md:NameIDFormat")->item(0)->textContent);
+        $this->assertSame(Constants::NAMEID_UNSPECIFIED, $xpath->query("//md:NameIDFormat")->item(0)->textContent);
 
         $dom = new DOMDocument();
         Utils::loadXML($dom, file_get_contents(TEST_ROOT . '/data/metadata/metadata_settings1.xml'));
         $xpath = new DOMXPath($dom);
         $xpath->registerNamespace('md', Constants::NS_MD);
-        $this->assertSame("urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified", $xpath->query("//md:NameIDFormat")->item(0)->textContent);
+        $this->assertSame(Constants::NAMEID_UNSPECIFIED, $xpath->query("//md:NameIDFormat")->item(0)->textContent);
     }
 
     /**
@@ -746,14 +746,13 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     {
         $nameIdValue = 'ONELOGIN_ce998811003f4e60f8b07a311dc641621379cfde';
         $entityId = 'http://stuff.com/endpoints/metadata.php';
-        $nameIDFormat = 'urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified';
 
         $this->assertEquals(
             '<saml:NameID SPNameQualifier="http://stuff.com/endpoints/metadata.php" Format="urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified">ONELOGIN_ce998811003f4e60f8b07a311dc641621379cfde</saml:NameID>',
             Utils::generateNameId(
                 $nameIdValue,
                 $entityId,
-                $nameIDFormat
+                Constants::NAMEID_UNSPECIFIED
             )
         );
 
@@ -764,7 +763,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
             Utils::generateNameId(
                 $nameIdValue,
                 $entityId,
-                $nameIDFormat,
+                Constants::NAMEID_UNSPECIFIED,
                 Utils::formatCert($settingsInfo['idp']['x509cert'])
             )
         );
@@ -791,14 +790,13 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     public function testGenerateNameIdWithoutSPNameQualifier()
     {
         $nameIdValue = 'ONELOGIN_ce998811003f4e60f8b07a311dc641621379cfde';
-        $nameIDFormat = 'urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified';
 
         $this->assertEquals(
             '<saml:NameID Format="urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified">ONELOGIN_ce998811003f4e60f8b07a311dc641621379cfde</saml:NameID>',
             Utils::generateNameId(
                 $nameIdValue,
                 null,
-                $nameIDFormat
+                Constants::NAMEID_UNSPECIFIED
             )
         );
 
@@ -809,7 +807,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
             Utils::generateNameId(
                 $nameIdValue,
                 null,
-                $nameIDFormat,
+                Constants::NAMEID_UNSPECIFIED,
                 Utils::formatCert($settingsInfo['idp']['x509cert'])
             )
         );

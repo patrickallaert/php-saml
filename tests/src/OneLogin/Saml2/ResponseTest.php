@@ -3,6 +3,7 @@
 namespace OneLogin\Saml2\Tests;
 
 use DOMDocument;
+use OneLogin\Saml2\Constants;
 use OneLogin\Saml2\Response;
 use OneLogin\Saml2\Settings;
 use OneLogin\Saml2\Utils;
@@ -169,7 +170,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
     public function testGetNameIdFormat()
     {
         $this->assertEquals(
-            'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress',
+            Constants::NAMEID_EMAIL_ADDRESS,
             (new Response(
                 $this->settings,
                 file_get_contents(TEST_ROOT . '/data/responses/response1.xml.base64')
@@ -177,7 +178,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         );
 
         $this->assertEquals(
-            'urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified',
+            Constants::NAMEID_UNSPECIFIED,
             (new Response(
                 $this->settings,
                 file_get_contents(TEST_ROOT . '/data/responses/response_encrypted_nameid.xml.base64')
@@ -185,7 +186,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         );
 
         $this->assertEquals(
-            'urn:oasis:names:tc:SAML:2.0:nameid-format:transient',
+            Constants::NAMEID_TRANSIENT,
             (new Response(
                 $this->settings,
                 file_get_contents(TEST_ROOT . '/data/responses/valid_encrypted_assertion.xml.base64')
@@ -271,7 +272,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals(
             [
                 'Value' => 'support@onelogin.com',
-                'Format' => 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress',
+                'Format' => Constants::NAMEID_EMAIL_ADDRESS,
                 'NameQualifier' => 'https://test.example.com/saml/metadata',
             ],
             (new Response($this->settings, file_get_contents(TEST_ROOT . '/data/responses/response1.xml.base64')))->getNameIdData()
@@ -280,7 +281,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals(
             [
                 'Value' => '2de11defd199f8d5bb63f9b7deb265ba5c675c10',
-                'Format' => 'urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified',
+                'Format' => Constants::NAMEID_UNSPECIFIED,
                 'SPNameQualifier' => 'http://stuff.com/endpoints/metadata.php',
             ],
             (new Response($this->settings, file_get_contents(TEST_ROOT . '/data/responses/response_encrypted_nameid.xml.base64')))->getNameIdData()
@@ -289,7 +290,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals(
             [
                 'Value' => '_68392312d490db6d355555cfbbd8ec95d746516f60',
-                'Format' => 'urn:oasis:names:tc:SAML:2.0:nameid-format:transient',
+                'Format' => Constants::NAMEID_TRANSIENT,
                 'SPNameQualifier' => 'http://stuff.com/endpoints/metadata.php',
             ],
             (new Response($this->settings, file_get_contents(TEST_ROOT . '/data/responses/valid_encrypted_assertion.xml.base64')))->getNameIdData()
@@ -331,7 +332,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals(
             [
                 'Value' => "492882615acf31c8096b627245d76ae53036c090",
-                'Format' => "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress",
+                'Format' => Constants::NAMEID_EMAIL_ADDRESS,
                 'SPNameQualifier' => "https://pitbulk.no-ip.org/newonelogin/demo1/metadata.php",
             ],
             (new Response($settings, $xml5))->getNameIdData()
@@ -341,7 +342,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals(
             [
                 'Value' => "",
-                'Format' => "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress",
+                'Format' => Constants::NAMEID_EMAIL_ADDRESS,
                 'SPNameQualifier' => "http://stuff.com/endpoints/metadata.php",
             ],
             (new Response($settings, $xml6))->getNameIdData()

@@ -14,6 +14,9 @@ use RobRichards\XMLSecLibs\XMLSecurityKey;
  */
 class Response
 {
+    // Value added to the current time in time condition validations
+    private const ALLOWED_CLOCK_DRIFT = 180;  // 3 min in seconds
+
     /**
      * Settings
      *
@@ -260,7 +263,7 @@ class Response
 
                 // Check the session Expiration
                 $sessionExpiration = $this->getSessionNotOnOrAfter();
-                if (!empty($sessionExpiration) && $sessionExpiration + Constants::ALLOWED_CLOCK_DRIFT <= time()) {
+                if (!empty($sessionExpiration) && $sessionExpiration + self::ALLOWED_CLOCK_DRIFT <= time()) {
                     throw new ValidationError(
                         "The attributes have expired, based on the SessionNotOnOrAfter of the AttributeStatement of this Response",
                         ValidationError::SESSION_EXPIRED
@@ -291,13 +294,13 @@ class Response
                         }
                         if ($scnData->hasAttribute('NotOnOrAfter')) {
                             $noa = Utils::parseSAML2Time($scnData->getAttribute('NotOnOrAfter'));
-                            if ($noa + Constants::ALLOWED_CLOCK_DRIFT <= time()) {
+                            if ($noa + self::ALLOWED_CLOCK_DRIFT <= time()) {
                                 continue;
                             }
                         }
                         if ($scnData->hasAttribute('NotBefore')) {
                             $nb = Utils::parseSAML2Time($scnData->getAttribute('NotBefore'));
-                            if ($nb > time() + Constants::ALLOWED_CLOCK_DRIFT) {
+                            if ($nb > time() + self::ALLOWED_CLOCK_DRIFT) {
                                 continue;
                             }
                         }
@@ -870,13 +873,13 @@ class Response
         for ($i = 0; $i < $timestampNodes->length; $i++) {
             $nbAttribute = $timestampNodes->item($i)->attributes->getNamedItem("NotBefore");
             $naAttribute = $timestampNodes->item($i)->attributes->getNamedItem("NotOnOrAfter");
-            if ($nbAttribute && Utils::parseSAML2Time($nbAttribute->textContent) > time() + Constants::ALLOWED_CLOCK_DRIFT) {
+            if ($nbAttribute && Utils::parseSAML2Time($nbAttribute->textContent) > time() + self::ALLOWED_CLOCK_DRIFT) {
                 throw new ValidationError(
                     'Could not validate timestamp: not yet valid. Check system clock.',
                     ValidationError::ASSERTION_TOO_EARLY
                 );
             }
-            if ($naAttribute && Utils::parseSAML2Time($naAttribute->textContent) + Constants::ALLOWED_CLOCK_DRIFT <= time()) {
+            if ($naAttribute && Utils::parseSAML2Time($naAttribute->textContent) + self::ALLOWED_CLOCK_DRIFT <= time()) {
                 throw new ValidationError(
                     'Could not validate timestamp: expired. Check system clock.',
                     ValidationError::ASSERTION_EXPIRED

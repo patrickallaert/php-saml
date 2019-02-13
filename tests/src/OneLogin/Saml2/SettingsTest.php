@@ -3,6 +3,7 @@
 namespace OneLogin\Saml2\Tests;
 
 use Exception;
+use OneLogin\Saml2\Constants;
 use OneLogin\Saml2\Error;
 use OneLogin\Saml2\Metadata;
 use OneLogin\Saml2\Settings;
@@ -690,7 +691,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('http://stuff.com/endpoints/metadata.php', $spData['entityId']);
         $this->assertEquals('http://stuff.com/endpoints/endpoints/acs.php', $spData['assertionConsumerService']['url']);
         $this->assertEquals('http://stuff.com/endpoints/endpoints/sls.php', $spData['singleLogoutService']['url']);
-        $this->assertEquals('urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified', $spData['NameIDFormat']);
+        $this->assertEquals(Constants::NAMEID_UNSPECIFIED, $spData['NameIDFormat']);
     }
 
     /**

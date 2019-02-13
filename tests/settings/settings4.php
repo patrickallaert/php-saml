@@ -1,23 +1,26 @@
 <?php
+
+use OneLogin\Saml2\Constants;
+
     $settingsInfo = [
         'strict' => false,
         'sp' => [
             'entityId' => 'http://stuff.com/endpoints/metadata.php',
             'assertionConsumerService' => ['url' => 'http://stuff.com/endpoints/endpoints/acs.php'],
             'singleLogoutService' => ['url' => 'http://stuff.com/endpoints/endpoints/sls.php'],
-            'NameIDFormat' => 'urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified',
+            "NameIDFormat" => Constants::NAMEID_UNSPECIFIED,
             'attributeConsumingService' => [
                 'serviceName' => 'Service Name',
                 'serviceDescription' => 'Service Description',
                 'requestedAttributes' => [
                     [
-                        'nameFormat' => OneLogin\Saml2\Constants::ATTRNAME_FORMAT_BASIC,
+                        'nameFormat' => Constants::ATTRNAME_FORMAT_BASIC,
                         'isRequired' => false,
                         'name' => 'userType',
                         'attributeValue' => ['userType', 'admin'],
                     ],
                     [
-                        'nameFormat' => OneLogin\Saml2\Constants::ATTRNAME_FORMAT_URI,
+                        'nameFormat' => Constants::ATTRNAME_FORMAT_URI,
                         'isRequired' => true,
                         'name' => 'urn:oid:0.9.2342.19200300.100.1.1',
                         'friendlyName' => 'uid',

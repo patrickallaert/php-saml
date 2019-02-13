@@ -1,5 +1,7 @@
 <?php
 
+use OneLogin\Saml2\Constants;
+
 $settings = [
     // If 'strict' is True, then the PHP Toolkit will reject unsigned
     // or unencrypted messages if it expects them signed or encrypted
@@ -25,7 +27,7 @@ $settings = [
             // SAML protocol binding to be used when returning the <Response>
             // message. SAML Toolkit supports for this endpoint the
             // HTTP-Redirect binding only
-            'binding' => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST',
+            'binding' => Constants::BINDING_HTTP_POST,
         ],
         // If you need to specify requested attributes, set a
         // attributeConsumingService. nameFormat, attributeValue and
@@ -51,12 +53,12 @@ $settings = [
             // SAML protocol binding to be used when returning the <Response>
             // message. SAML Toolkit supports for this endpoint the
             // HTTP-Redirect binding only
-            'binding' => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect',
+            'binding' => Constants::BINDING_HTTP_REDIRECT,
         ],
         // Specifies constraints on the name identifier to be used to
         // represent the requested subject.
-        // Take a look on lib/Saml2/Constants.php to see the NameIdFormat supported
-        'NameIDFormat' => 'urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified',
+        // Take a look at \OneLogin\Saml2\Constants::NAMEID_* constants to see the NameIdFormat supported
+        'NameIDFormat' => Constants::NAMEID_UNSPECIFIED,
 
         // Usually x509cert and privateKey of the SP are provided by files placed at
         // the certs folder. But we can also provide them with the following parameters
@@ -84,7 +86,7 @@ $settings = [
             // SAML protocol binding to be used when returning the <Response>
             // message. SAML Toolkit supports for this endpoint the
             // HTTP-POST binding only
-            'binding' => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect',
+            'binding' => Constants::BINDING_HTTP_REDIRECT,
         ],
         // SLO endpoint info of the IdP.
         'singleLogoutService' => [
@@ -93,7 +95,7 @@ $settings = [
             // SAML protocol binding to be used when returning the <Response>
             // message. SAML Toolkit supports for this endpoint the
             // HTTP-Redirect binding only
-            'binding' => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect',
+            'binding' => Constants::BINDING_HTTP_REDIRECT,
         ],
         // Public x509 certificate of the IdP
         'x509cert' => '',

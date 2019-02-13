@@ -1,5 +1,7 @@
 <?php
 
+use OneLogin\Saml2\Constants;
+
     $spBaseUrl = 'https://<your_domain>'; //or http://<your_domain>
 
     $settingsInfo = [
@@ -11,7 +13,7 @@
             'singleLogoutService' => [
                 'url' => $spBaseUrl . '/demo1/index.php?sls',
             ],
-            'NameIDFormat' => 'urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified',
+            'NameIDFormat' => Constants::NAMEID_UNSPECIFIED,
         ],
         'idp' => [
             'entityId' => '',

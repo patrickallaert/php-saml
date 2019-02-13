@@ -101,7 +101,6 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
         include TEST_ROOT . '/settings/settings1.php';
 
         $nameId = 'test@example.com';
-        $nameIdFormat = 'urn:oasis:names:tc:SAML:2.0:nameid-format:transient';
         $settings = new Settings($settingsInfo);
 
         $logoutUrl = Utils::redirect(
@@ -113,7 +112,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
                         null,
                         $nameId,
                         null,
-                        $nameIdFormat
+                        Constants::NAMEID_TRANSIENT
                     )
                 )->getRequest(),
             ],
@@ -128,7 +127,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($nameId, LogoutRequest::getNameId($inflated));
 
         $logoutNameIdData = LogoutRequest::getNameIdData($inflated);
-        $this->assertEquals($nameIdFormat, $logoutNameIdData['Format']);
+        $this->assertEquals(Constants::NAMEID_TRANSIENT, $logoutNameIdData['Format']);
     }
 
     /**
@@ -138,8 +137,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     {
         include TEST_ROOT . '/settings/settings1.php';
         $nameId = 'test@example.com';
-        $nameIdFormat = 'urn:oasis:names:tc:SAML:2.0:nameid-format:transient';
-        $settingsInfo['sp']['NameIDFormat'] = $nameIdFormat;
+        $settingsInfo['sp']['NameIDFormat'] = Constants::NAMEID_TRANSIENT;
         $logoutUrl = Utils::redirect(
             'http://idp.example.com/SingleLogoutService.php',
             ['SAMLRequest' => (new LogoutRequest(new Settings($settingsInfo), null, $nameId, null, null))->getRequest()],
@@ -152,7 +150,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
         $this->assertRegExp('#^<samlp:LogoutRequest#', $inflated);
         $this->assertEquals($nameId, LogoutRequest::getNameId($inflated));
         $logoutNameIdData = LogoutRequest::getNameIdData($inflated);
-        $this->assertEquals($nameIdFormat, $logoutNameIdData['Format']);
+        $this->assertEquals(Constants::NAMEID_TRANSIENT, $logoutNameIdData['Format']);
     }
 
     /**
@@ -162,8 +160,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     {
         include TEST_ROOT . '/settings/settings1.php';
         $nameId = 'test@example.com';
-        $nameIdFormat = 'urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified';
-        $settingsInfo['sp']['NameIDFormat'] = $nameIdFormat;
+        $settingsInfo['sp']['NameIDFormat'] = Constants::NAMEID_UNSPECIFIED;
         $logoutUrl = Utils::redirect(
             'http://idp.example.com/SingleLogoutService.php',
             ['SAMLRequest' => (new LogoutRequest(new Settings($settingsInfo), null, $nameId, null, null))->getRequest()],
@@ -195,7 +192,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
                         null,
                         $nameId,
                         null,
-                        'urn:oasis:names:tc:SAML:2.0:nameid-format:transient',
+                        Constants::NAMEID_TRANSIENT,
                         $nameIdNameQualifier
                     )
                 )->getRequest(),
@@ -209,7 +206,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
         $this->assertRegExp('#^<samlp:LogoutRequest#', $inflated);
         $this->assertEquals($nameId, LogoutRequest::getNameId($inflated));
         $logoutNameIdData = LogoutRequest::getNameIdData($inflated);
-        $this->assertEquals('urn:oasis:names:tc:SAML:2.0:nameid-format:transient', $logoutNameIdData['Format']);
+        $this->assertEquals(Constants::NAMEID_TRANSIENT, $logoutNameIdData['Format']);
         $this->assertEquals($nameIdNameQualifier, $logoutNameIdData['NameQualifier']);
     }
 
@@ -293,7 +290,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals(
             [
                 'Value' => 'ONELOGIN_1e442c129e1f822c8096086a1103c5ee2c7cae1c',
-                'Format' => 'urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified',
+                'Format' => Constants::NAMEID_UNSPECIFIED,
                 'SPNameQualifier' => 'http://idp.example.com/',
             ],
             LogoutRequest::getNameIdData(file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request.xml'))

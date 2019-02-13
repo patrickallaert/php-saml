@@ -4,6 +4,7 @@ namespace OneLogin\Saml2\Tests;
 
 use Exception;
 use OneLogin\Saml2\Auth;
+use OneLogin\Saml2\Constants;
 use OneLogin\Saml2\Error;
 use OneLogin\Saml2\LogoutRequest;
 use OneLogin\Saml2\Settings;
@@ -182,7 +183,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
         $this->auth->processResponse();
         $this->assertTrue($this->auth->isAuthenticated());
         $this->assertEquals('492882615acf31c8096b627245d76ae53036c090', $this->auth->getNameId());
-        $this->assertEquals('urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress', $this->auth->getNameIdFormat());
+        $this->assertEquals(Constants::NAMEID_EMAIL_ADDRESS, $this->auth->getNameIdFormat());
         $attributes = $this->auth->getAttributes();
         $this->assertNotEmpty($attributes);
         $this->assertEquals($this->auth->getAttribute('mail'), $attributes['mail']);
