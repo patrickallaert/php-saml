@@ -36,16 +36,22 @@ class LogoutRequest
     private $error;
 
     /**
-     * @param Settings $settings            Settings
-     * @param string|null             $request             A UUEncoded Logout Request.
-     * @param string|null             $nameId              The NameID that will be set in the LogoutRequest.
-     * @param string|null             $sessionIndex        The SessionIndex (taken from the SAML Response in the SSO process).
-     * @param string|null             $nameIdFormat        The NameID Format will be set in the LogoutRequest.
-     * @param string|null             $nameIdNameQualifier The NameID NameQualifier will be set in the LogoutRequest.
-     * @param string|null             $nameIdSPNameQualifier The NameID SP NameQualifier will be set in the LogoutRequest.
+     * @param ?string $request               A UUEncoded Logout Request.
+     * @param ?string $nameId                The NameID that will be set in the LogoutRequest.
+     * @param ?string $sessionIndex          The SessionIndex (taken from the SAML Response in the SSO process).
+     * @param ?string $nameIdFormat          The NameID Format will be set in the LogoutRequest.
+     * @param ?string $nameIdNameQualifier   The NameID NameQualifier will be set in the LogoutRequest.
+     * @param ?string $nameIdSPNameQualifier The NameID SP NameQualifier will be set in the LogoutRequest.
      */
-    public function __construct(Settings $settings, ?string $request = null, ?string $nameId = null, ?string $sessionIndex = null, ?string $nameIdFormat = null, ?string $nameIdNameQualifier = null, ?string $nameIdSPNameQualifier = null)
-    {
+    public function __construct(
+        Settings $settings,
+        ?string $request = null,
+        ?string $nameId = null,
+        ?string $sessionIndex = null,
+        ?string $nameIdFormat = null,
+        ?string $nameIdNameQualifier = null,
+        ?string $nameIdSPNameQualifier = null
+    ) {
         $this->settings = $settings;
 
         $baseURL = $this->settings->getBaseURL();
@@ -53,7 +59,7 @@ class LogoutRequest
             Utils::setBaseURL($baseURL);
         }
 
-        if (!isset($request) || empty($request)) {
+        if ($request === null || empty($request)) {
             $spData = $this->settings->getSPData();
             $idpData = $this->settings->getIdPData();
             $security = $this->settings->getSecurityData();
@@ -65,13 +71,9 @@ class LogoutRequest
 
             $cert = null;
             if (isset($security['nameIdEncrypted']) && $security['nameIdEncrypted']) {
-                $existsMultiX509Enc = isset($idpData['x509certMulti']) && isset($idpData['x509certMulti']['encryption']) && !empty($idpData['x509certMulti']['encryption']);
-
-                if ($existsMultiX509Enc) {
-                    $cert = $idpData['x509certMulti']['encryption'][0];
-                } else {
-                    $cert = $idpData['x509cert'];
-                }
+                $cert = isset($idpData['x509certMulti']['encryption']) && !empty($idpData['x509certMulti']['encryption']) ?
+                    $idpData['x509certMulti']['encryption'][0] :
+                    $idpData['x509cert'];
             }
 
             if (!empty($nameId)) {
@@ -125,11 +127,7 @@ LOGOUTREQUEST;
             $decoded = base64_decode($request);
             // We try to inflate
             $inflated = @gzinflate($decoded);
-            if ($inflated !== false) {
-                $logoutRequest = $inflated;
-            } else {
-                $logoutRequest = $decoded;
-            }
+            $logoutRequest = $inflated !== false ? $inflated : $decoded;
             $this->id = static::getID($logoutRequest);
         }
         $this->logoutRequest = $logoutRequest;
@@ -142,7 +140,7 @@ LOGOUTREQUEST;
      *
      * @return string Deflated base64 encoded Logout Request
      */
-    public function getRequest($deflate = null)
+    public function getRequest(?bool $deflate = null): string
     {
         $subject = $this->logoutRequest;
 
@@ -277,17 +275,7 @@ LOGOUTREQUEST;
         return $sessionIndexes;
     }
 
-    /**
-     * Checks if the Logout Request received is valid.
-     *
-     * @param bool $retrieveParametersFromServer True if we want to use parameters from $_SERVER to validate the signature
-     *
-     * @return bool If the Logout Request is or not valid
-     *
-     * @throws Exception
-     * @throws ValidationError
-     */
-    public function isValid(bool $retrieveParametersFromServer = false)
+    public function isValid(bool $retrieveParametersFromServer = false): bool
     {
         $this->error = null;
         try {
@@ -300,31 +288,28 @@ LOGOUTREQUEST;
             if ($this->settings->isStrict()) {
                 $security = $this->settings->getSecurityData();
 
-                if ($security['wantXMLValidation']) {
-                    if (!Utils::validateXML($dom, 'saml-schema-protocol-2.0.xsd')) {
-                        throw new ValidationError(
-                            "Invalid SAML Logout Request. Not match the saml-schema-protocol-2.0.xsd",
-                            ValidationError::INVALID_XML_FORMAT
-                        );
-                    }
+                if ($security['wantXMLValidation'] &&
+                    !Utils::validateXML($dom, 'saml-schema-protocol-2.0.xsd')) {
+                    throw new ValidationError(
+                        "Invalid SAML Logout Request. Not match the saml-schema-protocol-2.0.xsd",
+                        ValidationError::INVALID_XML_FORMAT
+                    );
                 }
 
-                $currentURL = Utils::getSelfRoutedURLNoQuery();
-
                 // Check NotOnOrAfter
-                if ($dom->documentElement->hasAttribute('NotOnOrAfter')) {
-                    $na = Utils::parseSAML2Time($dom->documentElement->getAttribute('NotOnOrAfter'));
-                    if ($na <= time()) {
-                        throw new ValidationError(
-                            "Could not validate timestamp: expired. Check system clock.",
-                            ValidationError::RESPONSE_EXPIRED
-                        );
-                    }
+                if ($dom->documentElement->hasAttribute('NotOnOrAfter') &&
+                    Utils::parseSAML2Time($dom->documentElement->getAttribute('NotOnOrAfter')) <= time()) {
+                    throw new ValidationError(
+                        "Could not validate timestamp: expired. Check system clock.",
+                        ValidationError::RESPONSE_EXPIRED
+                    );
                 }
 
                 // Check destination
                 if ($dom->documentElement->hasAttribute('Destination')) {
                     $destination = $dom->documentElement->getAttribute('Destination');
+                    $currentURL = Utils::getSelfRoutedURLNoQuery();
+
                     if (!empty($destination) && strpos($destination, $currentURL) === false) {
                         throw new ValidationError(
                             "The LogoutRequest was received at $currentURL instead of $destination",
@@ -350,13 +335,12 @@ LOGOUTREQUEST;
                 }
             }
 
-            if (isset($_GET['Signature'])) {
-                if (!Utils::validateBinarySign("SAMLRequest", $_GET, $idpData, $retrieveParametersFromServer)) {
-                    throw new ValidationError(
-                        "Signature validation failed. Logout Request rejected",
-                        ValidationError::INVALID_SIGNATURE
-                    );
-                }
+            if (isset($_GET['Signature']) &&
+                !Utils::validateBinarySign("SAMLRequest", $_GET, $idpData, $retrieveParametersFromServer)) {
+                throw new ValidationError(
+                    "Signature validation failed. Logout Request rejected",
+                    ValidationError::INVALID_SIGNATURE
+                );
             }
 
             return true;
@@ -377,10 +361,8 @@ LOGOUTREQUEST;
     /**
      * Returns the XML that will be sent as part of the request
      * or that was received at the SP
-     *
-     * @return string
      */
-    public function getXML()
+    public function getXML(): string
     {
         return $this->logoutRequest;
     }

@@ -616,61 +616,11 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Utils::parseDuration
-     */
-    public function testParseDuration()
-    {
-        $duration = 'PT1393462294S';
-        $timestamp = 1393876825;
-
-        $parsedDuration = Utils::parseDuration($duration, $timestamp);
-        $this->assertEquals(2787339119, $parsedDuration);
-
-        $this->assertTrue(Utils::parseDuration($duration) > $parsedDuration);
-
-        try {
-            Utils::parseDuration('PT1Y');
-            $this->fail('Exception was not raised');
-        } catch (Exception $e) {
-            $this->assertContains('Invalid ISO 8601 duration', $e->getMessage());
-        }
-
-        $this->assertEquals(1428091225, Utils::parseDuration('P1Y1M', $timestamp));
-        $this->assertEquals(1357243225, Utils::parseDuration('-P14M', $timestamp));
-    }
-
-    /**
-     * @covers OneLogin\Saml2\Utils::parseSAML2Time
-     */
-    public function testParseSAML2Time()
-    {
-        $time = 1386650371;
-        $this->assertEquals($time, Utils::parseSAML2Time('2013-12-10T04:39:31Z'));
-
-        try {
-            Utils::parseSAML2Time('invalidSAMLTime');
-            $this->fail('Exception was not raised');
-        } catch (Exception $e) {
-            $this->assertContains('Invalid SAML2 timestamp passed', $e->getMessage());
-        }
-
-        // Now test if toolkit supports miliseconds
-        $this->assertEquals($time, Utils::parseSAML2Time('2013-12-10T04:39:31.120Z'));
-    }
-
-    /**
      * @covers OneLogin\Saml2\Utils::parseTime2SAML
      */
     public function testParseTime2SAML()
     {
         $this->assertEquals('2013-12-10T04:39:31Z', Utils::parseTime2SAML(1386650371));
-
-        try {
-            Utils::parseTime2SAML('invalidtime');
-            $this->fail('Exception was not raised');
-        } catch (Exception $e) {
-            $this->assertContains('Failed to parse time string', $e->getMessage());
-        }
     }
 
     /**
@@ -682,10 +632,9 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
 
         $this->assertNotNull(Utils::getExpireTime('PT1393462294S'));
 
-        $this->assertEquals('1418186371', Utils::getExpireTime('PT1393462294S', '2014-12-10T04:39:31Z'));
         $this->assertEquals('1418186371', Utils::getExpireTime('PT1393462294S', 1418186371));
 
-        $this->assertNotEquals('1418186371', Utils::getExpireTime('PT1393462294S', '2012-12-10T04:39:31Z'));
+        $this->assertNotEquals('1418186371', Utils::getExpireTime('PT1393462294S', 1355114371));
     }
 
     /**

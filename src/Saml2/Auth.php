@@ -88,7 +88,7 @@ class Auth
      * The NotOnOrAfter value of the valid SubjectConfirmationData
      * node (if any) of the last assertion processed
      *
-     * @var int
+     * @var ?int
      */
     private $lastAssertionNotOnOrAfter;
 
@@ -131,7 +131,7 @@ class Auth
     /**
      * Set the strict mode active/disable
      */
-    public function setStrict(bool $value)
+    public function setStrict(bool $value): void
     {
         $this->settings->setStrict($value);
     }
@@ -139,42 +139,41 @@ class Auth
     /**
      * Process the SAML Response sent by the IdP.
      *
-     * @param string|null $requestId The ID of the AuthNRequest sent by this SP to the IdP
-     *
      * @throws Error
      * @throws ValidationError
      */
-    public function processResponse($requestId = null)
+    public function processResponse(?string $requestId = null): void
     {
         $this->errors = [];
         $this->lastErrorException = null;
-        if (isset($_POST['SAMLResponse'])) {
-            // AuthnResponse -- HTTP_POST Binding
-            $response = new Response($this->settings, $_POST['SAMLResponse']);
 
-            if ($response->isValid($requestId)) {
-                $this->attributes = $response->getAttributes();
-                $this->attributesWithFriendlyName = $response->getAttributesWithFriendlyName();
-                $this->nameId = $response->getNameId();
-                $this->nameIdFormat = $response->getNameIdFormat();
-                $this->nameIdNameQualifier = $response->getNameIdNameQualifier();
-                $this->nameIdSPNameQualifier = $response->getNameIdSPNameQualifier();
-                $this->authenticated = true;
-                $this->sessionIndex = $response->getSessionIndex();
-                $this->sessionExpiration = $response->getSessionNotOnOrAfter();
-                $this->lastMessageId = $response->getId();
-                $this->lastAssertionId = $response->getAssertionId();
-                $this->lastAssertionNotOnOrAfter = $response->getAssertionNotOnOrAfter();
-            } else {
-                $this->errors[] = 'invalid_response';
-                $this->lastErrorException = $response->getErrorException();
-            }
-        } else {
+        if (!isset($_POST['SAMLResponse'])) {
             $this->errors[] = 'invalid_binding';
             throw new Error(
                 'SAML Response not found, Only supported HTTP_POST Binding',
                 Error::SAML_RESPONSE_NOT_FOUND
             );
+        }
+
+        // AuthnResponse -- HTTP_POST Binding
+        $response = new Response($this->settings, $_POST['SAMLResponse']);
+
+        if ($response->isValid($requestId)) {
+            $this->attributes = $response->getAttributes();
+            $this->attributesWithFriendlyName = $response->getAttributesWithFriendlyName();
+            $this->nameId = $response->getNameId();
+            $this->nameIdFormat = $response->getNameIdFormat();
+            $this->nameIdNameQualifier = $response->getNameIdNameQualifier();
+            $this->nameIdSPNameQualifier = $response->getNameIdSPNameQualifier();
+            $this->authenticated = true;
+            $this->sessionIndex = $response->getSessionIndex();
+            $this->sessionExpiration = $response->getSessionNotOnOrAfter();
+            $this->lastMessageId = $response->getId();
+            $this->lastAssertionId = $response->getAssertionId();
+            $this->lastAssertionNotOnOrAfter = $response->getAssertionNotOnOrAfter();
+        } else {
+            $this->errors[] = 'invalid_response';
+            $this->lastErrorException = $response->getErrorException();
         }
     }
 
@@ -191,8 +190,13 @@ class Auth
      *
      * @throws Error
      */
-    public function processSLO($keepLocalSession = false, $requestId = null, $retrieveParametersFromServer = false, $cbDeleteSession = null, $stay = false)
-    {
+    public function processSLO(
+        bool $keepLocalSession = false,
+        ?string $requestId = null,
+        bool $retrieveParametersFromServer = false,
+        ?callable $cbDeleteSession = null,
+        bool $stay = false
+    ) {
         $this->errors = [];
         $this->lastErrorException = null;
         if (isset($_GET['SAMLResponse'])) {
@@ -208,7 +212,7 @@ class Auth
                     if ($cbDeleteSession === null) {
                         Utils::deleteLocalSession();
                     } else {
-                        call_user_func($cbDeleteSession);
+                        $cbDeleteSession();
                     }
                 }
             }
@@ -222,16 +226,14 @@ class Auth
                     if ($cbDeleteSession === null) {
                         Utils::deleteLocalSession();
                     } else {
-                        call_user_func($cbDeleteSession);
+                        $cbDeleteSession();
                     }
                 }
                 $this->lastMessageId = $logoutRequest->id;
                 $responseBuilder = new LogoutResponse($this->settings);
                 $responseBuilder->build($logoutRequest->id);
 
-                $logoutResponse = $responseBuilder->getResponse();
-
-                $parameters = ['SAMLResponse' => $logoutResponse];
+                $parameters = ['SAMLResponse' => $responseBuilder->getResponse()];
                 if (isset($_GET['RelayState'])) {
                     $parameters['RelayState'] = $_GET['RelayState'];
                 }
@@ -239,7 +241,7 @@ class Auth
                 $security = $this->settings->getSecurityData();
                 if (isset($security['logoutResponseSigned']) && $security['logoutResponseSigned']) {
                     $parameters['SigAlg'] = $security['signatureAlgorithm'];
-                    $parameters['Signature'] = $this->buildResponseSignature($logoutResponse, isset($parameters['RelayState']) ? $parameters['RelayState'] : null, $security['signatureAlgorithm']);
+                    $parameters['Signature'] = $this->buildResponseSignature($parameters['SAMLResponse'], $parameters['RelayState'] ?? null, $security['signatureAlgorithm']);
                 }
 
                 return $this->redirectTo($this->getSLOurl(), $parameters, $stay);
@@ -260,10 +262,8 @@ class Auth
      * @param string $url        The target URL to redirect the user.
      * @param array  $parameters Extra parameters to be passed as part of the url
      * @param bool   $stay       True if we want to stay (returns the url string) False to redirect
-     *
-     * @return string|null
      */
-    public function redirectTo(string $url = '', array $parameters = [], bool $stay = false)
+    public function redirectTo(string $url = '', array $parameters = [], bool $stay = false): string
     {
         if (empty($url) && isset($_REQUEST['RelayState'])) {
             $url = $_REQUEST['RelayState'];
@@ -312,51 +312,29 @@ class Auth
         return $this->sessionIndex;
     }
 
-    /**
-     * Returns the SessionNotOnOrAfter
-     *
-     * @return int|null  The SessionNotOnOrAfter of the assertion
-     */
-    public function getSessionExpiration()
+    public function getSessionExpiration(): ?int
     {
         return $this->sessionExpiration;
     }
 
-    /**
-     * Returns if there were any error
-     *
-     * @return array  Errors
-     */
-    public function getErrors()
+    public function getErrors(): array
     {
         return $this->errors;
     }
 
-    /**
-     * Returns the last error
-     *
-     * @return Exception|null Error
-     */
-    public function getLastErrorException()
+    public function getLastErrorException(): ?Exception
     {
         return $this->lastErrorException;
     }
 
     public function getAttribute(string $name): ?array
     {
-        if (isset($this->attributes[$name])) {
-            return $this->attributes[$name];
-        }
-        return null;
+        return $this->attributes[$name] ?? null;
     }
 
     public function getAttributeWithFriendlyName(string $friendlyName): ?array
     {
-        $value = null;
-        if (isset($this->attributesWithFriendlyName[$friendlyName])) {
-            return $this->attributesWithFriendlyName[$friendlyName];
-        }
-        return $value;
+        return $this->attributesWithFriendlyName[$friendlyName] ?? null;
     }
 
     /**
@@ -369,30 +347,29 @@ class Auth
      * @param bool        $stay            True if we want to stay (returns the url string) False to redirect
      * @param bool        $setNameIdPolicy When true the AuthNRequest will set a nameIdPolicy element
      *
-     * @return string|null If $stay is True, it return a string with the SLO URL + LogoutRequest + parameters
-     *
      * @throws Error
      */
-    public function login(?string $returnTo = null, array $parameters = [], bool $forceAuthn = false, bool $isPassive = false, bool $stay = false, bool $setNameIdPolicy = true)
-    {
+    public function login(
+        ?string $returnTo = null,
+        array $parameters = [],
+        bool $forceAuthn = false,
+        bool $isPassive = false,
+        bool $stay = false,
+        bool $setNameIdPolicy = true
+    ): string {
         $authnRequest = new AuthnRequest($this->settings, $forceAuthn, $isPassive, $setNameIdPolicy);
 
         $this->lastRequestID = $authnRequest->getId();
 
-        $samlRequest = $authnRequest->getRequest();
-        $parameters['SAMLRequest'] = $samlRequest;
-
-        if (!empty($returnTo)) {
-            $parameters['RelayState'] = $returnTo;
-        } else {
-            $parameters['RelayState'] = Utils::getSelfRoutedURLNoQuery();
-        }
+        $parameters['SAMLRequest'] = $authnRequest->getRequest();
+        $parameters['RelayState'] = !empty($returnTo) ? $returnTo : Utils::getSelfRoutedURLNoQuery();
 
         $security = $this->settings->getSecurityData();
         if (isset($security['authnRequestsSigned']) && $security['authnRequestsSigned']) {
             $parameters['SigAlg'] = $security['signatureAlgorithm'];
-            $parameters['Signature'] = $this->buildRequestSignature($samlRequest, $parameters['RelayState'], $security['signatureAlgorithm']);
+            $parameters['Signature'] = $this->buildRequestSignature($parameters['SAMLRequest'], $parameters['RelayState'], $security['signatureAlgorithm']);
         }
+
         return $this->redirectTo($this->getSSOurl(), $parameters, $stay);
     }
 
@@ -407,12 +384,18 @@ class Auth
      * @param string|null $nameIdFormat        The NameID Format will be set in the LogoutRequest.
      * @param string|null $nameIdNameQualifier The NameID NameQualifier will be set in the LogoutRequest.
      *
-     * @return string|null If $stay is True, it return a string with the SLO URL + LogoutRequest + parameters
-     *
      * @throws Error
      */
-    public function logout(?string $returnTo = null, array $parameters = [], ?string $nameId = null, ?string $sessionIndex = null, bool $stay = false, ?string $nameIdFormat = null, ?string $nameIdNameQualifier = null, ?string $nameIdSPNameQualifier = null)
-    {
+    public function logout(
+        ?string $returnTo = null,
+        array $parameters = [],
+        ?string $nameId = null,
+        ?string $sessionIndex = null,
+        bool $stay = false,
+        ?string $nameIdFormat = null,
+        ?string $nameIdNameQualifier = null,
+        ?string $nameIdSPNameQualifier = null
+    ): string {
         $sloUrl = $this->getSLOurl();
         if (empty($sloUrl)) {
             throw new Error(
@@ -432,30 +415,19 @@ class Auth
 
         $this->lastRequestID = $logoutRequest->id;
 
-        $samlRequest = $logoutRequest->getRequest();
-
-        $parameters['SAMLRequest'] = $samlRequest;
-        if (!empty($returnTo)) {
-            $parameters['RelayState'] = $returnTo;
-        } else {
-            $parameters['RelayState'] = Utils::getSelfRoutedURLNoQuery();
-        }
+        $parameters['SAMLRequest'] = $logoutRequest->getRequest();
+        $parameters['RelayState'] = !empty($returnTo) ? $returnTo : Utils::getSelfRoutedURLNoQuery();
 
         $security = $this->settings->getSecurityData();
         if (isset($security['logoutRequestSigned']) && $security['logoutRequestSigned']) {
             $parameters['SigAlg'] = $security['signatureAlgorithm'];
-            $parameters['Signature'] = $this->buildRequestSignature($samlRequest, $parameters['RelayState'], $security['signatureAlgorithm']);
+            $parameters['Signature'] = $this->buildRequestSignature($parameters['SAMLRequest'], $parameters['RelayState'], $security['signatureAlgorithm']);
         }
 
         return $this->redirectTo($sloUrl, $parameters, $stay);
     }
 
-    /**
-     * Gets the SSO url.
-     *
-     * @return string The url of the Single Sign On Service
-     */
-    public function getSSOurl()
+    public function getSSOurl(): string
     {
         $idpData = $this->settings->getIdPData();
         return $idpData['singleSignOnService']['url'];
@@ -464,10 +436,7 @@ class Auth
     public function getSLOurl(): ?string
     {
         $idpData = $this->settings->getIdPData();
-        if (isset($idpData['singleLogoutService']) && isset($idpData['singleLogoutService']['url'])) {
-            return $idpData['singleLogoutService']['url'];
-        }
-        return null;
+        return $idpData['singleLogoutService']['url'] ?? null;
     }
 
     /**
@@ -506,21 +475,20 @@ class Auth
      * @throws Exception
      * @throws Error
      */
-    private function buildMessageSignature(string $samlMessage, string $relayState, string $signAlgorithm = XMLSecurityKey::RSA_SHA256, string $type = "SAMLRequest"): string
+    private function buildMessageSignature(string $samlMessage, string $relayState, string $signAlgorithm, string $type): string
     {
         $key = $this->settings->getSPkey();
-        if (empty($key)) {
-            if ($type === "SAMLRequest") {
-                $errorMsg = "Trying to sign the SAML Request but can't load the SP private key";
-            } else {
-                $errorMsg = "Trying to sign the SAML Response but can't load the SP private key";
-            }
-
-            throw new Error($errorMsg, Error::PRIVATE_KEY_NOT_FOUND);
+        if ($key === null) {
+            throw new Error(
+                $type === "SAMLRequest" ?
+                    "Trying to sign the SAML Request but can't load the SP private key" :
+                    "Trying to sign the SAML Response but can't load the SP private key",
+                Error::PRIVATE_KEY_NOT_FOUND
+            );
         }
 
         $objKey = new XMLSecurityKey($signAlgorithm, ['type' => 'private']);
-        $objKey->loadKey($key, false);
+        $objKey->loadKey($key);
 
         $security = $this->settings->getSecurityData();
         if ($security['lowercaseUrlencoding']) {
@@ -549,12 +517,7 @@ class Auth
         return $this->lastAssertionId;
     }
 
-    /**
-     * @return int The NotOnOrAfter value of the valid
-     *         SubjectConfirmationData node (if any)
-     *         of the last assertion processed
-     */
-    public function getLastAssertionNotOnOrAfter()
+    public function getLastAssertionNotOnOrAfter(): ?int
     {
         return $this->lastAssertionNotOnOrAfter;
     }

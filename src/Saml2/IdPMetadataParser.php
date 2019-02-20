@@ -16,11 +16,14 @@ class IdPMetadataParser
      *                                    metadata contains more than one
      *                                    IDPSSODescriptor, the first is returned
      * @param ?string $desiredNameIdFormat If available on IdP metadata, use that nameIdFormat
-     *
-     * @return array metadata info in php-saml settings format
      */
-    public static function parseRemoteXML(string $url, ?string $entityId = null, ?string $desiredNameIdFormat = null, string $desiredSSOBinding = Constants::BINDING_HTTP_REDIRECT, string $desiredSLOBinding = Constants::BINDING_HTTP_REDIRECT)
-    {
+    public static function parseRemoteXML(
+        string $url,
+        ?string $entityId = null,
+        ?string $desiredNameIdFormat = null,
+        string $desiredSSOBinding = Constants::BINDING_HTTP_REDIRECT,
+        string $desiredSLOBinding = Constants::BINDING_HTTP_REDIRECT
+    ): array {
         try {
             $ch = curl_init($url);
 
@@ -60,8 +63,13 @@ class IdPMetadataParser
      *                                    IDPSSODescriptor, the first is returned
      * @param ?string $desiredNameIdFormat If available on IdP metadata, use that nameIdFormat
      */
-    public static function parseFileXML(string $filepath, ?string $entityId = null, ?string $desiredNameIdFormat = null, string $desiredSSOBinding = Constants::BINDING_HTTP_REDIRECT, string $desiredSLOBinding = Constants::BINDING_HTTP_REDIRECT): array
-    {
+    public static function parseFileXML(
+        string $filepath,
+        ?string $entityId = null,
+        ?string $desiredNameIdFormat = null,
+        string $desiredSSOBinding = Constants::BINDING_HTTP_REDIRECT,
+        string $desiredSLOBinding = Constants::BINDING_HTTP_REDIRECT
+    ): array {
         $metadataInfo = [];
 
         try {
@@ -78,18 +86,23 @@ class IdPMetadataParser
      * Get IdP Metadata Info from URL
      *
      * @param string $xml                 XML that contains IdP metadata
-     * @param string $entityId            Entity Id of the desired IdP, if no
+     * @param ?string $entityId            Entity Id of the desired IdP, if no
      *                                    entity Id is provided and the XML
      *                                    metadata contains more than one
      *                                    IDPSSODescriptor, the first is returned
-     * @param string $desiredNameIdFormat If available on IdP metadata, use that nameIdFormat
+     * @param ?string $desiredNameIdFormat If available on IdP metadata, use that nameIdFormat
      * @param string $desiredSSOBinding   Parse specific binding SSO endpoint
      * @param string $desiredSLOBinding   Parse specific binding SLO endpoint
      *
      * @throws Exception
      */
-    public static function parseXML($xml, $entityId = null, $desiredNameIdFormat = null, $desiredSSOBinding = Constants::BINDING_HTTP_REDIRECT, $desiredSLOBinding = Constants::BINDING_HTTP_REDIRECT): array
-    {
+    public static function parseXML(
+        string $xml,
+        ?string $entityId = null,
+        ?string $desiredNameIdFormat = null,
+        string $desiredSSOBinding = Constants::BINDING_HTTP_REDIRECT,
+        string $desiredSLOBinding = Constants::BINDING_HTTP_REDIRECT
+    ): array {
         $metadataInfo = [];
 
         $dom = new DOMDocument();
@@ -98,13 +111,12 @@ class IdPMetadataParser
         try {
             Utils::loadXML($dom, $xml);
 
-            $customIdPStr = '';
-            if (!empty($entityId)) {
-                $customIdPStr = '[@entityID="' . $entityId . '"]';
-            }
-            $idpDescriptorNodes = Utils::query($dom, '//md:EntityDescriptor' . $customIdPStr . '/md:IDPSSODescriptor');
+            $idpDescriptorNodes = Utils::query(
+                $dom,
+                '//md:EntityDescriptor' . (!empty($entityId) ? '[@entityID="' . $entityId . '"]' : '') . '/md:IDPSSODescriptor'
+            );
 
-            if (isset($idpDescriptorNodes) && $idpDescriptorNodes->length > 0) {
+            if ($idpDescriptorNodes->length > 0) {
                 $metadataInfo['idp'] = [];
 
                 $idpDescriptor = $idpDescriptorNodes->item(0);
@@ -146,36 +158,43 @@ class IdPMetadataParser
                     }
                 }
 
-                $keyDescriptorCertSigningNodes = Utils::query($dom, './md:KeyDescriptor[not(contains(@use, "encryption"))]/ds:KeyInfo/ds:X509Data/ds:X509Certificate', $idpDescriptor);
+                $metadataInfo['idp']['x509certMulti'] = [];
+                $idpInfo['x509certMulti']['signing'] = [];
+                foreach (Utils::query(
+                    $dom,
+                    './md:KeyDescriptor[not(contains(@use, "encryption"))]/ds:KeyInfo/ds:X509Data/ds:X509Certificate',
+                    $idpDescriptor
+                ) as $keyDescriptorCertSigningNode) {
+                    $metadataInfo['idp']['x509certMulti']['signing'][] = Utils::formatCert($keyDescriptorCertSigningNode->nodeValue, false);
+                }
+                $idpInfo['x509certMulti']['encryption'] = [];
 
-                $keyDescriptorCertEncryptionNodes = Utils::query($dom, './md:KeyDescriptor[not(contains(@use, "signing"))]/ds:KeyInfo/ds:X509Data/ds:X509Certificate', $idpDescriptor);
+                foreach (Utils::query(
+                    $dom,
+                    './md:KeyDescriptor[not(contains(@use, "signing"))]/ds:KeyInfo/ds:X509Data/ds:X509Certificate',
+                    $idpDescriptor
+                ) as $keyDescriptorCertEncryptionNode) {
+                    $metadataInfo['idp']['x509certMulti']['encryption'][] = Utils::formatCert($keyDescriptorCertEncryptionNode->nodeValue, false);
+                }
 
-                if (!empty($keyDescriptorCertSigningNodes) || !empty($keyDescriptorCertEncryptionNodes)) {
-                    $metadataInfo['idp']['x509certMulti'] = [];
-                    if (!empty($keyDescriptorCertSigningNodes)) {
-                        $idpInfo['x509certMulti']['signing'] = [];
-                        foreach ($keyDescriptorCertSigningNodes as $keyDescriptorCertSigningNode) {
-                            $metadataInfo['idp']['x509certMulti']['signing'][] = Utils::formatCert($keyDescriptorCertSigningNode->nodeValue, false);
-                        }
-                    }
-                    if (!empty($keyDescriptorCertEncryptionNodes)) {
-                        $idpInfo['x509certMulti']['encryption'] = [];
-                        foreach ($keyDescriptorCertEncryptionNodes as $keyDescriptorCertEncryptionNode) {
-                            $metadataInfo['idp']['x509certMulti']['encryption'][] = Utils::formatCert($keyDescriptorCertEncryptionNode->nodeValue, false);
-                        }
-                    }
-
-                    $idpCertdata = $metadataInfo['idp']['x509certMulti'];
-                    if ((count($idpCertdata) === 1 &&
-                         ((isset($idpCertdata['signing']) && count($idpCertdata['signing']) === 1) || (isset($idpCertdata['encryption']) && count($idpCertdata['encryption']) === 1))) ||
-                         ((isset($idpCertdata['signing']) && count($idpCertdata['signing']) === 1) && isset($idpCertdata['encryption']) && count($idpCertdata['encryption']) === 1 && strcmp($idpCertdata['signing'][0], $idpCertdata['encryption'][0]) === 0)) {
-                        if (isset($metadataInfo['idp']['x509certMulti']['signing'][0])) {
-                            $metadataInfo['idp']['x509cert'] = $metadataInfo['idp']['x509certMulti']['signing'][0];
-                        } else {
-                            $metadataInfo['idp']['x509cert'] = $metadataInfo['idp']['x509certMulti']['encryption'][0];
-                        }
-                        unset($metadataInfo['idp']['x509certMulti']);
-                    }
+                $idpCertdata = $metadataInfo['idp']['x509certMulti'];
+                if ((
+                        count($idpCertdata) === 1 &&
+                        (
+                            (isset($idpCertdata['signing']) && count($idpCertdata['signing']) === 1) ||
+                            (isset($idpCertdata['encryption']) && count($idpCertdata['encryption']) === 1)
+                        )
+                    ) ||
+                    (
+                        isset($idpCertdata['signing'], $idpCertdata['encryption']) &&
+                        count($idpCertdata['signing']) === 1 &&
+                        count($idpCertdata['encryption']) === 1 &&
+                        $idpCertdata['signing'][0] === $idpCertdata['encryption'][0]
+                    )
+                ) {
+                    $metadataInfo['idp']['x509cert'] = $metadataInfo['idp']['x509certMulti']['signing'][0] ??
+                        $metadataInfo['idp']['x509certMulti']['encryption'][0];
+                    unset($metadataInfo['idp']['x509certMulti']);
                 }
 
                 $nameIdFormatNodes = Utils::query($dom, './md:NameIDFormat', $idpDescriptor);
@@ -183,7 +202,7 @@ class IdPMetadataParser
                     $metadataInfo['sp']['NameIDFormat'] = $nameIdFormatNodes->item(0)->nodeValue;
                     if (!empty($desiredNameIdFormat)) {
                         foreach ($nameIdFormatNodes as $nameIdFormatNode) {
-                            if (strcmp($nameIdFormatNode->nodeValue, $desiredNameIdFormat) === 0) {
+                            if ($nameIdFormatNode->nodeValue === $desiredNameIdFormat) {
                                 $metadataInfo['sp']['NameIDFormat'] = $nameIdFormatNode->nodeValue;
                                 break;
                             }

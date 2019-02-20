@@ -62,7 +62,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetCertPath()
     {
-        $this->assertEquals(ONELOGIN_CUSTOMPATH . 'certs/', (new Settings())->getCertPath());
+        $this->assertSame(ONELOGIN_CUSTOMPATH . 'certs/', (new Settings())->getCertPath());
     }
 
     /**
@@ -73,7 +73,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     public function testGetLibPath()
     {
         $settings = new Settings();
-        $this->assertEquals($settings->getBasePath() . 'src/', $settings->getLibPath());
+        $this->assertSame($settings->getBasePath() . 'src/', $settings->getLibPath());
     }
 
     /**
@@ -84,7 +84,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     public function testGetSchemasPath()
     {
         $settings = new Settings();
-        $this->assertEquals($settings->getBasePath() . 'src/schemas/', $settings->getSchemasPath());
+        $this->assertSame($settings->getBasePath() . 'src/schemas/', $settings->getSchemasPath());
     }
 
     /**
@@ -145,7 +145,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
             new Settings($settingsInfo);
             $this->fail('Error was not raised');
         } catch (Error $e) {
-            $this->assertEquals("Invalid array settings: invalid_syntax", $e->getMessage());
+            $this->assertSame("Invalid array settings: invalid_syntax", $e->getMessage());
             return;
         }
 
@@ -170,7 +170,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
             new Settings($settingsInfo);
             $this->fail('Error was not raised');
         } catch (Error $e) {
-            $this->assertEquals("Invalid array settings: 'compress'=>'requests' values must be true or false.", $e->getMessage());
+            $this->assertSame("Invalid array settings: 'compress'=>'requests' values must be true or false.", $e->getMessage());
              $requestsIsInvalid = true;
         }
 
@@ -181,7 +181,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
             new Settings($settingsInfo);
             $this->fail('Error was not raised');
         } catch (Error $e) {
-            $this->assertEquals("Invalid array settings: 'compress'=>'responses' values must be true or false.", $e->getMessage());
+            $this->assertSame("Invalid array settings: 'compress'=>'responses' values must be true or false.", $e->getMessage());
              $responsesIsInvalid = true;
         }
 
@@ -200,7 +200,6 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Settings::checkSPCerts
      * @covers OneLogin\Saml2\Settings::getSPcert
      * @covers OneLogin\Saml2\Settings::getSPcertNew
      * @covers OneLogin\Saml2\Settings::getSPkey
@@ -209,23 +208,19 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     {
         $settings = new Settings();
 
-        $this->assertTrue($settings->checkSPCerts());
-
         include TEST_ROOT . '/settings/settings2.php';
 
         $settings2 = new Settings($settingsInfo);
-        $this->assertTrue($settings2->checkSPCerts());
 
-        $this->assertEquals($settings2->getSPkey(), $settings->getSPkey());
-        $this->assertEquals($settings2->getSPcert(), $settings->getSPcert());
+        $this->assertSame($settings2->getSPkey(), $settings->getSPkey());
+        $this->assertSame($settings2->getSPcert(), $settings->getSPcert());
         $this->assertNull($settings2->getSPcertNew());
 
         include TEST_ROOT . '/settings/settings5.php';
         $settings3 = new Settings($settingsInfo);
-        $this->assertTrue($settings3->checkSPCerts());
 
-        $this->assertEquals($settings3->getSPkey(), $settings->getSPkey());
-        $this->assertEquals($settings3->getSPcert(), $settings->getSPcert());
+        $this->assertSame($settings3->getSPkey(), $settings->getSPkey());
+        $this->assertSame($settings3->getSPcert(), $settings->getSPcert());
         $this->assertNotNull($settings3->getSPcertNew());
         $this->assertNotEquals($settings3->getSPcertNew(), $settings3->getSPcert());
     }
@@ -322,7 +317,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
             $this->fail('Error was not raised');
         } catch (Error $e) {
             $this->assertContains('sp_signMetadata_invalid', $e->getMessage());
-            $this->assertContains('organization_not_enought_data', $e->getMessage());
+            $this->assertContains('organization_not_enough_data', $e->getMessage());
             $this->assertContains('contact_type_invalid', $e->getMessage());
         }
     }
@@ -361,10 +356,10 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
         $settingsInfo['security']['wantNameIdEncrypted'] = $wantNameIdEncrypted;
         $settingsInfo['security']['wantAssertionsEncrypted'] = $wantAssertionsEncrypted;
         $metadata = (new Settings($settingsInfo))->getSPMetadata($alwaysIncludeEncryption);
-        $this->assertEquals($expectEncryptionKeyDescriptor ? 4 : 2, substr_count($metadata, "<md:KeyDescriptor"));
+        $this->assertSame($expectEncryptionKeyDescriptor ? 4 : 2, substr_count($metadata, "<md:KeyDescriptor"));
         // signing KeyDescriptor should always be included
-        $this->assertEquals(2, substr_count($metadata, '<md:KeyDescriptor use="signing"'));
-        $this->assertEquals($expectEncryptionKeyDescriptor ? 2 : 0, substr_count($metadata, '<md:KeyDescriptor use="encryption"'));
+        $this->assertSame(2, substr_count($metadata, '<md:KeyDescriptor use="signing"'));
+        $this->assertSame($expectEncryptionKeyDescriptor ? 2 : 0, substr_count($metadata, '<md:KeyDescriptor use="encryption"'));
     }
 
     public function getSPMetadataWithX509CertNewDataProvider()
@@ -655,11 +650,11 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
         $this->assertArrayHasKey('singleLogoutService', $idpData);
         $this->assertArrayHasKey('x509cert', $idpData);
 
-        $this->assertEquals('http://idp.example.com/', $idpData['entityId']);
-        $this->assertEquals('http://idp.example.com/SSOService.php', $idpData['singleSignOnService']['url']);
-        $this->assertEquals('http://idp.example.com/SingleLogoutService.php', $idpData['singleLogoutService']['url']);
+        $this->assertSame('http://idp.example.com/', $idpData['entityId']);
+        $this->assertSame('http://idp.example.com/SSOService.php', $idpData['singleSignOnService']['url']);
+        $this->assertSame('http://idp.example.com/SingleLogoutService.php', $idpData['singleLogoutService']['url']);
         $formatedx509cert = Utils::formatCert('MIICgTCCAeoCCQCbOlrWDdX7FTANBgkqhkiG9w0BAQUFADCBhDELMAkGA1UEBhMCTk8xGDAWBgNVBAgTD0FuZHJlYXMgU29sYmVyZzEMMAoGA1UEBxMDRm9vMRAwDgYDVQQKEwdVTklORVRUMRgwFgYDVQQDEw9mZWlkZS5lcmxhbmcubm8xITAfBgkqhkiG9w0BCQEWEmFuZHJlYXNAdW5pbmV0dC5ubzAeFw0wNzA2MTUxMjAxMzVaFw0wNzA4MTQxMjAxMzVaMIGEMQswCQYDVQQGEwJOTzEYMBYGA1UECBMPQW5kcmVhcyBTb2xiZXJnMQwwCgYDVQQHEwNGb28xEDAOBgNVBAoTB1VOSU5FVFQxGDAWBgNVBAMTD2ZlaWRlLmVybGFuZy5ubzEhMB8GCSqGSIb3DQEJARYSYW5kcmVhc0B1bmluZXR0Lm5vMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDivbhR7P516x/S3BqKxupQe0LONoliupiBOesCO3SHbDrl3+q9IbfnfmE04rNuMcPsIxB161TdDpIesLCn7c8aPHISKOtPlAeTZSnb8QAu7aRjZq3+PbrP5uW3TcfCGPtKTytHOge/OlJbo078dVhXQ14d1EDwXJW1rRXuUt4C8QIDAQABMA0GCSqGSIb3DQEBBQUAA4GBACDVfp86HObqY+e8BUoWQ9+VMQx1ASDohBjwOsg2WykUqRXF+dLfcUH9dWR63CtZIKFDbStNomPnQz7nbK+onygwBspVEbnHuUihZq3ZUdmumQqCw4Uvs/1Uvq3orOo/WJVhTyvLgFVK2QarQ4/67OZfHd7R+POBXhophSMv1ZOo');
-        $this->assertEquals($formatedx509cert, $idpData['x509cert']);
+        $this->assertSame($formatedx509cert, $idpData['x509cert']);
 
         include TEST_ROOT . '/settings/settings6.php';
 
@@ -669,9 +664,9 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
         $this->assertArrayHasKey('signing', $idpData2['x509certMulti']);
         $this->assertArrayHasKey('encryption', $idpData2['x509certMulti']);
 
-        $this->assertEquals(Utils::formatCert('MIICbDCCAdWgAwIBAgIBADANBgkqhkiG9w0BAQ0FADBTMQswCQYDVQQGEwJ1czETMBEGA1UECAwKQ2FsaWZvcm5pYTEVMBMGA1UECgwMT25lbG9naW4gSW5jMRgwFgYDVQQDDA9pZHAuZXhhbXBsZS5jb20wHhcNMTQwOTIzMTIyNDA4WhcNNDIwMjA4MTIyNDA4WjBTMQswCQYDVQQGEwJ1czETMBEGA1UECAwKQ2FsaWZvcm5pYTEVMBMGA1UECgwMT25lbG9naW4gSW5jMRgwFgYDVQQDDA9pZHAuZXhhbXBsZS5jb20wgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAOWA+YHU7cvPOrBOfxCscsYTJB+kH3MaA9BFrSHFS+KcR6cw7oPSktIJxUgvDpQbtfNcOkE/tuOPBDoech7AXfvH6d7Bw7xtW8PPJ2mB5Hn/HGW2roYhxmfh3tR5SdwN6i4ERVF8eLkvwCHsNQyK2Ref0DAJvpBNZMHCpS24916/AgMBAAGjUDBOMB0GA1UdDgQWBBQ77/qVeiigfhYDITplCNtJKZTM8DAfBgNVHSMEGDAWgBQ77/qVeiigfhYDITplCNtJKZTM8DAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBDQUAA4GBAJO2j/1uO80E5C2PM6Fk9mzerrbkxl7AZ/mvlbOn+sNZE+VZ1AntYuG8ekbJpJtG1YfRfc7EA9mEtqvv4dhv7zBy4nK49OR+KpIBjItWB5kYvrqMLKBa32sMbgqqUqeF1ENXKjpvLSuPdfGJZA3dNa/+Dyb8GGqWe707zLyc5F8m'), $idpData2['x509certMulti']['signing'][0]);
-        $this->assertEquals($formatedx509cert, $idpData2['x509certMulti']['signing'][1]);
-        $this->assertEquals($formatedx509cert, $idpData2['x509certMulti']['encryption'][0]);
+        $this->assertSame(Utils::formatCert('MIICbDCCAdWgAwIBAgIBADANBgkqhkiG9w0BAQ0FADBTMQswCQYDVQQGEwJ1czETMBEGA1UECAwKQ2FsaWZvcm5pYTEVMBMGA1UECgwMT25lbG9naW4gSW5jMRgwFgYDVQQDDA9pZHAuZXhhbXBsZS5jb20wHhcNMTQwOTIzMTIyNDA4WhcNNDIwMjA4MTIyNDA4WjBTMQswCQYDVQQGEwJ1czETMBEGA1UECAwKQ2FsaWZvcm5pYTEVMBMGA1UECgwMT25lbG9naW4gSW5jMRgwFgYDVQQDDA9pZHAuZXhhbXBsZS5jb20wgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAOWA+YHU7cvPOrBOfxCscsYTJB+kH3MaA9BFrSHFS+KcR6cw7oPSktIJxUgvDpQbtfNcOkE/tuOPBDoech7AXfvH6d7Bw7xtW8PPJ2mB5Hn/HGW2roYhxmfh3tR5SdwN6i4ERVF8eLkvwCHsNQyK2Ref0DAJvpBNZMHCpS24916/AgMBAAGjUDBOMB0GA1UdDgQWBBQ77/qVeiigfhYDITplCNtJKZTM8DAfBgNVHSMEGDAWgBQ77/qVeiigfhYDITplCNtJKZTM8DAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBDQUAA4GBAJO2j/1uO80E5C2PM6Fk9mzerrbkxl7AZ/mvlbOn+sNZE+VZ1AntYuG8ekbJpJtG1YfRfc7EA9mEtqvv4dhv7zBy4nK49OR+KpIBjItWB5kYvrqMLKBa32sMbgqqUqeF1ENXKjpvLSuPdfGJZA3dNa/+Dyb8GGqWe707zLyc5F8m'), $idpData2['x509certMulti']['signing'][0]);
+        $this->assertSame($formatedx509cert, $idpData2['x509certMulti']['signing'][1]);
+        $this->assertSame($formatedx509cert, $idpData2['x509certMulti']['encryption'][0]);
     }
 
     /**
@@ -688,10 +683,10 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
         $this->assertArrayHasKey('singleLogoutService', $spData);
         $this->assertArrayHasKey('NameIDFormat', $spData);
 
-        $this->assertEquals('http://stuff.com/endpoints/metadata.php', $spData['entityId']);
-        $this->assertEquals('http://stuff.com/endpoints/endpoints/acs.php', $spData['assertionConsumerService']['url']);
-        $this->assertEquals('http://stuff.com/endpoints/endpoints/sls.php', $spData['singleLogoutService']['url']);
-        $this->assertEquals(Constants::NAMEID_UNSPECIFIED, $spData['NameIDFormat']);
+        $this->assertSame('http://stuff.com/endpoints/metadata.php', $spData['entityId']);
+        $this->assertSame('http://stuff.com/endpoints/endpoints/acs.php', $spData['assertionConsumerService']['url']);
+        $this->assertSame('http://stuff.com/endpoints/endpoints/sls.php', $spData['singleLogoutService']['url']);
+        $this->assertSame(Constants::NAMEID_UNSPECIFIED, $spData['NameIDFormat']);
     }
 
     /**
@@ -776,10 +771,10 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
 
         $contacts = (new Settings($settingsInfo))->getContacts();
         $this->assertNotEmpty($contacts);
-        $this->assertEquals('technical_name', $contacts['technical']['givenName']);
-        $this->assertEquals('technical@example.com', $contacts['technical']['emailAddress']);
-        $this->assertEquals('support_name', $contacts['support']['givenName']);
-        $this->assertEquals('support@example.com', $contacts['support']['emailAddress']);
+        $this->assertSame('technical_name', $contacts['technical']['givenName']);
+        $this->assertSame('technical@example.com', $contacts['technical']['emailAddress']);
+        $this->assertSame('support_name', $contacts['support']['givenName']);
+        $this->assertSame('support@example.com', $contacts['support']['emailAddress']);
     }
 
     /**
@@ -791,9 +786,9 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
 
         $organization = (new Settings($settingsInfo))->getOrganization();
         $this->assertNotEmpty($organization);
-        $this->assertEquals('sp_test', $organization['en-US']['name']);
-        $this->assertEquals('SP test', $organization['en-US']['displayname']);
-        $this->assertEquals('http://sp.example.com', $organization['en-US']['url']);
+        $this->assertSame('sp_test', $organization['en-US']['name']);
+        $this->assertSame('SP test', $organization['en-US']['displayname']);
+        $this->assertSame('http://sp.example.com', $organization['en-US']['url']);
     }
 
     /**

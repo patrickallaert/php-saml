@@ -3,7 +3,6 @@ namespace OneLogin\Saml2;
 
 use DOMDocument;
 use DOMElement;
-use DOMNodeList;
 use Exception;
 
 /**
@@ -57,7 +56,7 @@ class LogoutResponse
      * @throws Exception
      *
      */
-    public function __construct(\OneLogin\Saml2\Settings $settings, $response = null)
+    public function __construct(Settings $settings, ?string $response = null)
     {
         $this->settings = $settings;
 
@@ -66,14 +65,10 @@ class LogoutResponse
             Utils::setBaseURL($baseURL);
         }
 
-        if ($response) {
+        if (!empty($response)) {
             $decoded = base64_decode($response);
             $inflated = @gzinflate($decoded);
-            if ($inflated !== false) {
-                $this->logoutResponse = $inflated;
-            } else {
-                $this->logoutResponse = $decoded;
-            }
+            $this->logoutResponse = $inflated !== false ? $inflated : $decoded;
             $this->document = new DOMDocument();
             try {
                 Utils::loadXML($this->document, $this->logoutResponse);
@@ -92,7 +87,7 @@ class LogoutResponse
 
     public function getIssuer(): ?string
     {
-        $issuerNodes = $this->query('/samlp:LogoutResponse/saml:Issuer');
+        $issuerNodes = Utils::query($this->document, '/samlp:LogoutResponse/saml:Issuer');
         if ($issuerNodes->length === 1) {
             return $issuerNodes->item(0)->textContent;
         }
@@ -101,7 +96,7 @@ class LogoutResponse
 
     public function getStatus(): ?string
     {
-        $entries = $this->query('/samlp:LogoutResponse/samlp:Status/samlp:StatusCode');
+        $entries = Utils::query($this->document, '/samlp:LogoutResponse/samlp:Status/samlp:StatusCode');
         if ($entries->length !== 1) {
             return null;
         }
@@ -117,8 +112,6 @@ class LogoutResponse
      *
      * @param string|null $requestId                    The ID of the LogoutRequest sent by this SP to the IdP
      * @param bool        $retrieveParametersFromServer True if we want to use parameters from $_SERVER to validate the signature
-     *
-     * @throws ValidationError
      */
     public function isValid(?string $requestId = null, bool $retrieveParametersFromServer = false): bool
     {
@@ -128,21 +121,21 @@ class LogoutResponse
             if ($this->settings->isStrict()) {
                 $security = $this->settings->getSecurityData();
 
-                if ($security['wantXMLValidation']) {
-                    if (!Utils::validateXML($this->document, 'saml-schema-protocol-2.0.xsd')) {
-                        throw new ValidationError(
-                            "Invalid SAML Logout Response. Not match the saml-schema-protocol-2.0.xsd",
-                            ValidationError::INVALID_XML_FORMAT
-                        );
-                    }
+                if ($security['wantXMLValidation'] &&
+                    !Utils::validateXML($this->document, 'saml-schema-protocol-2.0.xsd')) {
+                    throw new ValidationError(
+                        "Invalid SAML Logout Response. Not match the saml-schema-protocol-2.0.xsd",
+                        ValidationError::INVALID_XML_FORMAT
+                    );
                 }
 
-                // Check if the InResponseTo of the Logout Response matchs the ID of the Logout Request (requestId) if provided
+                // Check if the InResponseTo of the Logout Response matches the ID of the Logout Request (requestId) if provided
                 if (isset($requestId) && $this->document->documentElement->hasAttribute('InResponseTo')) {
                     $inResponseTo = $this->document->documentElement->getAttribute('InResponseTo');
                     if ($requestId !== $inResponseTo) {
                         throw new ValidationError(
-                            "The InResponseTo of the Logout Response: $inResponseTo, does not match the ID of the Logout request sent by the SP: $requestId",
+                            "The InResponseTo of the Logout Response: $inResponseTo, " .
+                            "does not match the ID of the Logout request sent by the SP: $requestId",
                             ValidationError::WRONG_INRESPONSETO
                         );
                     }
@@ -178,14 +171,12 @@ class LogoutResponse
                 }
             }
 
-            if (isset($_GET['Signature'])) {
-                $signatureValid = Utils::validateBinarySign("SAMLResponse", $_GET, $idpData, $retrieveParametersFromServer);
-                if (!$signatureValid) {
-                    throw new ValidationError(
-                        "Signature validation failed. Logout Response rejected",
-                        ValidationError::INVALID_SIGNATURE
-                    );
-                }
+            if (isset($_GET['Signature']) &&
+                !Utils::validateBinarySign("SAMLResponse", $_GET, $idpData, $retrieveParametersFromServer)) {
+                throw new ValidationError(
+                    "Signature validation failed. Logout Response rejected",
+                    ValidationError::INVALID_SIGNATURE
+                );
             }
             return true;
         } catch (Exception $e) {
@@ -195,23 +186,11 @@ class LogoutResponse
     }
 
     /**
-     * Extracts a node from the DOMDocument (Logout Response Menssage)
-     *
-     * @param string $query Xpath Expression
-     *
-     * @return DOMNodeList The queried node
-     */
-    private function query($query)
-    {
-        return Utils::query($this->document, $query);
-    }
-
-    /**
      * Generates a Logout Response object.
      *
      * @param string $inResponseTo InResponseTo value for the Logout Response.
      */
-    public function build($inResponseTo)
+    public function build(string $inResponseTo): void
     {
         $spData = $this->settings->getSPData();
         $idpData = $this->settings->getIdPData();
@@ -237,14 +216,7 @@ class LogoutResponse
 LOGOUTRESPONSE;
     }
 
-    /**
-     * Returns a Logout Response object.
-     *
-     * @param bool|null $deflate Whether or not we should 'gzdeflate' the response body before we return it.
-     *
-     * @return string Logout Response deflated and base64 encoded
-     */
-    public function getResponse($deflate = null)
+    public function getResponse(?bool $deflate = null): string
     {
         $logoutResponse = $this->logoutResponse;
 

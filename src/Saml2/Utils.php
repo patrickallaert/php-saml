@@ -1,6 +1,9 @@
 <?php
 namespace OneLogin\Saml2;
 
+use DateInterval;
+use DateTime;
+use DateTimeZone;
 use DOMDocument;
 use DOMElement;
 use DOMNode;
@@ -13,9 +16,6 @@ use RobRichards\XMLSecLibs\XMLSecurityKey;
 
 class Utils
 {
-    const RESPONSE_SIGNATURE_XPATH = "/samlp:Response/ds:Signature";
-    const ASSERTION_SIGNATURE_XPATH = "/samlp:Response/saml:Assertion/ds:Signature";
-
     /**
      * @var bool Control if the `Forwarded-For-*` headers are used
      */
@@ -53,7 +53,7 @@ class Utils
             throw new Exception('Empty string supplied as input');
         }
 
-        $oldEntityLoader = libxml_disable_entity_loader(true);
+        $oldEntityLoader = libxml_disable_entity_loader();
 
         $res = $dom->loadXML($xml);
 
@@ -105,10 +105,9 @@ class Utils
      * It CAN be the top element of a document
      * Returns the copied node in the target document
      *
-     * @return DOMNode
      * @throws Exception
      */
-    public static function treeCopyReplace(DOMNode $targetNode, DOMNode $sourceNode, bool $recurse = false)
+    public static function treeCopyReplace(DOMNode $targetNode, DOMNode $sourceNode, bool $recurse = false): DOMNode
     {
         if ($targetNode->parentNode === null) {
             throw new Exception('Illegal argument targetNode. It has no parentNode.');
@@ -126,73 +125,49 @@ class Utils
         return $resultNode;
     }
 
-    /**
-     * Returns a x509 cert (adding header & footer if required).
-     *
-     * @param string $cert  A x509 unformated cert
-     * @param bool   $heads True if we want to include head and footer
-     *
-     * @return string $x509 Formatted cert
-     */
-    public static function formatCert(string $cert, bool $heads = true)
+    public static function formatCert(string $cert, bool $includeMarkers = true): string
     {
         $x509cert = str_replace(["\x0D", "\r", "\n"], "", $cert);
         if (!empty($x509cert)) {
             $x509cert = str_replace(['-----BEGIN CERTIFICATE-----', '-----END CERTIFICATE-----', ' '], "", $x509cert);
 
-            if ($heads) {
-                $x509cert = "-----BEGIN CERTIFICATE-----\n" . chunk_split($x509cert, 64, "\n") . "-----END CERTIFICATE-----\n";
+            if ($includeMarkers) {
+                return "-----BEGIN CERTIFICATE-----\n" . chunk_split($x509cert, 64, "\n") . "-----END CERTIFICATE-----\n";
             }
         }
         return $x509cert;
     }
 
-    /**
-     * Returns a private key (adding header & footer if required).
-     *
-     * @param string $key   A private key
-     * @param bool   $heads True if we want to include head and footer
-     *
-     * @return string $rsaKey Formatted private key
-     */
-    public static function formatPrivateKey(string $key, bool $heads = true)
+    public static function formatPrivateKey(string $key, bool $includeMarkers = true): string
     {
         $key = str_replace(["\x0D", "\r", "\n"], "", $key);
-        if (!empty($key)) {
-            if (strpos($key, '-----BEGIN PRIVATE KEY-----') !== false) {
-                $key = str_replace(' ', '', self::getStringBetween($key, '-----BEGIN PRIVATE KEY-----', '-----END PRIVATE KEY-----'));
+        if ($key === "") {
+            return $key;
+        }
 
-                if ($heads) {
-                    $key = "-----BEGIN PRIVATE KEY-----\n" . chunk_split($key, 64, "\n") . "-----END PRIVATE KEY-----\n";
-                }
-            } elseif (strpos($key, '-----BEGIN RSA PRIVATE KEY-----') !== false) {
-                $key = str_replace(' ', '', self::getStringBetween($key, '-----BEGIN RSA PRIVATE KEY-----', '-----END RSA PRIVATE KEY-----'));
+        if (strpos($key, '-----BEGIN PRIVATE KEY-----') !== false) {
+            $key = str_replace(' ', '', self::getStringBetween($key, '-----BEGIN PRIVATE KEY-----', '-----END PRIVATE KEY-----'));
 
-                if ($heads) {
-                    $key = "-----BEGIN RSA PRIVATE KEY-----\n" . chunk_split($key, 64, "\n") . "-----END RSA PRIVATE KEY-----\n";
-                }
-            } else {
-                $key = str_replace(' ', '', $key);
+            if ($includeMarkers) {
+                $key = "-----BEGIN PRIVATE KEY-----\n" . chunk_split($key, 64, "\n") . "-----END PRIVATE KEY-----\n";
+            }
+        } elseif (strpos($key, '-----BEGIN RSA PRIVATE KEY-----') !== false) {
+            $key = str_replace(' ', '', self::getStringBetween($key, '-----BEGIN RSA PRIVATE KEY-----', '-----END RSA PRIVATE KEY-----'));
 
-                if ($heads) {
-                    $key = "-----BEGIN RSA PRIVATE KEY-----\n" . chunk_split($key, 64, "\n") . "-----END RSA PRIVATE KEY-----\n";
-                }
+            if ($includeMarkers) {
+                $key = "-----BEGIN RSA PRIVATE KEY-----\n" . chunk_split($key, 64, "\n") . "-----END RSA PRIVATE KEY-----\n";
+            }
+        } else {
+            $key = str_replace(' ', '', $key);
+
+            if ($includeMarkers) {
+                $key = "-----BEGIN RSA PRIVATE KEY-----\n" . chunk_split($key, 64, "\n") . "-----END RSA PRIVATE KEY-----\n";
             }
         }
         return $key;
     }
 
-    /**
-     * Extracts a substring between 2 marks
-     *
-     * @param string $str   The target string
-     * @param string $start The initial mark
-     * @param string $end   The end mark
-     *
-     * @return string A substring or an empty string if is not able to find the marks
-     *                or if there is no string between the marks
-     */
-    public static function getStringBetween(string $str, string $start, string $end)
+    private static function getStringBetween(string $str, string $start, string $end): string
     {
         $str = ' ' . $str;
         $ini = strpos($str, $start);
@@ -212,13 +187,11 @@ class Utils
      * @param array  $parameters Extra parameters to be passed as part of the url
      * @param bool   $stay       True if we want to stay (returns the url string) False to redirect
      *
-     * @return string|null $url
-     *
      * @throws Error
      */
-    public static function redirect(string $url, array $parameters = [], bool $stay = false)
+    public static function redirect(string $url, array $parameters = [], bool $stay = false): string
     {
-        if (substr($url, 0, 1) === '/') {
+        if ($url[0] === '/') {
             $url = self::getSelfURLhost() . $url;
         }
 
@@ -273,56 +246,57 @@ class Utils
      *
      * @param string $baseurl The base url to be used when constructing URLs
      */
-    public static function setBaseURL($baseurl)
+    public static function setBaseURL($baseurl): void
     {
-        if (!empty($baseurl)) {
-            $baseurlpath = '/';
-            $matches = [];
-            if (preg_match('#^https?://([^/]*)/?(.*)#i', $baseurl, $matches)) {
-                if (strpos($baseurl, 'https://') === false) {
-                    self::setSelfProtocol('http');
-                    $port = 80;
-                } else {
-                    self::setSelfProtocol('https');
-                    $port = 443;
-                }
-
-                $currentHost = $matches[1];
-                if (strpos($currentHost, ':') !== false) {
-                    list($currentHost, $possiblePort) = explode(':', $matches[1], 2);
-                    if (is_numeric($possiblePort)) {
-                        $port = (int) $possiblePort;
-                    }
-                }
-
-                if (isset($matches[2]) && !empty($matches[2])) {
-                    $baseurlpath = $matches[2];
-                }
-
-                self::setSelfHost($currentHost);
-                self::setSelfPort($port);
-                self::setBaseURLPath($baseurlpath);
-            }
-        } else {
-                self::$host = null;
-                self::$protocol = null;
-                self::$port = null;
-                self::$baseurlpath = null;
+        if (empty($baseurl)) {
+            self::$host = null;
+            self::$protocol = null;
+            self::$port = null;
+            self::$baseurlpath = null;
+            return;
         }
+
+        $baseurlpath = '/';
+        $matches = [];
+
+        if (!preg_match('#^https?://([^/]*)/?(.*)#i', $baseurl, $matches)) {
+            return;
+        }
+
+        if (strpos($baseurl, 'https://') === false) {
+            self::setSelfProtocol('http');
+            $port = 80;
+        } else {
+            self::setSelfProtocol('https');
+            $port = 443;
+        }
+
+        $currentHost = $matches[1];
+        if (strpos($currentHost, ':') !== false) {
+            [$currentHost, $possiblePort] = explode(':', $matches[1], 2);
+            if (is_numeric($possiblePort)) {
+                $port = (int) $possiblePort;
+            }
+        }
+
+        if (isset($matches[2]) && !empty($matches[2])) {
+            $baseurlpath = $matches[2];
+        }
+
+        self::setSelfHost($currentHost);
+        self::setSelfPort($port);
+        self::setBaseURLPath($baseurlpath);
     }
 
     /**
      * @param bool $proxyVars Whether to use `X-Forwarded-*` headers to determine port/domain/protocol
      */
-    public static function setProxyVars(bool $proxyVars)
+    public static function setProxyVars(bool $proxyVars): void
     {
         self::$proxyVars = $proxyVars;
     }
 
-    /**
-     * @return bool
-     */
-    public static function getProxyVars()
+    public static function getProxyVars(): bool
     {
         return self::$proxyVars;
     }
@@ -330,10 +304,8 @@ class Utils
     /**
      * Returns the protocol + the current host + the port (if different than
      * common ports).
-     *
-     * @return string The URL
      */
-    public static function getSelfURLhost()
+    public static function getSelfURLhost(): string
     {
         $port = '';
         $portnumber = self::getSelfPort();
@@ -348,7 +320,7 @@ class Utils
     /**
      * @param string $host The host to use when constructing URLs
      */
-    public static function setSelfHost($host)
+    public static function setSelfHost($host): void
     {
         self::$host = $host;
     }
@@ -356,7 +328,7 @@ class Utils
     /**
      * @param string $baseurlpath The baseurl path to use when constructing URLs
      */
-    public static function setBaseURLPath($baseurlpath)
+    public static function setBaseURLPath($baseurlpath): void
     {
         if (empty($baseurlpath)) {
             self::$baseurlpath = null;
@@ -367,18 +339,12 @@ class Utils
         }
     }
 
-    /**
-     * @return string The baseurlpath to be used when constructing URLs
-     */
-    public static function getBaseURLPath()
+    public static function getBaseURLPath(): ?string
     {
         return self::$baseurlpath;
     }
 
-    /**
-     * @return string The raw host name
-     */
-    protected static function getRawHost()
+    protected static function getRawHost(): string
     {
         if (self::$host) {
             return self::$host;
@@ -396,22 +362,15 @@ class Utils
             return $_SERVER['SERVER_NAME'];
         }
 
-        if (function_exists('gethostname')) {
-            return gethostname();
-        }
-
-        return php_uname("n");
+        return gethostname();
     }
 
-    public static function setSelfPort(int $port)
+    public static function setSelfPort(int $port): void
     {
         self::$port = $port;
     }
 
-    /**
-     * @param string $protocol The protocol to identify as using, usually http or https
-     */
-    public static function setSelfProtocol($protocol)
+    public static function setSelfProtocol($protocol): void
     {
         self::$protocol = $protocol;
     }
@@ -421,22 +380,19 @@ class Utils
      *
      * @return string $currentHost The current host
      */
-    public static function getSelfHost()
+    public static function getSelfHost(): string
     {
         $currentHost = self::getRawHost();
 
         // strip the port
         if (strpos($currentHost, ':') !== false) {
-            list($currentHost) = explode(':', $currentHost, 2);
+            [$currentHost] = explode(':', $currentHost, 2);
         }
 
         return $currentHost;
     }
 
-    /**
-     * @return null|int The port number used for the request
-     */
-    public static function getSelfPort()
+    public static function getSelfPort(): ?int
     {
         if (self::$port) {
             return self::$port;
@@ -452,7 +408,7 @@ class Utils
 
         // strip the port
         if (strpos($currentHost, ':') !== false) {
-            list(, $port) = explode(':', $currentHost, 2);
+            [, $port] = explode(':', $currentHost, 2);
             if (is_numeric($port)) {
                 return (int) $port;
             }
@@ -460,12 +416,7 @@ class Utils
         return null;
     }
 
-    /**
-     * Checks if https or http.
-     *
-     * @return bool $isHttps False if https is not active
-     */
-    public static function isHTTPS()
+    public static function isHTTPS(): bool
     {
         if (self::$protocol) {
             return self::$protocol === "https";
@@ -484,19 +435,13 @@ class Utils
 
     /**
      * Returns the URL of the current host + current view.
-     *
-     * @return string
      */
-    public static function getSelfURLNoQuery()
+    public static function getSelfURLNoQuery(): string
     {
-        $selfURLNoQuery = self::getSelfURLhost();
-
         $infoWithBaseURLPath = self::buildWithBaseURLPath($_SERVER['SCRIPT_NAME']);
-        if (!empty($infoWithBaseURLPath)) {
-            $selfURLNoQuery .= $infoWithBaseURLPath;
-        } else {
-            $selfURLNoQuery .= $_SERVER['SCRIPT_NAME'];
-        }
+        $selfURLNoQuery = self::getSelfURLhost() . (
+            !empty($infoWithBaseURLPath) ? $infoWithBaseURLPath : $_SERVER['SCRIPT_NAME']
+        );
 
         if (isset($_SERVER['PATH_INFO'])) {
             $selfURLNoQuery .= $_SERVER['PATH_INFO'];
@@ -507,10 +452,8 @@ class Utils
 
     /**
      * Returns the routed URL of the current host + current view.
-     *
-     * @return string
      */
-    public static function getSelfRoutedURLNoQuery()
+    public static function getSelfRoutedURLNoQuery(): string
     {
         $route = '';
 
@@ -534,10 +477,8 @@ class Utils
 
     /**
      * Returns the URL of the current host + current view + query.
-     *
-     * @return string
      */
-    public static function getSelfURL()
+    public static function getSelfURL(): string
     {
         $requestURI = '';
         if (!empty($_SERVER['REQUEST_URI'])) {
@@ -560,10 +501,8 @@ class Utils
      * Returns the part of the URL with the BaseURLPath.
      *
      * @param string $info Contains path info
-     *
-     * @return string
      */
-    protected static function buildWithBaseURLPath($info)
+    protected static function buildWithBaseURLPath($info): string
     {
         $result = '';
         $baseURLPath = self::getBaseURLPath();
@@ -584,15 +523,14 @@ class Utils
      * Extract a query param - as it was sent - from $_SERVER[QUERY_STRING]
      *
      * @param string $name The param to-be extracted
-     *
-     * @return string
      */
-    public static function extractOriginalQueryParam($name)
+    public static function extractOriginalQueryParam($name): string
     {
-        $index = strpos($_SERVER['QUERY_STRING'], $name . '=');
-        $substring = substr($_SERVER['QUERY_STRING'], $index + strlen($name) + 1);
-        $end = strpos($substring, '&');
-        return $end ? substr($substring, 0, strpos($substring, '&')) : $substring;
+        $substring = substr(
+            $_SERVER['QUERY_STRING'],
+            strpos($_SERVER['QUERY_STRING'], $name . '=') + strlen($name) + 1
+        );
+        return strpos($substring, '&') ? substr($substring, 0, strpos($substring, '&')) : $substring;
     }
 
     public static function generateUniqueID(): string
@@ -603,15 +541,10 @@ class Utils
     /**
      * Converts a UNIX timestamp to SAML2 timestamp on the form
      * yyyy-mm-ddThh:mm:ss(\.s+)?Z.
-     *
-     * @param string|int $time The time we should convert (DateTime).
-     *
-     * @return string $timestamp SAML2 timestamp.
      */
-    public static function parseTime2SAML($time)
+    public static function parseTime2SAML(int $time): string
     {
-        $date = new \DateTime("@$time", new \DateTimeZone('UTC'));
-        return $date->format("Y-m-d\TH:i:s\Z");
+        return (new DateTime("@$time", new DateTimeZone('UTC')))->format("Y-m-d\TH:i:s\Z");
     }
 
     /**
@@ -624,133 +557,26 @@ class Utils
      */
     public static function parseSAML2Time($time): int
     {
-        $matches = [];
-
-        /* We use a very strict regex to parse the timestamp. */
-        if (preg_match('/^(\\d\\d\\d\\d)-(\\d\\d)-(\\d\\d)T(\\d\\d):(\\d\\d):(\\d\\d)(?:\\.\\d+)?Z$/D', $time, $matches) === 0) {
-            throw new Exception(
-                'Invalid SAML2 timestamp passed to' .
-                ' parseSAML2Time: ' . $time
-            );
-        }
-
-        /* We use gmmktime because the timestamp will always be given
-         * in UTC.
-         */
-        return gmmktime((int) $matches[4], (int) $matches[5], (int) $matches[6], (int) $matches[2], (int) $matches[3], (int) $matches[1]);
-    }
-
-
-    /**
-     * Interprets a ISO8601 duration value relative to a given timestamp.
-     *
-     * @param string   $duration  The duration, as a string.
-     * @param int|null $timestamp The unix timestamp we should apply the
-     *                            duration to. Optional, default to the
-     *                            current time.
-     *
-     * @throws Exception
-     */
-    public static function parseDuration(string $duration, ?int $timestamp = null): int
-    {
-        $matches = [];
-
-        /* Parse the duration. We use a very strict pattern. */
-        if (!preg_match('#^(-?)P(?:(?:(?:(\\d+)Y)?(?:(\\d+)M)?(?:(\\d+)D)?(?:T(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?)?)|(?:(\\d+)W))$#D', $duration, $matches)) {
-            throw new Exception('Invalid ISO 8601 duration: ' . $duration);
-        }
-
-        $durYears = (empty($matches[2]) ? 0 : (int) $matches[2]);
-        $durMonths = (empty($matches[3]) ? 0 : (int) $matches[3]);
-        $durDays = (empty($matches[4]) ? 0 : (int) $matches[4]);
-        $durHours = (empty($matches[5]) ? 0 : (int) $matches[5]);
-        $durMinutes = (empty($matches[6]) ? 0 : (int) $matches[6]);
-        $durSeconds = (empty($matches[7]) ? 0 : (int) $matches[7]);
-        $durWeeks = (empty($matches[8]) ? 0 : (int) $matches[8]);
-
-        if (!empty($matches[1])) {
-            /* Negative */
-            $durYears = -$durYears;
-            $durMonths = -$durMonths;
-            $durDays = -$durDays;
-            $durHours = -$durHours;
-            $durMinutes = -$durMinutes;
-            $durSeconds = -$durSeconds;
-            $durWeeks = -$durWeeks;
-        }
-
-        if ($timestamp === null) {
-            $timestamp = time();
-        }
-
-        if ($durYears !== 0 || $durMonths !== 0) {
-            /* Special handling of months and years, since they aren't a specific interval, but
-             * instead depend on the current time.
-             */
-
-            /* We need the year and month from the timestamp. Unfortunately, PHP doesn't have the
-             * gmtime function. Instead we use the gmdate function, and split the result.
-             */
-            $yearmonth = explode(':', gmdate('Y:n', $timestamp));
-            $year = (int) $yearmonth[0];
-            $month = (int) $yearmonth[1];
-
-            /* Remove the year and month from the timestamp. */
-            $timestamp -= gmmktime(0, 0, 0, $month, 1, $year);
-
-            /* Add years and months, and normalize the numbers afterwards. */
-            $year += $durYears;
-            $month += $durMonths;
-            while ($month > 12) {
-                $year += 1;
-                $month -= 12;
-            }
-            while ($month < 1) {
-                $year -= 1;
-                $month += 12;
-            }
-
-            /* Add year and month back into timestamp. */
-            $timestamp += gmmktime(0, 0, 0, $month, 1, $year);
-        }
-
-        /* Add the other elements. */
-        $timestamp += $durWeeks * 7 * 24 * 60 * 60;
-        $timestamp += $durDays * 24 * 60 * 60;
-        $timestamp += $durHours * 60 * 60;
-        $timestamp += $durMinutes * 60;
-        $timestamp += $durSeconds;
-
-        return $timestamp;
+        return (int) (new DateTime($time))->format("U");
     }
 
     /**
      * Compares 2 dates and returns the earliest.
      *
-     * @param string|null     $cacheDuration The duration, as a string.
-     * @param string|int|null $validUntil    The valid until date, as a string or as a timestamp
-     *
-     * @return int|null $expireTime  The expiration time.
-     *
      * @throws Exception
      */
-    public static function getExpireTime($cacheDuration = null, $validUntil = null)
+    public static function getExpireTime(?string $cacheDuration = null, ?int $validUntil = null): ?int
     {
         $expireTime = null;
 
         if ($cacheDuration !== null) {
-            $expireTime = self::parseDuration($cacheDuration, time());
+            $now = new DateTime();
+            $now->add(new DateInterval($cacheDuration));
+            $expireTime = (int) $now->format("U");
         }
 
-        if ($validUntil !== null) {
-            if (is_int($validUntil)) {
-                $validUntilTime = $validUntil;
-            } else {
-                $validUntilTime = self::parseSAML2Time($validUntil);
-            }
-            if ($expireTime === null || $expireTime > $validUntilTime) {
-                $expireTime = $validUntilTime;
-            }
+        if ($validUntil !== null && ($expireTime === null || $expireTime > $validUntil)) {
+            return $validUntil;
         }
 
         return $expireTime;
@@ -794,7 +620,7 @@ class Utils
         $inData = false;
 
         foreach (explode("\n", $x509cert) as $curData) {
-            if (! $inData) {
+            if (!$inData) {
                 if (strncmp($curData, '-----BEGIN CERTIFICATE', 22) === 0) {
                     $inData = true;
                 } elseif ((strncmp($curData, '-----BEGIN PUBLIC KEY', 21) === 0) || (strncmp($curData, '-----BEGIN RSA PRIVATE KEY', 26) === 0)) {
@@ -819,7 +645,7 @@ class Utils
             case 'sha512':
             case 'sha384':
             case 'sha256':
-                $fingerprint = hash($alg, $decodedData, false);
+                $fingerprint = hash($alg, $decodedData);
                 break;
             case 'sha1':
             default:
@@ -835,39 +661,34 @@ class Utils
     }
 
     /**
-     * Generates a nameID.
-     *
-     * @param string      $value  fingerprint
-     * @param ?string     $spnq   SP Name Qualifier
-     * @param string|null $format SP Format
-     * @param string|null $cert   IdP Public cert to encrypt the nameID
-     * @param string|null $nq     IdP Name Qualifier
-     *
-     * @return string $nameIDElement DOMElement | XMLSec nameID
-     *
      * @throws Exception
      */
-    public static function generateNameId(string $value, ?string $spnq, ?string $format = null, ?string $cert = null, ?string $nq = null)
-    {
+    public static function generateNameId(
+        string $fingerprint,
+        ?string $spNameQualifier,
+        ?string $spFormat = null,
+        ?string $idpPublicCert = null,
+        ?string $idpNameQualifier = null
+    ): string {
         $doc = new DOMDocument();
 
         $nameId = $doc->createElement('saml:NameID');
-        if (isset($spnq)) {
-            $nameId->setAttribute('SPNameQualifier', $spnq);
+        if ($spNameQualifier !== null) {
+            $nameId->setAttribute('SPNameQualifier', $spNameQualifier);
         }
-        if (isset($nq)) {
-            $nameId->setAttribute('NameQualifier', $nq);
+        if ($idpNameQualifier !== null) {
+            $nameId->setAttribute('NameQualifier', $idpNameQualifier);
         }
-        if (isset($format)) {
-            $nameId->setAttribute('Format', $format);
+        if ($spFormat !== null) {
+            $nameId->setAttribute('Format', $spFormat);
         }
-        $nameId->appendChild($doc->createTextNode($value));
+        $nameId->appendChild($doc->createTextNode($fingerprint));
 
         $doc->appendChild($nameId);
 
-        if (!empty($cert)) {
+        if (!empty($idpPublicCert)) {
             $seckey = new XMLSecurityKey(XMLSecurityKey::RSA_1_5, ['type' => 'public']);
-            $seckey->loadKey($cert);
+            $seckey->loadKey($idpPublicCert);
 
             $enc = new XMLSecEnc();
             $enc->setNode($nameId);
@@ -944,8 +765,11 @@ class Utils
     /**
      * @throws ValidationError
      */
-    public static function decryptElement(DOMElement $encryptedData, XMLSecurityKey $inputKey, bool $formatOutput = true): DOMElement
-    {
+    public static function decryptElement(
+        DOMElement $encryptedData,
+        XMLSecurityKey $inputKey,
+        bool $formatOutput = true
+    ): DOMElement {
         $enc = new XMLSecEnc();
 
         $enc->setNode($encryptedData);
@@ -1052,36 +876,6 @@ class Utils
         return $decryptedElement;
     }
 
-    /**
-     * Converts a XMLSecurityKey to the correct algorithm.
-     *
-     * @throws Exception
-     */
-    public static function castKey(XMLSecurityKey $key, string $algorithm, string $type = 'public'): XMLSecurityKey
-    {
-        assert($type === 'public' || $type === 'private');
-
-        // do nothing if algorithm is already the type of the key
-        if ($key->type === $algorithm) {
-            return $key;
-        }
-
-        if (!self::isSupportedSigningAlgorithm($algorithm)) {
-            throw new Exception('Unsupported signing algorithm.');
-        }
-
-        $keyInfo = openssl_pkey_get_details($key->key);
-        if ($keyInfo === false) {
-            throw new Exception('Unable to get key details from XMLSecurityKey.');
-        }
-        if (!isset($keyInfo['key'])) {
-            throw new Exception('Missing key in public key details.');
-        }
-        $newKey = new XMLSecurityKey($algorithm, ['type' => $type]);
-        $newKey->loadKey($keyInfo['key']);
-        return $newKey;
-    }
-
     private static function isSupportedSigningAlgorithm(string $algorithm): bool
     {
         switch ($algorithm) {
@@ -1116,7 +910,7 @@ class Utils
 
         /* Load the private key. */
         $objKey = new XMLSecurityKey($signAlgorithm, ['type' => 'private']);
-        $objKey->loadKey($key, false);
+        $objKey->loadKey($key);
 
         /* Get the EntityDescriptor node we should sign. */
         $rootNode = $dom->firstChild;
@@ -1136,7 +930,7 @@ class Utils
         $objXMLSecDSig->sign($objKey);
 
         /* Add the certificate to the signature. */
-        $objXMLSecDSig->add509Cert($cert, true);
+        $objXMLSecDSig->add509Cert($cert);
 
         $insertBefore = $rootNode->firstChild;
         if (in_array($rootNode->localName, ['AuthnRequest', 'Response', 'LogoutRequest', 'LogoutResponse'])) {
@@ -1159,16 +953,20 @@ class Utils
      * @param string|\DomNode   $xml            The element we should validate
      * @param string|null       $cert           The pubic cert
      * @param string|null       $fingerprint    The fingerprint of the public cert
-     * @param string|null       $fingerprintalg The algorithm used to get the fingerprint
+     * @param string            $fingerprintalg The algorithm used to get the fingerprint
      * @param string|null       $xpath          The xpath of the signed element
      * @param array|null        $multiCerts     Multiple public certs
      *
-     * @return bool
-     *
      * @throws Exception
      */
-    public static function validateSign($xml, ?string $cert = null, ?string $fingerprint = null, $fingerprintalg = 'sha1', ?string $xpath = null, ?array $multiCerts = null)
-    {
+    public static function validateSign(
+        $xml,
+        ?string $cert,
+        ?string $fingerprint = null,
+        string $fingerprintalg = 'sha1',
+        ?string $xpath = null,
+        ?array $multiCerts = null
+    ): bool {
         if ($xml instanceof DOMDocument) {
             $dom = clone $xml;
         } elseif ($xml instanceof DOMElement) {
@@ -1222,20 +1020,18 @@ class Utils
             $multiCerts = [$cert];
         }
 
-        foreach ($multiCerts as $cert) {
-            if (!empty($cert)) {
-                $objKey->loadKey($cert, false, true);
+        foreach ($multiCerts as $certificate) {
+            if (!empty($certificate)) {
+                $objKey->loadKey($certificate, false, true);
                 if ($objXMLSecDSig->verify($objKey) === 1) {
                     return true;
                 }
-            } else {
-                if (!empty($fingerprint)) {
-                    $domCert = $objKey->getX509Certificate();
-                    if (self::formatFingerPrint($fingerprint) === self::calculateX509Fingerprint($domCert, $fingerprintalg)) {
-                        $objKey->loadKey($domCert, false, true);
-                        if ($objXMLSecDSig->verify($objKey) === 1) {
-                            return true;
-                        }
+            } elseif (!empty($fingerprint)) {
+                $domCert = $objKey->getX509Certificate();
+                if (self::formatFingerPrint($fingerprint) === self::calculateX509Fingerprint($domCert, $fingerprintalg)) {
+                    $objKey->loadKey($domCert, false, true);
+                    if ($objXMLSecDSig->verify($objKey) === 1) {
+                        return true;
                     }
                 }
             }
@@ -1244,19 +1040,14 @@ class Utils
     }
 
     /**
-     * Validates a binary signature
-     *
-     * @param string $messageType                    Type of SAML Message
-     * @param array  $getData                        HTTP GET array
-     * @param array  $idpData                        IdP setting data
-     * @param bool   $retrieveParametersFromServer   Indicates where to get the values in order to validate the Sign, from getData or from $_SERVER
-     *
-     * @return bool
-     *
      * @throws Exception
      */
-    public static function validateBinarySign(string $messageType, array $getData, array $idpData, bool $retrieveParametersFromServer = false)
-    {
+    public static function validateBinarySign(
+        string $messageType,
+        array $getData,
+        array $idpData,
+        bool $retrieveParametersFromServer = false
+    ): bool {
         $signAlg = $getData['SigAlg'] ?? XMLSecurityKey::RSA_SHA1;
 
         if ($retrieveParametersFromServer) {
@@ -1291,7 +1082,22 @@ class Utils
 
             if ($signAlg !== XMLSecurityKey::RSA_SHA1) {
                 try {
-                    $objKey = self::castKey($objKey, $signAlg, 'public');
+                    // do nothing if algorithm is already the type of the key
+                    if ($objKey->type !== $signAlg) {
+                        if (!self::isSupportedSigningAlgorithm($signAlg)) {
+                            throw new Exception('Unsupported signing algorithm.');
+                        }
+
+                        $keyInfo = openssl_pkey_get_details($objKey->key);
+                        if ($keyInfo === false) {
+                            throw new Exception('Unable to get key details from XMLSecurityKey.');
+                        }
+                        if (!isset($keyInfo['key'])) {
+                            throw new Exception('Missing key in public key details.');
+                        }
+                        $objKey = new XMLSecurityKey($signAlg, ['type' => "public"]);
+                        $objKey->loadKey($keyInfo['key']);
+                    }
                 } catch (Exception $e) {
                     if (count($multiCerts) === 1) {
                         throw new ValidationError(

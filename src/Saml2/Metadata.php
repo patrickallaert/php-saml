@@ -9,24 +9,29 @@ use RobRichards\XMLSecLibs\XMLSecurityKey;
 
 class Metadata
 {
-    const TIME_VALID = 172800;  // 2 days
-    const TIME_CACHED = 604800; // 1 week
+    public const TIME_VALID = 172800;  // 2 days
+    private const TIME_CACHED = 604800; // 1 week
 
     /**
      * Generates the metadata of the SP based on the settings
      *
-     * @param array         $sp            The SP data
-     * @param bool          $authnsign     authnRequestsSigned attribute
-     * @param bool          $wsign         wantAssertionsSigned attribute
-     * @param int|null      $validUntil    Metadata's valid time
-     * @param int|null      $cacheDuration Duration of the cache in seconds
-     * @param array         $contacts      Contacts info
-     * @param array         $organization  Organization ingo
-     *
-     * @return string SAML Metadata XML
+     * @param array    $sp            The SP data
+     * @param bool     $authnsign     authnRequestsSigned attribute
+     * @param bool     $wsign         wantAssertionsSigned attribute
+     * @param int|null $validUntil    Metadata's valid time
+     * @param int|null $cacheDuration Duration of the cache in seconds
+     * @param array    $contacts      Contacts info
+     * @param array    $organization  Organization ingo
      */
-    public static function builder(array $sp, bool $authnsign = false, bool $wsign = false, ?int $validUntil = null, ?int $cacheDuration = null, array $contacts = [], array $organization = [])
-    {
+    public static function builder(
+        array $sp,
+        bool $authnsign = false,
+        bool $wsign = false,
+        ?int $validUntil = null,
+        ?int $cacheDuration = null,
+        array $contacts = [],
+        array $organization = []
+    ): string {
         if (!isset($validUntil)) {
             $validUntil =  time() + self::TIME_VALID;
         }
@@ -47,18 +52,8 @@ class Metadata
 SLS_TEMPLATE;
         }
 
-        if ($authnsign) {
-            $strAuthnsign = 'true';
-        } else {
-            $strAuthnsign = 'false';
-        }
-
-        if ($wsign) {
-            $strWsign = 'true';
-        } else {
-            $strWsign = 'false';
-        }
-
+        $strAuthnsign = $authnsign ? 'true' : 'false';
+        $strWsign = $wsign ? 'true' : 'false';
         $strOrganization = '';
 
         if (!empty($organization)) {
@@ -76,7 +71,9 @@ ORGANIZATION_DISPLAY;
        <md:OrganizationURL xml:lang="{$lang}">{$info['url']}</md:OrganizationURL>
 ORGANIZATION_URL;
             }
-            $orgData = implode("\n", $organizationInfoNames) . "\n" . implode("\n", $organizationInfoDisplaynames) . "\n" . implode("\n", $organizationInfoUrls);
+            $orgData = implode("\n", $organizationInfoNames) . "\n" .
+                implode("\n", $organizationInfoDisplaynames) . "\n" .
+                implode("\n", $organizationInfoUrls);
             $strOrganization = <<<ORGANIZATIONSTR
 
     <md:Organization>
@@ -103,10 +100,7 @@ CONTACT;
         if (isset($sp['attributeConsumingService'])) {
             $attrCsDesc = '';
             if (isset($sp['attributeConsumingService']['serviceDescription'])) {
-                $attrCsDesc = sprintf(
-                    '            <md:ServiceDescription xml:lang="en">%s</md:ServiceDescription>' . PHP_EOL,
-                    $sp['attributeConsumingService']['serviceDescription']
-                );
+                $attrCsDesc = " <md:ServiceDescription xml:lang=\"en\">{$sp['attributeConsumingService']['serviceDescription']}</md:ServiceDescription>\n";
             }
             if (!isset($sp['attributeConsumingService']['serviceName'])) {
                 $sp['attributeConsumingService']['serviceName'] = 'Service';
@@ -116,15 +110,15 @@ CONTACT;
             }
             $requestedAttributeData = [];
             foreach ($sp['attributeConsumingService']['requestedAttributes'] as $attribute) {
-                $requestedAttributeStr = sprintf('            <md:RequestedAttribute Name="%s"', $attribute['name']);
+                $requestedAttributeStr = "<md:RequestedAttribute Name=\"$attribute[name]\"";
                 if (isset($attribute['nameFormat'])) {
-                    $requestedAttributeStr .= sprintf(' NameFormat="%s"', $attribute['nameFormat']);
+                    $requestedAttributeStr .= " NameFormat=\"$attribute[nameFormat]\"";
                 }
                 if (isset($attribute['friendlyName'])) {
-                    $requestedAttributeStr .= sprintf(' FriendlyName="%s"', $attribute['friendlyName']);
+                    $requestedAttributeStr .= " FriendlyName=\"$attribute[friendlyName]\"";
                 }
                 if (isset($attribute['isRequired'])) {
-                    $requestedAttributeStr .= sprintf(' isRequired="%s"', $attribute['isRequired'] === true ? 'true' : 'false');
+                    $requestedAttributeStr .= ' isRequired="' . ($attribute['isRequired'] === true ? 'true' : 'false') . '"';
                 }
                 $reqAttrAuxStr = " />";
 
@@ -135,7 +129,6 @@ CONTACT;
                     }
                     foreach ($attribute['attributeValue'] as $attrValue) {
                         $reqAttrAuxStr .= <<<ATTRIBUTEVALUE
-
                 <saml:AttributeValue xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">{$attrValue}</saml:AttributeValue>
 ATTRIBUTEVALUE;
                     }
@@ -156,13 +149,14 @@ METADATA_TEMPLATE;
 
         $spEntityId = htmlspecialchars($sp['entityId'], ENT_QUOTES);
         $acsUrl = htmlspecialchars($sp['assertionConsumerService']['url'], ENT_QUOTES);
-        $metadata = <<<METADATA_TEMPLATE
+        return <<<METADATA_TEMPLATE
 <?xml version="1.0"?>
 <md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata"
                      validUntil="{$validUntilTime}"
                      cacheDuration="PT{$cacheDuration}S"
                      entityID="{$spEntityId}">
-    <md:SPSSODescriptor AuthnRequestsSigned="{$strAuthnsign}" WantAssertionsSigned="{$strWsign}" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+    <md:SPSSODescriptor AuthnRequestsSigned="{$strAuthnsign}" WantAssertionsSigned="{$strWsign}"
+    protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
 {$sls}        <md:NameIDFormat>{$sp['NameIDFormat']}</md:NameIDFormat>
         <md:AssertionConsumerService Binding="{$sp['assertionConsumerService']['binding']}"
                                      Location="{$acsUrl}"
@@ -171,13 +165,10 @@ METADATA_TEMPLATE;
     </md:SPSSODescriptor>{$strOrganization}{$strContacts}
 </md:EntityDescriptor>
 METADATA_TEMPLATE;
-        return $metadata;
     }
 
     /**
      * Signs the metadata with the key/cert provided
-     *
-     * @return string Signed Metadata
      *
      * @throws Exception
      */
@@ -198,11 +189,9 @@ METADATA_TEMPLATE;
      * @param string $metadata       SAML Metadata XML
      * @param string $cert           x509 cert
      *
-     * @return string Metadata with KeyDescriptors
-     *
      * @throws Exception
      */
-    public static function addX509KeyDescriptors(string $metadata, string $cert, bool $wantsEncrypted = true)
+    public static function addX509KeyDescriptors(string $metadata, string $cert, bool $wantsEncrypted = true): string
     {
         $xml = new DOMDocument();
         $xml->preserveWhiteSpace = false;

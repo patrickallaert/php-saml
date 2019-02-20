@@ -17,6 +17,8 @@ class Response
 {
     // Value added to the current time in time condition validations
     private const ALLOWED_CLOCK_DRIFT = 180;  // 3 min in seconds
+    private const RESPONSE_SIGNATURE_XPATH = "/samlp:Response/ds:Signature";
+    private const ASSERTION_SIGNATURE_XPATH = "/samlp:Response/saml:Assertion/ds:Signature";
 
     /**
      * Settings
@@ -352,7 +354,8 @@ class Response
             }
 
             // If find a Signature on the Response, validates it checking the original response
-            if ($hasSignedResponse && !Utils::validateSign($this->document, $cert, $fingerprint, $fingerprintalg, Utils::RESPONSE_SIGNATURE_XPATH, $multiCerts)) {
+            if ($hasSignedResponse &&
+                !Utils::validateSign($this->document, $cert, $fingerprint, $fingerprintalg, self::RESPONSE_SIGNATURE_XPATH, $multiCerts)) {
                 throw new ValidationError(
                     "Signature validation failed. SAML Response rejected",
                     ValidationError::INVALID_SIGNATURE
@@ -366,7 +369,7 @@ class Response
                     $cert,
                     $fingerprint,
                     $fingerprintalg,
-                    Utils::ASSERTION_SIGNATURE_XPATH,
+                    self::ASSERTION_SIGNATURE_XPATH,
                     $multiCerts
                 )
             ) {
@@ -683,7 +686,8 @@ class Response
      */
     private function validateNumAssertions(): bool
     {
-        $valid = $this->document->getElementsByTagName('Assertion')->length + $this->document->getElementsByTagName('EncryptedAssertion')->length === 1;
+        $valid = $this->document->getElementsByTagName('Assertion')->length +
+            $this->document->getElementsByTagName('EncryptedAssertion')->length === 1;
 
         if ($this->encrypted) {
             return $valid && $this->decryptedDocument->getElementsByTagName('Assertion')->length === 1;
@@ -830,7 +834,7 @@ class Response
 
         // Check that the signed elements found here, are the ones that will be verified
         // by Utils->validateSign()
-        if (in_array($responseTag, $signedElements) && Utils::query($this->document, Utils::RESPONSE_SIGNATURE_XPATH)->length !== 1) {
+        if (in_array($responseTag, $signedElements) && Utils::query($this->document, self::RESPONSE_SIGNATURE_XPATH)->length !== 1) {
             throw new ValidationError(
                 "Unexpected number of Response signatures found. SAML Response rejected.",
                 ValidationError::WRONG_NUMBER_OF_SIGNATURES_IN_RESPONSE
@@ -838,7 +842,7 @@ class Response
         }
 
         if (in_array($assertionTag, $signedElements) &&
-            Utils::query($this->encrypted ? $this->decryptedDocument : $this->document, Utils::ASSERTION_SIGNATURE_XPATH)->length !== 1
+            Utils::query($this->encrypted ? $this->decryptedDocument : $this->document, self::ASSERTION_SIGNATURE_XPATH)->length !== 1
         ) {
             throw new ValidationError(
                 "Unexpected number of Assertion signatures found. SAML Response rejected.",
