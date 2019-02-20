@@ -72,7 +72,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
     {
         $response = new LogoutResponse($this->settings, file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64'));
 
-        $this->assertEquals('http://idp.example.com/', $response->getIssuer($response));
+        $this->assertEquals('http://idp.example.com/', $response->getIssuer());
     }
 
     /**
