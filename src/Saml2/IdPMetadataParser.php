@@ -216,27 +216,4 @@ class IdPMetadataParser
 
         return $metadataInfo;
     }
-
-    /**
-     * Inject metadata info into php-saml settings array
-     *
-     * @param array $settings     php-saml settings array
-     * @param array $metadataInfo array metadata info
-     *
-     * @return array settings
-     */
-    public static function injectIntoSettings($settings, $metadataInfo)
-    {
-        if (isset($metadataInfo['idp']) && isset($settings['idp'])) {
-            if (isset($metadataInfo['idp']['x509certMulti']) && !empty($metadataInfo['idp']['x509certMulti']) && isset($settings['idp']['x509cert'])) {
-                unset($settings['idp']['x509cert']);
-            }
-
-            if (isset($metadataInfo['idp']['x509cert']) && !empty($metadataInfo['idp']['x509cert']) && isset($settings['idp']['x509certMulti'])) {
-                unset($settings['idp']['x509certMulti']);
-            }
-        }
-
-        return array_replace_recursive($settings, $metadataInfo);
-    }
 }

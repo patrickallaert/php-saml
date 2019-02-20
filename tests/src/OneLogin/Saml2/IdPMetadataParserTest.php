@@ -346,42 +346,4 @@ class IdPMetadataParserTest extends \PHPUnit\Framework\TestCase
             IdPMetadataParser::parseFileXML(TEST_ROOT . '/data/metadata/idp/idp_metadata_different_sign_and_encrypt_cert.xml')
         );
     }
-
-    /**
-     * @covers OneLogin\Saml2\IdPMetadataParser::injectIntoSettings
-     */
-    public function testInjectIntoSettings()
-    {
-        include TEST_ROOT . '/settings/settings7.php';
-
-        $newSettings = IdPMetadataParser::injectIntoSettings($settingsInfo, IdPMetadataParser::parseXML(file_get_contents(TEST_ROOT . '/data/metadata/idp/FederationMetadata.xml')));
-
-        $this->assertNotEquals($newSettings, $settingsInfo);
-        $this->assertEquals(
-            [
-                'sp' => [
-                    'entityId' => 'http://stuff.com/endpoints/metadata.php',
-                    'assertionConsumerService' => ['url' => 'http://stuff.com/endpoints/endpoints/acs.php'],
-                    'singleLogoutService' => ['url' => 'http://stuff.com/endpoints/endpoints/sls.php'],
-                    "NameIDFormat" => Constants::NAMEID_EMAIL_ADDRESS,
-                ],
-                'idp' => [
-                    'entityId' => 'http://idp.adfs.example.com/adfs/services/trust',
-                    'singleSignOnService' => [
-                        'url' => 'https://idp.adfs.example.com/adfs/ls/',
-                        "binding" => Constants::BINDING_HTTP_REDIRECT,
-                    ],
-                    'singleLogoutService' => [
-                        'url' => 'https://idp.adfs.example.com/adfs/ls/',
-                        "binding" => Constants::BINDING_HTTP_REDIRECT,
-                    ],
-                    'x509certMulti' => [
-                        'signing' => [0 => 'MIIC9jCCAd6gAwIBAgIQI/B8CLE676pCR2/QaKih9TANBgkqhkiG9w0BAQsFADA3MTUwMwYDVQQDEyxBREZTIFNpZ25pbmcgLSBsb2dpbnRlc3Qub3dlbnNib3JvaGVhbHRoLm9yZzAeFw0xNjEwMjUxNjI4MzhaFw0xNzEwMjUxNjI4MzhaMDcxNTAzBgNVBAMTLEFERlMgU2lnbmluZyAtIGxvZ2ludGVzdC5vd2Vuc2Jvcm9oZWFsdGgub3JnMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAjikmKRRVD5oK3fxm0xNfDqvWCujZIhtv2zeIwmoRKUAjo6KeUhauII4BHh5DclmbOFD4ruli3sNWGKgqVCX1AFW/p3m3/FtzeumFeZSmyfqeJEeOqAK5jAom/MfXxaQ85QHlGa0BTtdWdCuxhJz5G797o4s1Me/8QOQdmbkkwOHOVXRDW0QxBXvsRB1jPpIO+JvNcWFpvJrELccD0Fws91LH42j2C4gDNR8JLu5LrUGL6zAIq8NM7wfbwoax9n/0tIZKa6lo6szpXGqiMrDBJPpAqC5MSePyp5/SEX6jxwodQUGRgI5bKILQwOWDrkgfsK1MIeHfovtyqnDZj8e9VwIDAQABMA0GCSqGSIb3DQEBCwUAA4IBAQBKbK4qu7WTLYeQW7OcFAeWcT5D7ujo61QtPf+6eY8hpNntN8yF71vGm+5zdOjmw18igxUrf3W7dLk2wAogXK196WX34x9muorwmFK/HqmKuy0kWWzGcNzZHb0o4Md2Ux7QQVoHqD6dUSqUisOBs34ZPgT5R42LepJTGDEZSkvOxUv9V6fY5dYk8UaWbZ7MQAFi1CnOyybq2nVNjpuxWyJ6SsHQYKRhXa7XGurXFB2mlgcjVj9jxW0gO7djkgRD68b6PNpQmJkbKnkCtJg9YsSeOmuUjwgh4DlcIo5jZocKd5bnLbQ9XKJ3YQHRxFoZbP3BXKrfhVV3vqqzRxMwjZmK'],
-                        'encryption' => [0 => 'MIICZDCCAc2gAwIBAgIBADANBgkqhkiG9w0BAQ0FADBPMQswCQYDVQQGEwJ1czEUMBIGA1UECAwLZXhhbXBsZS5jb20xFDASBgNVBAoMC2V4YW1wbGUuY29tMRQwEgYDVQQDDAtleGFtcGxlLmNvbTAeFw0xNzA0MTUxMjI3NTFaFw0yNzA0MTMxMjI3NTFaME8xCzAJBgNVBAYTAnVzMRQwEgYDVQQIDAtleGFtcGxlLmNvbTEUMBIGA1UECgwLZXhhbXBsZS5jb20xFDASBgNVBAMMC2V4YW1wbGUuY29tMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCYtEZ7hGZiNp+NecbcQXosYl8TzVOdL44b3Nl+BxL26Bvnt8YNnE63xiQzo7xDdO6+1MWWO26mMxwMpooTToOJgrot9YhlIX1VHIUPbOEGczSmXzCCmMhS26vR/leoLNah8QqCF1UdCoNQejb0fDCy+Q1yEdMXYkBWsFGfDSHSSQIDAQABo1AwTjAdBgNVHQ4EFgQUT1g33aGN0f6BJPgpYbr1pHrMZrYwHwYDVR0jBBgwFoAUT1g33aGN0f6BJPgpYbr1pHrMZrYwDAYDVR0TBAUwAwEB/zANBgkqhkiG9w0BAQ0FAAOBgQB6233Ic9bb6OCMT6hE1mRzhoP+AbixeojtUuM1IUG4JI5YUGsjsym96VBw+/ciwDLuxNYg6ZWu++WxWNwF3LwVRZGQ8bDdxYldm6VorvIbps2tzyT5N32xgMAgzy/3SZf6YOihdotXJd5AZNVp/razVO17WrjsFvldAlKtk0SM7w=='],
-                    ],
-                ],
-            ],
-            $newSettings
-        );
-    }
 }
