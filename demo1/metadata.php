@@ -9,7 +9,7 @@ require_once __DIR__ . "/../vendor/autoload.php";
 use OneLogin\Saml2\Error;
 use OneLogin\Saml2\Settings;
 
-require_once 'settings.php' ;
+$settingsInfo = require 'settings.php';
 
 try {
     // $auth = new OneLogin\Saml2\Auth($settingsInfo);

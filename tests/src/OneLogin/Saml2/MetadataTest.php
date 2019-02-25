@@ -7,8 +7,6 @@ use Exception;
 use OneLogin\Saml2\Metadata;
 use OneLogin\Saml2\Settings;
 use OneLogin\Saml2\Utils;
-use RobRichards\XMLSecLibs\XMLSecurityDSig;
-use RobRichards\XMLSecLibs\XMLSecurityKey;
 
 class MetadataTest extends \PHPUnit\Framework\TestCase
 {
@@ -17,9 +15,7 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
      */
     public function testBuilder()
     {
-        include TEST_ROOT . '/settings/settings1.php';
-
-        $settings = new Settings($settingsInfo);
+        $settings = new Settings(require TEST_ROOT . '/settings/settings1.php');
         $spData = $settings->getSPData();
         $security = $settings->getSecurityData();
         $metadata = Metadata::builder(
@@ -70,8 +66,7 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
      */
     public function testBuilderWithAttributeConsumingService()
     {
-        include TEST_ROOT . '/settings/settings3.php';
-        $settings = new Settings($settingsInfo);
+        $settings = new Settings(require TEST_ROOT . '/settings/settings3.php');
         $security = $settings->getSecurityData();
         $metadata = Metadata::builder(
             $settings->getSPData(),
@@ -98,8 +93,7 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
      */
     public function testBuilderWithAttributeConsumingServiceWithMultipleAttributeValue()
     {
-        include TEST_ROOT . '/settings/settings4.php';
-        $settings = new Settings($settingsInfo);
+        $settings = new Settings(require TEST_ROOT . '/settings/settings4.php');
         $security = $settings->getSecurityData();
         $metadata = Metadata::builder(
             $settings->getSPData(),
@@ -127,9 +121,7 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
      */
     public function testAddX509KeyDescriptors()
     {
-        include TEST_ROOT . '/settings/settings1.php';
-
-        $settings = new Settings($settingsInfo);
+        $settings = new Settings(require TEST_ROOT . '/settings/settings1.php');
         $metadata = Metadata::builder($settings->getSPData());
 
         $this->assertNotContains('<md:KeyDescriptor use="signing"', $metadata);
@@ -170,9 +162,7 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
      */
     public function testAddX509KeyDescriptors2Times()
     {
-        include TEST_ROOT . '/settings/settings1.php';
-
-        $settings = new Settings($settingsInfo);
+        $settings = new Settings(require TEST_ROOT . '/settings/settings1.php');
         $spData = $settings->getSPData();
 
         $metadata = Metadata::builder($spData);

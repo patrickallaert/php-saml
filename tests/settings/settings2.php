@@ -2,7 +2,7 @@
 
 use OneLogin\Saml2\Constants;
 
-$settingsInfo = [
+return [
     'strict' => false,
     'sp' => [
         'entityId' => 'http://stuff.com/endpoints/metadata.php',
@@ -37,7 +37,6 @@ $settingsInfo = [
             'emailAddress' => 'support@example.com',
         ],
     ],
-
     'organization' => [
         'en-US' => [
             'name' => 'sp_test',

@@ -11,9 +11,7 @@ require_once __DIR__ . "/../vendor/autoload.php";
 use OneLogin\Saml2\Auth;
 use OneLogin\Saml2\Utils;
 
-require_once 'settings.php';
-
-$auth = new Auth($settingsInfo);
+$auth = new Auth(require 'settings.php');
 
 if (isset($_GET['sso'])) {
     $auth->login();

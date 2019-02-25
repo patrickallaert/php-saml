@@ -14,9 +14,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
 
     public function setUp()
     {
-        include TEST_ROOT . '/settings/settings1.php';
-
-        $this->settings = new Settings($settingsInfo);
+        $this->settings = new Settings(require TEST_ROOT . '/settings/settings1.php');
     }
 
     /**
@@ -167,7 +165,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function testIsInValidWrongXML()
     {
-        include TEST_ROOT . '/settings/settings1.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
 
         $settingsInfo['security']['wantXMLValidation'] = false;
 
@@ -284,7 +282,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
         $this->assertFalse($response8->isValid());
         $this->assertEquals('Invalid signAlg in the received Logout Response', $response8->getErrorException()->getMessage());
 
-        include TEST_ROOT . '/settings/settings1.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
         $settingsInfo['strict'] = true;
         $settingsInfo['security']['wantMessagesSigned'] = true;
 
@@ -331,7 +329,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
             'Signature' => 'OV9c4R0COSjN69fAKCpV7Uj/yx6/KFxvbluVCzdK3UuortpNMpgHFF2wYNlMSG9GcYGk6p3I8nB7Z+1TQchMWZOlO/StjAqgtZhtpiwPcWryNuq8vm/6hnJ3zMDhHTS7F8KG4qkCXmJ9sQD3Y31UNcuygBwIbNakvhDT5Qo9Nsw=',
         ];
 
-        include TEST_ROOT . '/settings/settings6.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings6.php';
         $settingsInfo['strict'] = true;
         $settingsInfo['security']['wantMessagesSigned'] = true;
         $settings = new Settings($settingsInfo);
@@ -377,14 +375,12 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
     public function testWeCanChooseToCompressAResponse()
     {
         //Test that we can compress.
-        include TEST_ROOT . '/settings/settings1.php';
-
         $this->assertRegExp(
             '#^<samlp:LogoutResponse#',
             gzinflate(
                 base64_decode(
                     (new LogoutResponse(
-                        new Settings($settingsInfo),
+                        new Settings(require TEST_ROOT . '/settings/settings1.php'),
                         file_get_contents(
                             TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64'
                         )
@@ -403,13 +399,11 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
     public function testWeCanChooseNotToCompressAResponse()
     {
         //Test that we can choose not to compress the request payload.
-        include TEST_ROOT . '/settings/settings2.php';
-
         $this->assertRegExp(
             '#^<samlp:LogoutResponse#',
             base64_decode(
                 (new LogoutResponse(
-                    new Settings($settingsInfo),
+                    new Settings(require TEST_ROOT . '/settings/settings2.php'),
                     file_get_contents(
                         TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64'
                     )
@@ -430,15 +424,11 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
             TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64'
         );
 
-        include TEST_ROOT . '/settings/settings1.php';
-
-        $this->assertRegExp('#^<samlp:LogoutResponse#', base64_decode((new LogoutResponse(new Settings($settingsInfo), $message))->getResponse(false)));
-
-        include TEST_ROOT . '/settings/settings2.php';
+        $this->assertRegExp('#^<samlp:LogoutResponse#', base64_decode((new LogoutResponse(new Settings(require TEST_ROOT . '/settings/settings1.php'), $message))->getResponse(false)));
 
         $this->assertRegExp(
             '#^<samlp:LogoutResponse#',
-            gzinflate(base64_decode((new LogoutResponse(new Settings($settingsInfo), $message))->getResponse(true)))
+            gzinflate(base64_decode((new LogoutResponse(new Settings(require TEST_ROOT . '/settings/settings2.php'), $message))->getResponse(true)))
         );
     }
 
@@ -449,9 +439,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetID()
     {
-        include TEST_ROOT . '/settings/settings1.php';
-
-        $logoutResponse = new LogoutResponse(new Settings($settingsInfo));
+        $logoutResponse = new LogoutResponse(new Settings(require TEST_ROOT . '/settings/settings1.php'));
         $logoutResponse->build('jhgvsadja');
 
         $this->assertStringStartsWith("ONELOGIN_", $logoutResponse->id);
@@ -467,7 +455,6 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetIDException()
     {
-        include TEST_ROOT . '/settings/settings1.php';
-        new LogoutResponse(new Settings($settingsInfo), '<garbage>');
+        new LogoutResponse(new Settings(require TEST_ROOT . '/settings/settings1.php'), '<garbage>');
     }
 }

@@ -15,9 +15,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
 
     public function setUp()
     {
-        include TEST_ROOT . '/settings/settings1.php';
-
-        $this->settings = new Settings($settingsInfo);
+        $this->settings = new Settings(require TEST_ROOT . '/settings/settings1.php');
     }
 
     /**
@@ -116,7 +114,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
             $this->assertContains('NameID not found in the assertion of the Response', $e->getMessage());
         }
 
-        include TEST_ROOT . '/settings/settings1.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
 
         $settingsInfo['security']['wantNameId'] = true;
 
@@ -301,7 +299,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
             $this->assertContains('NameID not found in the assertion of the Response', $e->getMessage());
         }
 
-        include TEST_ROOT . '/settings/settings1.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
 
         $settingsInfo['security']['wantNameId'] = true;
 
@@ -629,7 +627,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
 
     public function testDoesNotAllowSignatureWrappingAttack2()
     {
-        include TEST_ROOT . '/settings/settings1.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
 
         unset($settingsInfo['idp']['x509cert']);
         $settingsInfo['strict'] = false;
@@ -816,7 +814,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function testIsInValidWrongXML()
     {
-        include TEST_ROOT . '/settings/settings1.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
 
         $settingsInfo['security']['wantXMLValidation'] = false;
 
@@ -869,7 +867,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
         $this->assertFalse($response3->isValid());
         $this->assertSame('The response has an empty Destination value', $response3->getErrorException()->getMessage());
 
-        include TEST_ROOT . '/settings/settings1.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
         $settingsInfo['security']['relaxDestinationValidation'] = true;
         $this->assertTrue((new Response(new Settings($settingsInfo), $xml2))->isValid());
     }
@@ -1117,7 +1115,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
             )
         );
 
-        include TEST_ROOT . '/settings/settings1.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
 
         $settingsInfo['security']['wantAssertionsSigned'] = false;
         $response = new Response(new Settings($settingsInfo), $message);
@@ -1182,7 +1180,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
             )
         );
 
-        include TEST_ROOT . '/settings/settings1.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
 
         $settingsInfo['security']['wantAssertionsEncrypted'] = true;
         $response = new Response(new Settings($settingsInfo), $message);
@@ -1221,7 +1219,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function testIsInValidCert()
     {
-        include TEST_ROOT . '/settings/settings1.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
         $settingsInfo['idp']['x509cert'] = 'NotValidCert';
         $response = new Response(new Settings($settingsInfo), file_get_contents(TEST_ROOT . '/data/responses/valid_response.xml.base64'));
 
@@ -1236,7 +1234,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function testIsInValidCert2()
     {
-        include TEST_ROOT . '/settings/settings1.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
         $settingsInfo['idp']['x509cert'] = 'MIIENjCCAx6gAwIBAgIBATANBgkqhkiG9w0BAQUFADBvMQswCQYDVQQGEwJTRTEU MBIGA1UEChMLQWRkVHJ1c3QgQUIxJjAkBgNVBAsTHUFkZFRydXN0IEV4dGVybmFs IFRUUCBOZXR3b3JrMSIwIAYDVQQDExlBZGRUcnVzdCBFeHRlcm5hbCBDQSBSb290 MB4XDTAwMDUzMDEwNDgzOFoXDTIwMDUzMDEwNDgzOFowbzELMAkGA1UEBhMCU0Ux FDASBgNVBAoTC0FkZFRydXN0IEFCMSYwJAYDVQQLEx1BZGRUcnVzdCBFeHRlcm5h bCBUVFAgTmV0d29yazEiMCAGA1UEAxMZQWRkVHJ1c3QgRXh0ZXJuYWwgQ0EgUm9v dDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALf3GjPm8gAELTngTlvt H7xsD821+iO2zt6bETOXpClMfZOfvUq8k+0DGuOPz+VtUFrWlymUWoCwSXrbLpX9 uMq/NzgtHj6RQa1wVsfwTz/oMp50ysiQVOnGXw94nZpAPA6sYapeFI+eh6FqUNzX mk6vBbOmcZSccbNQYArHE504B4YCqOmoaSYYkKtMsE8jqzpPhNjfzp/haW+710LX a0Tkx63ubUFfclpxCDezeWWkWaCUN/cALw3CknLa0Dhy2xSoRcRdKn23tNbE7qzN E0S3ySvdQwAl+mG5aWpYIxG3pzOPVnVZ9c0p10a3CitlttNCbxWyuHv77+ldU9U0 WicCAwEAAaOB3DCB2TAdBgNVHQ4EFgQUrb2YejS0Jvf6xCZU7wO94CTLVBowCwYD VR0PBAQDAgEGMA8GA1UdEwEB/wQFMAMBAf8wgZkGA1UdIwSBkTCBjoAUrb2YejS0 Jvf6xCZU7wO94CTLVBqhc6RxMG8xCzAJBgNVBAYTAlNFMRQwEgYDVQQKEwtBZGRU cnVzdCBBQjEmMCQGA1UECxMdQWRkVHJ1c3QgRXh0ZXJuYWwgVFRQIE5ldHdvcmsx IjAgBgNVBAMTGUFkZFRydXN0IEV4dGVybmFsIENBIFJvb3SCAQEwDQYJKoZIhvcN AQEFBQADggEBALCb4IUlwtYj4g+WBpKdQZic2YR5gdkeWxQHIzZlj7DYd7usQWxH YINRsPkyPef89iYTx4AWpb9a/IfPeHmJIZriTAcKhjW88t5RxNKWt9x+Tu5w/Rw5 6wwCURQtjr0W4MHfRnXnJK3s9EK0hZNwEGe6nQY1ShjTK3rMUUKhemPR5ruhxSvC Nr4TDea9Y355e6cJDUCrat2PisP29owaQgVR1EX1n6diIWgVIEM8med8vSTYqZEX c4g/VhsxOBi0cQ+azcgOno4uG+GMmIPLHzHxREzGBHNJdmAPx/i9F4BrLunMTA5a mnkPIAou1Z5jJh5VkpTYghdae9C8x49OhgQ=';
         $response = new Response(new Settings($settingsInfo), file_get_contents(TEST_ROOT . '/data/responses/valid_response.xml.base64'));
 
@@ -1287,7 +1285,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function testIsValid2()
     {
-        include TEST_ROOT . '/settings/settings1.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
         $settingsInfo['idp']['certFingerprint'] = Utils::calculateX509Fingerprint(Utils::formatCert($settingsInfo['idp']['x509cert']));
         $settingsInfo['idp']['x509cert'] = null;
 
@@ -1313,7 +1311,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
             (new Response($this->settings, file_get_contents(TEST_ROOT . '/data/responses/signed_message_encrypted_assertion.xml.base64')))->isValid()
         );
 
-        include TEST_ROOT . '/settings/settings1.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
         $settingsInfo['strict'] = true;
         // In order to avoid the destination problem
         $response4 = new Response(
@@ -1372,7 +1370,7 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
 
     public function testIsValidSignWithEmptyReferenceURI()
     {
-        include TEST_ROOT . '/settings/settings1.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
 
         $settingsInfo['idp']['x509cert'] = 'MIICGzCCAYQCCQCNNcQXom32VDANBgkqhkiG9w0BAQUFADBSMQswCQYDVQQGEwJVUzELMAkGA1UECBMCSU4xFTATBgNVBAcTDEluZGlhbmFwb2xpczERMA8GA1UEChMIT25lTG9naW4xDDAKBgNVBAsTA0VuZzAeFw0xNDA0MjMxODQxMDFaFw0xNTA0MjMxODQxMDFaMFIxCzAJBgNVBAYTAlVTMQswCQYDVQQIEwJJTjEVMBMGA1UEBxMMSW5kaWFuYXBvbGlzMREwDwYDVQQKEwhPbmVMb2dpbjEMMAoGA1UECxMDRW5nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDo6m+QZvYQ/xL0ElLgupK1QDcYL4f5PckwsNgS9pUvV7fzTqCHk8ThLxTk42MQ2McJsOeUJVP728KhymjFCqxgP4VuwRk9rpAl0+mhy6MPdyjyA6G14jrDWS65ysLchK4t/vwpEDz0SQlEoG1kMzllSm7zZS3XregA7DjNaUYQqwIDAQABMA0GCSqGSIb3DQEBBQUAA4GBALM2vGCiQ/vm+a6v40+VX2zdqHA2Q/1vF1ibQzJ54MJCOVWvs+vQXfZFhdm0OPM2IrDU7oqvKPqP6xOAeJK6H0yP7M4YL3fatSvIYmmfyXC9kt3Svz/NyrHzPhUnJ0ye/sUSXxnzQxwcm/9PwAqrQaA3QpQkH57ybF/OoryPe+2h';
         $response = new Response(new Settings($settingsInfo), file_get_contents(TEST_ROOT . '/data/responses/response_without_reference_uri.xml.base64'));
@@ -1389,10 +1387,8 @@ class ResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function testIsValidSignUsingX509certMulti()
     {
-        include TEST_ROOT . '/settings/settings6.php';
-
         $this->assertTrue(
-            (new Response(new Settings($settingsInfo), base64_encode(file_get_contents(TEST_ROOT . '/data/responses/signed_message_response.xml'))))->isValid()
+            (new Response(new Settings(require TEST_ROOT . '/settings/settings6.php'), base64_encode(file_get_contents(TEST_ROOT . '/data/responses/signed_message_response.xml'))))->isValid()
         );
     }
 }

@@ -17,9 +17,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
 
     public function setUp()
     {
-        include TEST_ROOT . '/settings/settings1.php';
-
-        $this->settings = new Settings($settingsInfo);
+        $this->settings = new Settings(require TEST_ROOT . '/settings/settings1.php');
     }
 
     /**
@@ -27,7 +25,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testConstructor()
     {
-        include TEST_ROOT . '/settings/settings1.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
 
         $settingsInfo['security']['nameIdEncrypted'] = true;
 
@@ -49,14 +47,12 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testConstructorWithRequest()
     {
-        include TEST_ROOT . '/settings/settings1.php';
-
         $logoutUrl = Utils::redirect(
             'http://idp.example.com/SingleLogoutService.php',
             [
                 'SAMLRequest' => (
                     new LogoutRequest(
-                        new Settings($settingsInfo),
+                        new Settings(require TEST_ROOT . '/settings/settings1.php'),
                         file_get_contents(TEST_ROOT . '/data/logout_requests/logout_request_deflated.xml.base64')
                     )
                 )->getRequest(),
@@ -74,12 +70,10 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testConstructorWithSessionIndex()
     {
-        include TEST_ROOT . '/settings/settings1.php';
-
         $sessionIndex = '_51be37965feb5579d803141076936dc2e9d1d98ebf';
         $logoutUrl = Utils::redirect(
             'http://idp.example.com/SingleLogoutService.php',
-            ['SAMLRequest' => (new LogoutRequest(new Settings($settingsInfo), null, null, $sessionIndex))->getRequest()],
+            ['SAMLRequest' => (new LogoutRequest(new Settings(require TEST_ROOT . '/settings/settings1.php'), null, null, $sessionIndex))->getRequest()],
             true
         );
         $this->assertRegExp('#^http://idp\.example\.com\/SingleLogoutService\.php\?SAMLRequest=#', $logoutUrl);
@@ -98,17 +92,13 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testConstructorWithNameIdFormatOnParameter()
     {
-        include TEST_ROOT . '/settings/settings1.php';
-
         $nameId = 'test@example.com';
-        $settings = new Settings($settingsInfo);
-
         $logoutUrl = Utils::redirect(
             'http://idp.example.com/SingleLogoutService.php',
             [
                 'SAMLRequest' => (
                     new LogoutRequest(
-                        $settings,
+                        new Settings(require TEST_ROOT . '/settings/settings1.php'),
                         null,
                         $nameId,
                         null,
@@ -135,7 +125,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testConstructorWithNameIdFormatOnSettings()
     {
-        include TEST_ROOT . '/settings/settings1.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
         $nameId = 'test@example.com';
         $settingsInfo['sp']['NameIDFormat'] = Constants::NAMEID_TRANSIENT;
         $logoutUrl = Utils::redirect(
@@ -158,7 +148,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testConstructorWithoutNameIdFormat()
     {
-        include TEST_ROOT . '/settings/settings1.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
         $nameId = 'test@example.com';
         $settingsInfo['sp']['NameIDFormat'] = Constants::NAMEID_UNSPECIFIED;
         $logoutUrl = Utils::redirect(
@@ -180,7 +170,6 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testConstructorWithNameIdNameQualifier()
     {
-        include TEST_ROOT . '/settings/settings1.php';
         $nameId = 'test@example.com';
         $nameIdNameQualifier = 'https://test.example.com/saml/metadata';
         $logoutUrl = Utils::redirect(
@@ -188,7 +177,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
             [
                 'SAMLRequest' => (
                     new LogoutRequest(
-                        new Settings($settingsInfo),
+                        new Settings(require TEST_ROOT . '/settings/settings1.php'),
                         null,
                         $nameId,
                         null,
@@ -235,7 +224,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testConstructorEncryptIdUsingX509certMulti()
     {
-        include TEST_ROOT . '/settings/settings6.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings6.php';
 
         $settingsInfo['security']['nameIdEncrypted'] = true;
 
@@ -476,7 +465,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testIsInValidWrongXML()
     {
-        include TEST_ROOT . '/settings/settings1.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
 
         $settingsInfo['security']['wantXMLValidation'] = false;
 
@@ -580,9 +569,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     public function testWeCanChooseToCompressARequest()
     {
         //Test that we can compress.
-        include TEST_ROOT . '/settings/settings1.php';
-
-        $this->assertRegExp('#^<samlp:LogoutRequest#', gzinflate(base64_decode((new LogoutRequest(new Settings($settingsInfo)))->getRequest())));
+        $this->assertRegExp('#^<samlp:LogoutRequest#', gzinflate(base64_decode((new LogoutRequest(new Settings(require TEST_ROOT . '/settings/settings1.php')))->getRequest())));
     }
 
     /**
@@ -594,9 +581,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     public function testWeCanChooseNotToCompressARequest()
     {
         //Test that we can choose not to compress the request payload.
-        include TEST_ROOT . '/settings/settings2.php';
-
-        $this->assertRegExp('#^<samlp:LogoutRequest#', base64_decode((new LogoutRequest(new Settings($settingsInfo)))->getRequest()));
+        $this->assertRegExp('#^<samlp:LogoutRequest#', base64_decode((new LogoutRequest(new Settings(require TEST_ROOT . '/settings/settings2.php')))->getRequest()));
     }
 
     /**
@@ -609,16 +594,12 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     public function testWeCanChooseToDeflateARequestBody()
     {
         //Test that we can choose not to compress the request payload.
-        include TEST_ROOT . '/settings/settings1.php';
-
         //Compression is currently turned on in settings.
-        $this->assertRegExp('#^<samlp:LogoutRequest#', base64_decode((new LogoutRequest(new Settings($settingsInfo)))->getRequest(false)));
+        $this->assertRegExp('#^<samlp:LogoutRequest#', base64_decode((new LogoutRequest(new Settings(require TEST_ROOT . '/settings/settings1.php')))->getRequest(false)));
 
         //Test that we can choose not to compress the request payload.
-        include TEST_ROOT . '/settings/settings2.php';
-
         //Compression is currently turned off in settings.
-        $this->assertRegExp('#^<samlp:LogoutRequest#', gzinflate(base64_decode((new LogoutRequest(new Settings($settingsInfo)))->getRequest(true))));
+        $this->assertRegExp('#^<samlp:LogoutRequest#', gzinflate(base64_decode((new LogoutRequest(new Settings(require TEST_ROOT . '/settings/settings2.php')))->getRequest(true))));
     }
 
     /**
@@ -697,7 +678,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
         $this->assertFalse($logoutRequest5->isValid());
         $this->assertEquals('Invalid signAlg in the received Logout Request', $logoutRequest5->getErrorException()->getMessage());
 
-        include TEST_ROOT . '/settings/settings1.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
         $settingsInfo['strict'] = true;
         $settingsInfo['security']['wantMessagesSigned'] = true;
 
@@ -733,7 +714,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
             'Signature' => 'Ouxo9BV6zmq4yrgamT9EbSKy/UmvSxGS8z26lIMgKOEP4LFR/N23RftdANmo4HafrzSfA0YTXwhKDqbOByS0j+Ql8OdQOes7vGioSjo5qq/Bi+5i6jXwQfphnfcHAQiJL4gYVIifkhhHRWpvYeiysF1Y9J02me0izwazFmoRXr4=',
         ];
 
-        include TEST_ROOT . '/settings/settings6.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings6.php';
         $settingsInfo['strict'] = true;
         $settingsInfo['security']['wantMessagesSigned'] = true;
         $settings = new Settings($settingsInfo);
@@ -752,9 +733,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetXML()
     {
-        include TEST_ROOT . '/settings/settings1.php';
-
-        $settings = new Settings($settingsInfo);
+        $settings = new Settings(require TEST_ROOT . '/settings/settings1.php');
         $xml = (new LogoutRequest($settings))->getXML();
         $this->assertRegExp('#^<samlp:LogoutRequest#', $xml);
 
@@ -768,9 +747,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetID()
     {
-        include TEST_ROOT . '/settings/settings1.php';
-
-        $settings = new Settings($settingsInfo);
+        $settings = new Settings(require TEST_ROOT . '/settings/settings1.php');
         $xml = (new LogoutRequest($settings))->getXML();
         $id1 = LogoutRequest::getID($xml);
         $this->assertNotNull($id1);
@@ -788,7 +765,6 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetIDException()
     {
-        include TEST_ROOT . '/settings/settings1.php';
-        LogoutRequest::getID((new LogoutRequest(new Settings($settingsInfo)))->getXML() . '<garbage>');
+        LogoutRequest::getID((new LogoutRequest(new Settings(require TEST_ROOT . '/settings/settings1.php')))->getXML() . '<garbage>');
     }
 }

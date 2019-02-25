@@ -146,7 +146,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
      */
     public function testFormatCert()
     {
-        include TEST_ROOT . '/settings/settings2.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings2.php';
 
         $cert = $settingsInfo['idp']['x509cert'];
         $this->assertNotContains('-----BEGIN CERTIFICATE-----', $cert);
@@ -186,7 +186,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
      */
     public function testFormatPrivateKey()
     {
-        include TEST_ROOT . '/settings/settings2.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings2.php';
 
         $key = $settingsInfo['sp']['privateKey'];
 
@@ -705,7 +705,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
             )
         );
 
-        include TEST_ROOT . '/settings/settings1.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
 
         $this->assertContains(
             '<saml:EncryptedID><xenc:EncryptedData xmlns:xenc="http://www.w3.org/2001/04/xmlenc#" xmlns:dsig="http://www.w3.org/2000/09/xmldsig#" Type="http://www.w3.org/2001/04/xmlenc#Element"><xenc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes128-cbc"/><dsig:KeyInfo xmlns:dsig="http://www.w3.org/2000/09/xmldsig#"><xenc:EncryptedKey><xenc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#rsa-1_5"/><xenc:CipherData><xenc:CipherValue>',
@@ -749,7 +749,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
             )
         );
 
-        include TEST_ROOT . '/settings/settings1.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
 
         $this->assertContains(
             '<saml:EncryptedID><xenc:EncryptedData xmlns:xenc="http://www.w3.org/2001/04/xmlenc#" xmlns:dsig="http://www.w3.org/2000/09/xmldsig#" Type="http://www.w3.org/2001/04/xmlenc#Element"><xenc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes128-cbc"/><dsig:KeyInfo xmlns:dsig="http://www.w3.org/2000/09/xmldsig#"><xenc:EncryptedKey><xenc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#rsa-1_5"/><xenc:CipherData><xenc:CipherValue>',
@@ -799,7 +799,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
      */
     public function testCalculateX509Fingerprint()
     {
-        include TEST_ROOT . '/settings/settings1.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
 
         $certPath = (new Settings($settingsInfo))->getCertPath();
 
@@ -838,10 +838,8 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
      */
     public function testDecryptElement()
     {
-        include TEST_ROOT . '/settings/settings1.php';
-
         $seckey = new XMLSecurityKey(XMLSecurityKey::RSA_1_5, ['type' => 'private']);
-        $seckey->loadKey((new Settings($settingsInfo))->getSPkey());
+        $seckey->loadKey((new Settings(require TEST_ROOT . '/settings/settings1.php'))->getSPkey());
 
         $domNameIdEnc = new DOMDocument();
         $domNameIdEnc->loadXML(base64_decode(file_get_contents(TEST_ROOT . '/data/responses/response_encrypted_nameid.xml.base64')));
@@ -917,9 +915,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
      */
     public function testAddSign()
     {
-        include TEST_ROOT . '/settings/settings1.php';
-
-        $settings = new Settings($settingsInfo);
+        $settings = new Settings(require TEST_ROOT . '/settings/settings1.php');
         $key = $settings->getSPkey();
         $cert = $settings->getSPcert();
 
@@ -998,9 +994,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
      */
     public function testValidateSign()
     {
-        include TEST_ROOT . '/settings/settings1.php';
-
-        $idpData = (new Settings($settingsInfo))->getIdPData();
+        $idpData = (new Settings(require TEST_ROOT . '/settings/settings1.php'))->getIdPData();
         $cert = $idpData['x509cert'];
         $fingerprint = Utils::calculateX509Fingerprint($cert);
 

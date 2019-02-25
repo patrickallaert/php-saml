@@ -18,7 +18,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
      */
     public function testLoadSettingsFromArray()
     {
-        include TEST_ROOT . '/settings/settings1.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
 
         $settings = new Settings($settingsInfo);
 
@@ -39,9 +39,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
             $this->assertContains('Invalid array settings', $e->getMessage());
         }
 
-        include TEST_ROOT . '/settings/settings2.php';
-
-        $this->assertEmpty((new Settings($settingsInfo))->getErrors());
+        $this->assertEmpty((new Settings(require TEST_ROOT . '/settings/settings2.php'))->getErrors());
     }
 
     /**
@@ -97,15 +95,11 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
         //The default value should be true.
         $this->assertTrue((new Settings())->shouldCompressRequests());
 
-        include TEST_ROOT . '/settings/settings1.php';
-
         //settings1.php contains a true value for compress => requests.
-        $this->assertTrue((new Settings($settingsInfo))->shouldCompressRequests());
-
-        include TEST_ROOT . '/settings/settings2.php';
+        $this->assertTrue((new Settings(require TEST_ROOT . '/settings/settings1.php'))->shouldCompressRequests());
 
         //settings2 contains a false value for compress => requests.
-        $this->assertFalse((new Settings($settingsInfo))->shouldCompressRequests());
+        $this->assertFalse((new Settings(require TEST_ROOT . '/settings/settings2.php'))->shouldCompressRequests());
     }
 
     /**
@@ -118,15 +112,11 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
         //The default value should be true.
         $this->assertTrue((new Settings())->shouldCompressResponses());
 
-        include TEST_ROOT . '/settings/settings1.php';
-
         //settings1.php contains a true value for compress => responses.
-        $this->assertTrue((new Settings($settingsInfo))->shouldCompressResponses());
-
-        include TEST_ROOT . '/settings/settings2.php';
+        $this->assertTrue((new Settings(require TEST_ROOT . '/settings/settings1.php'))->shouldCompressResponses());
 
         //settings2 contains a false value for compress => responses.
-        $this->assertFalse((new Settings($settingsInfo))->shouldCompressResponses());
+        $this->assertFalse((new Settings(require TEST_ROOT . '/settings/settings2.php'))->shouldCompressResponses());
     }
 
     /**
@@ -137,12 +127,8 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
      */
     public function testNonArrayCompressionSettingsCauseSyntaxError($invalidValue)
     {
-        include TEST_ROOT . '/settings/settings1.php';
-
-        $settingsInfo['compress'] = $invalidValue;
-
         try {
-            new Settings($settingsInfo);
+            new Settings(["compress" => $invalidValue] + require TEST_ROOT . '/settings/settings1.php');
             $this->fail('Error was not raised');
         } catch (Error $e) {
             $this->assertSame("Invalid array settings: invalid_syntax", $e->getMessage());
@@ -164,25 +150,19 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
         $responsesIsInvalid = false;
 
         try {
-            include TEST_ROOT . '/settings/settings1.php';
-
-            $settingsInfo['compress']['requests'] = $invalidValue;
-            new Settings($settingsInfo);
+            new Settings(["compress" => ["requests" => $invalidValue]] + require TEST_ROOT . '/settings/settings1.php');
             $this->fail('Error was not raised');
         } catch (Error $e) {
             $this->assertSame("Invalid array settings: 'compress'=>'requests' values must be true or false.", $e->getMessage());
-             $requestsIsInvalid = true;
+            $requestsIsInvalid = true;
         }
 
         try {
-            include TEST_ROOT . '/settings/settings1.php';
-
-            $settingsInfo['compress']['responses'] = $invalidValue;
-            new Settings($settingsInfo);
+            new Settings(["compress" => ["responses" => $invalidValue]] + require TEST_ROOT . '/settings/settings1.php');
             $this->fail('Error was not raised');
         } catch (Error $e) {
             $this->assertSame("Invalid array settings: 'compress'=>'responses' values must be true or false.", $e->getMessage());
-             $responsesIsInvalid = true;
+            $responsesIsInvalid = true;
         }
 
         $this->assertTrue($requestsIsInvalid);
@@ -208,16 +188,13 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     {
         $settings = new Settings();
 
-        include TEST_ROOT . '/settings/settings2.php';
-
-        $settings2 = new Settings($settingsInfo);
+        $settings2 = new Settings(require TEST_ROOT . '/settings/settings2.php');
 
         $this->assertSame($settings2->getSPkey(), $settings->getSPkey());
         $this->assertSame($settings2->getSPcert(), $settings->getSPcert());
         $this->assertNull($settings2->getSPcertNew());
 
-        include TEST_ROOT . '/settings/settings5.php';
-        $settings3 = new Settings($settingsInfo);
+        $settings3 = new Settings(require TEST_ROOT . '/settings/settings5.php');
 
         $this->assertSame($settings3->getSPkey(), $settings->getSPkey());
         $this->assertSame($settings3->getSPcert(), $settings->getSPcert());
@@ -297,7 +274,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
             $this->assertContains('idp_cert_not_found_and_required', $e->getMessage());
         }
 
-        include TEST_ROOT . '/settings/settings1.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
 
         $settingsInfo['security']['signMetadata']['keyFileName'] = 'metadata.key';
         $settingsInfo['organization'] = [
@@ -329,9 +306,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetSPMetadata()
     {
-        include TEST_ROOT . '/settings/settings1.php';
-
-        $metadata = (new Settings($settingsInfo))->getSPMetadata();
+        $metadata = (new Settings(require TEST_ROOT . '/settings/settings1.php'))->getSPMetadata();
 
         $this->assertNotEmpty($metadata);
 
@@ -352,7 +327,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetSPMetadataWithX509CertNew($alwaysIncludeEncryption, $wantNameIdEncrypted, $wantAssertionsEncrypted, $expectEncryptionKeyDescriptor)
     {
-        include TEST_ROOT . '/settings/settings5.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings5.php';
         $settingsInfo['security']['wantNameIdEncrypted'] = $wantNameIdEncrypted;
         $settingsInfo['security']['wantAssertionsEncrypted'] = $wantAssertionsEncrypted;
         $metadata = (new Settings($settingsInfo))->getSPMetadata($alwaysIncludeEncryption);
@@ -423,9 +398,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetSPMetadataTiming()
     {
-        include TEST_ROOT . '/settings/settings1.php';
-
-        $settings = new Settings($settingsInfo);
+        $settings = new Settings(require TEST_ROOT . '/settings/settings1.php');
 
         $metadata = $settings->getSPMetadata();
         $this->assertContains('validUntil="' . gmdate('Y-m-d\TH:i:s\Z', time() + Metadata::TIME_VALID) . '"', $metadata);
@@ -444,7 +417,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetSPMetadataSigned()
     {
-        include TEST_ROOT . '/settings/settings1.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
 
         if (!isset($settingsInfo['security'])) {
             $settingsInfo['security'] = [];
@@ -469,7 +442,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
         $this->assertContains('<ds:Reference', $metadata);
         $this->assertContains('<ds:KeyInfo><ds:X509Data><ds:X509Certificate>', $metadata);
 
-        include TEST_ROOT . '/settings/settings2.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings2.php';
 
         if (!isset($settingsInfo['security'])) {
             $settingsInfo['security'] = [];
@@ -501,7 +474,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetSPMetadataSignedNoMetadataCert()
     {
-        include TEST_ROOT . '/settings/settings1.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
 
         if (!isset($settingsInfo['security'])) {
             $settingsInfo['security'] = [];
@@ -546,9 +519,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
      */
     public function testValidateMetadata()
     {
-        include TEST_ROOT . '/settings/settings1.php';
-
-        $settings = new Settings($settingsInfo);
+        $settings = new Settings(require TEST_ROOT . '/settings/settings1.php');
 
         $this->assertEmpty($settings->validateMetadata($settings->getSPMetadata()));
     }
@@ -560,9 +531,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
      */
     public function testValidateSignedMetadata()
     {
-        include TEST_ROOT . '/settings/settings1.php';
-
-        $this->assertEmpty((new Settings($settingsInfo))->validateMetadata(file_get_contents(TEST_ROOT . '/data/metadata/signed_metadata_settings1.xml')));
+        $this->assertEmpty((new Settings(require TEST_ROOT . '/settings/settings1.php'))->validateMetadata(file_get_contents(TEST_ROOT . '/data/metadata/signed_metadata_settings1.xml')));
     }
 
     /**
@@ -572,9 +541,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
      */
     public function testValidateMetadataExpired()
     {
-        include TEST_ROOT . '/settings/settings1.php';
-
-        $errors = (new Settings($settingsInfo))->validateMetadata(file_get_contents(TEST_ROOT . '/data/metadata/expired_metadata_settings1.xml'));
+        $errors = (new Settings(require TEST_ROOT . '/settings/settings1.php'))->validateMetadata(file_get_contents(TEST_ROOT . '/data/metadata/expired_metadata_settings1.xml'));
         $this->assertNotEmpty($errors);
         $this->assertContains('expired_xml', $errors);
     }
@@ -588,9 +555,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
      */
     public function testValidateMetadataNoXML()
     {
-        include TEST_ROOT . '/settings/settings1.php';
-
-        (new Settings($settingsInfo))->validateMetadata('');
+        (new Settings(require TEST_ROOT . '/settings/settings1.php'))->validateMetadata('');
     }
 
     /**
@@ -602,9 +567,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
      */
     public function testValidateMetadataInvalidXML()
     {
-        include TEST_ROOT . '/settings/settings1.php';
-
-        (new Settings($settingsInfo))->validateMetadata('<no xml>');
+        (new Settings(require TEST_ROOT . '/settings/settings1.php'))->validateMetadata('<no xml>');
     }
 
     /**
@@ -614,9 +577,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
      */
     public function testValidateMetadataNoEntity()
     {
-        include TEST_ROOT . '/settings/settings1.php';
-
-        $errors = (new Settings($settingsInfo))->validateMetadata(file_get_contents(TEST_ROOT . '/data/metadata/noentity_metadata_settings1.xml'));
+        $errors = (new Settings(require TEST_ROOT . '/settings/settings1.php'))->validateMetadata(file_get_contents(TEST_ROOT . '/data/metadata/noentity_metadata_settings1.xml'));
         $this->assertNotEmpty($errors);
         $this->assertContains('invalid_xml', $errors);
     }
@@ -628,9 +589,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
      */
     public function testValidateMetadataWrongOrder()
     {
-        include TEST_ROOT . '/settings/settings1.php';
-
-        $errors = (new Settings($settingsInfo))->validateMetadata(file_get_contents(TEST_ROOT . '/data/metadata/metadata_bad_order_settings1.xml'));
+        $errors = (new Settings(require TEST_ROOT . '/settings/settings1.php'))->validateMetadata(file_get_contents(TEST_ROOT . '/data/metadata/metadata_bad_order_settings1.xml'));
         $this->assertNotEmpty($errors);
         $this->assertContains('invalid_xml', $errors);
     }
@@ -641,9 +600,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetIdPData()
     {
-        include TEST_ROOT . '/settings/settings1.php';
-
-        $idpData = (new Settings($settingsInfo))->getIdPData();
+        $idpData = (new Settings(require TEST_ROOT . '/settings/settings1.php'))->getIdPData();
         $this->assertNotEmpty($idpData);
         $this->assertArrayHasKey('entityId', $idpData);
         $this->assertArrayHasKey('singleSignOnService', $idpData);
@@ -656,9 +613,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
         $formatedx509cert = Utils::formatCert('MIICgTCCAeoCCQCbOlrWDdX7FTANBgkqhkiG9w0BAQUFADCBhDELMAkGA1UEBhMCTk8xGDAWBgNVBAgTD0FuZHJlYXMgU29sYmVyZzEMMAoGA1UEBxMDRm9vMRAwDgYDVQQKEwdVTklORVRUMRgwFgYDVQQDEw9mZWlkZS5lcmxhbmcubm8xITAfBgkqhkiG9w0BCQEWEmFuZHJlYXNAdW5pbmV0dC5ubzAeFw0wNzA2MTUxMjAxMzVaFw0wNzA4MTQxMjAxMzVaMIGEMQswCQYDVQQGEwJOTzEYMBYGA1UECBMPQW5kcmVhcyBTb2xiZXJnMQwwCgYDVQQHEwNGb28xEDAOBgNVBAoTB1VOSU5FVFQxGDAWBgNVBAMTD2ZlaWRlLmVybGFuZy5ubzEhMB8GCSqGSIb3DQEJARYSYW5kcmVhc0B1bmluZXR0Lm5vMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDivbhR7P516x/S3BqKxupQe0LONoliupiBOesCO3SHbDrl3+q9IbfnfmE04rNuMcPsIxB161TdDpIesLCn7c8aPHISKOtPlAeTZSnb8QAu7aRjZq3+PbrP5uW3TcfCGPtKTytHOge/OlJbo078dVhXQ14d1EDwXJW1rRXuUt4C8QIDAQABMA0GCSqGSIb3DQEBBQUAA4GBACDVfp86HObqY+e8BUoWQ9+VMQx1ASDohBjwOsg2WykUqRXF+dLfcUH9dWR63CtZIKFDbStNomPnQz7nbK+onygwBspVEbnHuUihZq3ZUdmumQqCw4Uvs/1Uvq3orOo/WJVhTyvLgFVK2QarQ4/67OZfHd7R+POBXhophSMv1ZOo');
         $this->assertSame($formatedx509cert, $idpData['x509cert']);
 
-        include TEST_ROOT . '/settings/settings6.php';
-
-        $idpData2 = (new Settings($settingsInfo))->getIdPData();
+        $idpData2 = (new Settings(require TEST_ROOT . '/settings/settings6.php'))->getIdPData();
         $this->assertNotEmpty($idpData2);
         $this->assertArrayHasKey('x509certMulti', $idpData2);
         $this->assertArrayHasKey('signing', $idpData2['x509certMulti']);
@@ -674,9 +629,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetSPData()
     {
-        include TEST_ROOT . '/settings/settings1.php';
-
-        $spData = (new Settings($settingsInfo))->getSPData();
+        $spData = (new Settings(require TEST_ROOT . '/settings/settings1.php'))->getSPData();
         $this->assertNotEmpty($spData);
         $this->assertArrayHasKey('entityId', $spData);
         $this->assertArrayHasKey('assertionConsumerService', $spData);
@@ -694,9 +647,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetSecurityData()
     {
-        include TEST_ROOT . '/settings/settings1.php';
-
-        $security = (new Settings($settingsInfo))->getSecurityData();
+        $security = (new Settings(require TEST_ROOT . '/settings/settings1.php'))->getSecurityData();
         $this->assertNotEmpty($security);
         $this->assertArrayHasKey('nameIdEncrypted', $security);
         $this->assertArrayHasKey('authnRequestsSigned', $security);
@@ -719,7 +670,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetDefaultSecurityValues()
     {
-        include TEST_ROOT . '/settings/settings1.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
         unset($settingsInfo['security']);
 
         $security = (new Settings($settingsInfo))->getSecurityData();
@@ -767,9 +718,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetContacts()
     {
-        include TEST_ROOT . '/settings/settings1.php';
-
-        $contacts = (new Settings($settingsInfo))->getContacts();
+        $contacts = (new Settings(require TEST_ROOT . '/settings/settings1.php'))->getContacts();
         $this->assertNotEmpty($contacts);
         $this->assertSame('technical_name', $contacts['technical']['givenName']);
         $this->assertSame('technical@example.com', $contacts['technical']['emailAddress']);
@@ -782,9 +731,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetOrganization()
     {
-        include TEST_ROOT . '/settings/settings1.php';
-
-        $organization = (new Settings($settingsInfo))->getOrganization();
+        $organization = (new Settings(require TEST_ROOT . '/settings/settings1.php'))->getOrganization();
         $this->assertNotEmpty($organization);
         $this->assertSame('sp_test', $organization['en-US']['name']);
         $this->assertSame('SP test', $organization['en-US']['displayname']);
@@ -796,10 +743,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
      */
     public function testSetStrict()
     {
-        include TEST_ROOT . '/settings/settings1.php';
-        $settingsInfo['strict'] = false;
-
-        $settings = new Settings($settingsInfo);
+        $settings = new Settings(require TEST_ROOT . '/settings/settings1.php');
         $this->assertFalse($settings->isStrict());
 
         $settings->setStrict(true);
@@ -814,7 +758,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
      */
     public function testIsStrict()
     {
-        include TEST_ROOT . '/settings/settings1.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
         unset($settingsInfo['strict']);
 
         $this->assertFalse((new Settings($settingsInfo))->isStrict());

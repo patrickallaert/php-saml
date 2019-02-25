@@ -27,10 +27,8 @@ class AuthTest extends \PHPUnit\Framework\TestCase
 
     public function setUp()
     {
-        include TEST_ROOT . '/settings/settings1.php';
-
-        $this->settingsInfo = $settingsInfo;
-        $this->auth = new Auth($settingsInfo);
+        $this->settingsInfo = require TEST_ROOT . '/settings/settings1.php';
+        $this->auth = new Auth($this->settingsInfo);
     }
 
     /**
@@ -42,9 +40,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetSettings()
     {
-        include TEST_ROOT . '/settings/settings1.php';
-
-        $this->assertEquals($this->auth->getSettings(), new Settings($settingsInfo));
+        $this->assertEquals($this->auth->getSettings(), new Settings(require TEST_ROOT . '/settings/settings1.php'));
     }
 
     /**
@@ -768,7 +764,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testProcessSLORequestSignedResponse()
     {
-        include TEST_ROOT . '/settings/settings1.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
 
         $settingsInfo['security']['logoutResponseSigned'] = true;
 
@@ -906,7 +902,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testLoginSigned()
     {
-        include TEST_ROOT . '/settings/settings1.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
 
         $settingsInfo['security']['authnRequestsSigned'] = true;
 
@@ -941,7 +937,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testLoginForceAuthN()
     {
-        include TEST_ROOT . '/settings/settings1.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
 
         $settingsInfo['security']['authnRequestsSigned'] = true;
 
@@ -1003,7 +999,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testLoginIsPassive()
     {
-        include TEST_ROOT . '/settings/settings1.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
 
         $settingsInfo['security']['authnRequestsSigned'] = true;
 
@@ -1065,7 +1061,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testLoginNameIDPolicy()
     {
-        include TEST_ROOT . '/settings/settings1.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
 
         $auth = new Auth($settingsInfo);
 
@@ -1271,7 +1267,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testLogoutSigned()
     {
-        include TEST_ROOT . '/settings/settings1.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
 
         $settingsInfo['security']['logoutRequestSigned'] = true;
 
@@ -1303,7 +1299,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testLogoutNoSLO()
     {
-        include TEST_ROOT . '/settings/settings1.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
 
         unset($settingsInfo['idp']['singleLogoutService']);
 
@@ -1322,7 +1318,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      */
     public function testSetStrict()
     {
-        include TEST_ROOT . '/settings/settings1.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
         $settingsInfo['strict'] = false;
 
         $auth = new Auth($settingsInfo);
@@ -1391,7 +1387,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
         // NotOnOrAfter is calculated with strict = true
         // If invalid, response id and assertion id are not obtained
 
-        include TEST_ROOT . '/settings/settings1.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
 
         $settingsInfo['strict'] = true;
         $auth = new Auth($settingsInfo);

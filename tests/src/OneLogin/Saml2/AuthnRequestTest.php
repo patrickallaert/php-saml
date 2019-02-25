@@ -13,9 +13,7 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
 
     public function setUp()
     {
-        include TEST_ROOT . '/settings/settings1.php';
-
-        $this->settings = new Settings($settingsInfo);
+        $this->settings = new Settings(require TEST_ROOT . '/settings/settings1.php');
     }
 
     /**
@@ -39,7 +37,7 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testAuthNContext()
     {
-        include TEST_ROOT . '/settings/settings1.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
 
         $request = gzinflate(base64_decode((new AuthnRequest(new Settings($settingsInfo)))->getRequest()));
         $this->assertContains('<samlp:RequestedAuthnContext Comparison="exact">', $request);
@@ -80,9 +78,7 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testForceAuthN()
     {
-        include TEST_ROOT . '/settings/settings1.php';
-
-        $settings = new Settings($settingsInfo);
+        $settings = new Settings(require TEST_ROOT . '/settings/settings1.php');
         $this->assertNotContains('ForceAuthn="true"', gzinflate(base64_decode((new AuthnRequest($settings))->getRequest())));
         $this->assertNotContains('ForceAuthn="true"', gzinflate(base64_decode((new AuthnRequest($settings, false, false))->getRequest())));
         $this->assertContains('ForceAuthn="true"', gzinflate(base64_decode((new AuthnRequest($settings, true, false))->getRequest())));
@@ -95,9 +91,7 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testIsPassive()
     {
-        include TEST_ROOT . '/settings/settings1.php';
-
-        $settings = new Settings($settingsInfo);
+        $settings = new Settings(require TEST_ROOT . '/settings/settings1.php');
         $this->assertNotContains('IsPassive="true"', gzinflate(base64_decode((new AuthnRequest($settings))->getRequest())));
         $this->assertNotContains('IsPassive="true"', gzinflate(base64_decode((new AuthnRequest($settings, false, false))->getRequest())));
         $this->assertContains('IsPassive="true"', gzinflate(base64_decode((new AuthnRequest($settings, false, true))->getRequest())));
@@ -110,9 +104,7 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testNameIDPolicy()
     {
-        include TEST_ROOT . '/settings/settings1.php';
-
-        $settings = new Settings($settingsInfo);
+        $settings = new Settings(require TEST_ROOT . '/settings/settings1.php');
         $this->assertNotContains('<samlp:NameIDPolicy', gzinflate(base64_decode((new AuthnRequest($settings, false, false, false))->getRequest())));
         $this->assertContains('<samlp:NameIDPolicy', gzinflate(base64_decode((new AuthnRequest($settings, false, false, true))->getRequest())));
         $this->assertContains('<samlp:NameIDPolicy', gzinflate(base64_decode((new AuthnRequest($settings))->getRequest())));
@@ -125,7 +117,7 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
      */
     public function testCreateEncSAMLRequest()
     {
-        include TEST_ROOT . '/settings/settings1.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
 
         $settingsInfo['organization'] = [
             'es' => [
@@ -161,9 +153,7 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
     public function testWeCanChooseToCompressARequest()
     {
         //Test that we can compress.
-        include TEST_ROOT . '/settings/settings1.php';
-
-        $this->assertRegExp('#^<samlp:AuthnRequest#', gzinflate(base64_decode((new AuthnRequest(new Settings($settingsInfo)))->getRequest())));
+        $this->assertRegExp('#^<samlp:AuthnRequest#', gzinflate(base64_decode((new AuthnRequest(new Settings(require TEST_ROOT . '/settings/settings1.php')))->getRequest())));
     }
 
     /**
@@ -175,9 +165,7 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
     public function testWeCanChooseNotToCompressARequest()
     {
         //Test that we can choose not to compress the request payload.
-        include TEST_ROOT . '/settings/settings2.php';
-
-        $this->assertRegExp('#^<samlp:AuthnRequest#', base64_decode((new AuthnRequest(new Settings($settingsInfo)))->getRequest()));
+        $this->assertRegExp('#^<samlp:AuthnRequest#', base64_decode((new AuthnRequest(new Settings(require TEST_ROOT . '/settings/settings2.php')))->getRequest()));
     }
 
     /**
@@ -190,15 +178,11 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
     public function testWeCanChooseToDeflateARequestBody()
     {
         //Test that we can choose not to compress the request payload.
-        include TEST_ROOT . '/settings/settings1.php';
-
         //Compression is currently turned on in settings.
-        $this->assertRegExp('#^<samlp:AuthnRequest#', base64_decode((new AuthnRequest(new Settings($settingsInfo)))->getRequest(false)));
+        $this->assertRegExp('#^<samlp:AuthnRequest#', base64_decode((new AuthnRequest(new Settings(require TEST_ROOT . '/settings/settings1.php')))->getRequest(false)));
 
         //Test that we can choose not to compress the request payload.
-        include TEST_ROOT . '/settings/settings2.php';
-
         //Compression is currently turned off in settings.
-        $this->assertRegExp('#^<samlp:AuthnRequest#', gzinflate(base64_decode((new AuthnRequest(new Settings($settingsInfo)))->getRequest(true))));
+        $this->assertRegExp('#^<samlp:AuthnRequest#', gzinflate(base64_decode((new AuthnRequest(new Settings(require TEST_ROOT . '/settings/settings2.php')))->getRequest(true))));
     }
 }

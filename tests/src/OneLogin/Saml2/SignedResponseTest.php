@@ -14,13 +14,11 @@ class SignedResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function testResponseSignedAssertionNot()
     {
-        include TEST_ROOT . '/settings/settings1.php';
-
         // The Response is signed, the Assertion is not
         $this->assertEquals(
             'someone@example.org',
             (new Response(
-                new Settings($settingsInfo),
+                new Settings(require TEST_ROOT . '/settings/settings1.php'),
                 base64_encode(file_get_contents(TEST_ROOT . '/data/responses/open_saml_response.xml'))
             ))->getNameId()
         );
@@ -33,7 +31,7 @@ class SignedResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function testResponseAndAssertionSigned()
     {
-        include TEST_ROOT . '/settings/settings1.php';
+        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
 
         $settingsInfo['idp']['entityId'] = "https://federate.example.net/saml/saml2/idp/metadata.php";
         $settingsInfo['sp']['entityId'] = "hello.com";
