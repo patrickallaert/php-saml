@@ -175,7 +175,7 @@ LOGOUTREQUEST;
     /**
      * Gets the NameID Data of the the Logout Request.
      *
-     * @return array{Value:string,?Format:string,?NameQualifier:string,?SPNameQualifier:string}
+     * @return array{Value:string,Format?:string,NameQualifier?:string,SPNameQualifier?:string}
      *
      * @throws Error
      * @throws Exception
@@ -183,12 +183,8 @@ LOGOUTREQUEST;
      */
     public static function getNameIdData(string $request, ?string $key = null): array
     {
-        if ($request instanceof DOMDocument) {
-            $dom = $request;
-        } else {
-            $dom = new DOMDocument();
-            Utils::loadXML($dom, $request);
-        }
+        $dom = new DOMDocument();
+        Utils::loadXML($dom, $request);
 
         $encryptedEntries = Utils::query($dom, '/samlp:LogoutRequest/saml:EncryptedID');
 

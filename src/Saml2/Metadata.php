@@ -168,21 +168,6 @@ METADATA_TEMPLATE;
     }
 
     /**
-     * Signs the metadata with the key/cert provided
-     *
-     * @throws Exception
-     */
-    public static function signMetadata(
-        string $metadata,
-        string $key,
-        string $cert,
-        string $signAlgorithm = XMLSecurityKey::RSA_SHA256,
-        string $digestAlgorithm = XMLSecurityDSig::SHA256
-    ): string {
-        return Utils::addSign($metadata, $key, $cert, $signAlgorithm, $digestAlgorithm);
-    }
-
-    /**
      * Adds the x509 descriptors (sign/encryption) to the metadata
      * The same cert will be used for sign/encrypt
      *

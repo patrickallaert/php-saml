@@ -159,7 +159,6 @@ class IdPMetadataParser
                 }
 
                 $metadataInfo['idp']['x509certMulti'] = [];
-                $idpInfo['x509certMulti']['signing'] = [];
                 foreach (Utils::query(
                     $dom,
                     './md:KeyDescriptor[not(contains(@use, "encryption"))]/ds:KeyInfo/ds:X509Data/ds:X509Certificate',
@@ -167,7 +166,6 @@ class IdPMetadataParser
                 ) as $keyDescriptorCertSigningNode) {
                     $metadataInfo['idp']['x509certMulti']['signing'][] = Utils::formatCert($keyDescriptorCertSigningNode->nodeValue, false);
                 }
-                $idpInfo['x509certMulti']['encryption'] = [];
 
                 foreach (Utils::query(
                     $dom,

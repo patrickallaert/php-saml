@@ -344,7 +344,7 @@ class Utils
         return self::$baseurlpath;
     }
 
-    protected static function getRawHost(): string
+    private static function getRawHost(): string
     {
         if (self::$host) {
             return self::$host;
@@ -502,7 +502,7 @@ class Utils
      *
      * @param string $info Contains path info
      */
-    protected static function buildWithBaseURLPath($info): string
+    private static function buildWithBaseURLPath(string $info): string
     {
         $result = '';
         $baseURLPath = self::getBaseURLPath();
@@ -521,10 +521,8 @@ class Utils
 
     /**
      * Extract a query param - as it was sent - from $_SERVER[QUERY_STRING]
-     *
-     * @param string $name The param to-be extracted
      */
-    public static function extractOriginalQueryParam($name): string
+    private static function extractOriginalQueryParam(string $name): string
     {
         $substring = substr(
             $_SERVER['QUERY_STRING'],
@@ -600,14 +598,9 @@ class Utils
         return isset($context) ? $xpath->query($query, $context) : $xpath->query($query);
     }
 
-    public static function isSessionStarted(): bool
-    {
-        return session_status() === PHP_SESSION_ACTIVE;
-    }
-
     public static function deleteLocalSession(): void
     {
-        if (self::isSessionStarted()) {
+        if (session_status() === PHP_SESSION_ACTIVE) {
             session_destroy();
         }
 
@@ -899,14 +892,10 @@ class Utils
         string $xml,
         string $key,
         string $cert,
-        string $signAlgorithm = XMLSecurityKey::RSA_SHA256,
-        string $digestAlgorithm = XMLSecurityDSig::SHA256
+        string $signAlgorithm,
+        string $digestAlgorithm
     ): string {
-        if ($xml instanceof DOMDocument) {
-            $dom = $xml;
-        } else {
-            self::loadXML($dom = new DOMDocument(), $xml);
-        }
+        self::loadXML($dom = new DOMDocument(), $xml);
 
         /* Load the private key. */
         $objKey = new XMLSecurityKey($signAlgorithm, ['type' => 'private']);
@@ -951,41 +940,28 @@ class Utils
      * Validates a signature (Message or Assertion).
      *
      * @param string|\DomNode   $xml            The element we should validate
-     * @param string|null       $cert           The pubic cert
+     * @param string|null       $cert           The public cert
      * @param string|null       $fingerprint    The fingerprint of the public cert
      * @param string            $fingerprintalg The algorithm used to get the fingerprint
-     * @param string|null       $xpath          The xpath of the signed element
+     * @param string            $xpath          The xpath of the signed element
      * @param array|null        $multiCerts     Multiple public certs
      *
      * @throws Exception
      */
     public static function validateSign(
-        $xml,
+        DOMDocument $xml,
         ?string $cert,
-        ?string $fingerprint = null,
-        string $fingerprintalg = 'sha1',
-        ?string $xpath = null,
-        ?array $multiCerts = null
+        ?string $fingerprint,
+        string $fingerprintalg,
+        string $xpath,
+        ?array $multiCerts
     ): bool {
-        if ($xml instanceof DOMDocument) {
-            $dom = clone $xml;
-        } elseif ($xml instanceof DOMElement) {
-            $dom = clone $xml->ownerDocument;
-        } else {
-            self::loadXML($dom = new DOMDocument(), $xml);
-        }
-
         $objXMLSecDSig = new XMLSecurityDSig();
         $objXMLSecDSig->idKeys = ['ID'];
 
-        if ($xpath) {
-            $objDSig = self::query($dom, $xpath)->item(0);
-            $objXMLSecDSig->sigNode = $objDSig;
-        } else {
-            $objDSig = $objXMLSecDSig->locateSignature($dom);
-        }
+        $objXMLSecDSig->sigNode = self::query(clone $xml, $xpath)->item(0);
 
-        if (!$objDSig) {
+        if (!$objXMLSecDSig->sigNode) {
             throw new Exception('Cannot locate Signature Node');
         }
 
@@ -1006,7 +982,7 @@ class Utils
             throw $e;
         }
 
-        XMLSecEnc::staticLocateKeyInfo($objKey, $objDSig);
+        XMLSecEnc::staticLocateKeyInfo($objKey, $objXMLSecDSig->sigNode);
 
         if (!empty($multiCerts)) {
             // If multiple certs are provided, I may ignore $cert and
@@ -1046,7 +1022,7 @@ class Utils
         string $messageType,
         array $getData,
         array $idpData,
-        bool $retrieveParametersFromServer = false
+        bool $retrieveParametersFromServer
     ): bool {
         $signAlg = $getData['SigAlg'] ?? XMLSecurityKey::RSA_SHA1;
 

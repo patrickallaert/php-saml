@@ -795,26 +795,6 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Utils::isSessionStarted
-     */
-    public function testisSessionStarted()
-    {
-        if (getenv("TRAVIS")) {
-            // Can't test that on TRAVIS
-            $this->markTestSkipped("Can't test that on TRAVIS");
-        } else {
-            $this->assertFalse(Utils::isSessionStarted());
-
-            $prev = error_reporting(0);
-            session_start();
-            error_reporting($prev);
-
-            $this->assertTrue(Utils::isSessionStarted());
-        }
-    }
-
-
-    /**
      * @covers OneLogin\Saml2\Utils::calculateX509Fingerprint
      */
     public function testCalculateX509Fingerprint()
@@ -944,7 +924,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         $cert = $settings->getSPcert();
 
         $xmlAuthn = base64_decode(file_get_contents(TEST_ROOT . '/data/requests/authn_request.xml.base64'));
-        $xmlAuthnSigned = Utils::addSign($xmlAuthn, $key, $cert);
+        $xmlAuthnSigned = Utils::addSign($xmlAuthn, $key, $cert, XMLSecurityKey::RSA_SHA256, XMLSecurityDSig::SHA256);
         $this->assertContains('<ds:SignatureValue>', $xmlAuthnSigned);
         $this->assertContains('<ds:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/>', $xmlAuthnSigned);
         $this->assertContains('<ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>', $xmlAuthnSigned);
@@ -1023,72 +1003,62 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
         $idpData = (new Settings($settingsInfo))->getIdPData();
         $cert = $idpData['x509cert'];
         $fingerprint = Utils::calculateX509Fingerprint($cert);
-        $xmlMetadataSigned = file_get_contents(TEST_ROOT . '/data/metadata/signed_metadata_settings1.xml');
-        $this->assertTrue(Utils::validateSign($xmlMetadataSigned, $cert));
-        $this->assertTrue(Utils::validateSign($xmlMetadataSigned, null, $fingerprint));
-        $this->assertTrue(Utils::validateSign($xmlMetadataSigned, null, $fingerprint, 'sha1'));
-        $this->assertFalse(Utils::validateSign($xmlMetadataSigned, null, $fingerprint, 'sha256'));
-        $this->assertTrue(Utils::validateSign($xmlMetadataSigned, null, Utils::calculateX509Fingerprint($cert, 'sha256'), 'sha256'));
 
-        $xmlResponseMsgSigned = file_get_contents(TEST_ROOT . '/data/responses/signed_message_response.xml');
-        $this->assertTrue(Utils::validateSign($xmlResponseMsgSigned, $cert));
-        $this->assertTrue(Utils::validateSign($xmlResponseMsgSigned, null, $fingerprint));
+        $xmlMetadataSigned = new DOMDocument();
+        $xmlMetadataSigned->loadXML(file_get_contents(TEST_ROOT . '/data/metadata/signed_metadata_settings1.xml'));
+        $this->assertTrue(Utils::validateSign($xmlMetadataSigned, $cert, null, 'sha1', "//ds:Signature", null));
+        $this->assertTrue(Utils::validateSign($xmlMetadataSigned, null, $fingerprint, 'sha1', "//ds:Signature", null));
+        $this->assertTrue(Utils::validateSign($xmlMetadataSigned, null, $fingerprint, 'sha1', "//ds:Signature", null));
+        $this->assertFalse(Utils::validateSign($xmlMetadataSigned, null, $fingerprint, 'sha256', "//ds:Signature", null));
+        $this->assertTrue(Utils::validateSign($xmlMetadataSigned, null, Utils::calculateX509Fingerprint($cert, 'sha256'), 'sha256', "//ds:Signature", null));
 
-        $xmlResponseAssertSigned = base64_decode(file_get_contents(TEST_ROOT . '/data/responses/signed_assertion_response.xml.base64'));
-        $this->assertTrue(Utils::validateSign($xmlResponseAssertSigned, $cert));
-        $this->assertTrue(Utils::validateSign($xmlResponseAssertSigned, null, $fingerprint));
+        $xmlResponseMsgSigned = new DOMDocument();
+        $xmlResponseMsgSigned->loadXML(file_get_contents(TEST_ROOT . '/data/responses/signed_message_response.xml'));
+        $this->assertTrue(Utils::validateSign($xmlResponseMsgSigned, $cert, null, 'sha1', "//ds:Signature", null));
+        $this->assertTrue(Utils::validateSign($xmlResponseMsgSigned, null, $fingerprint, 'sha1', "//ds:Signature", null));
 
-        $xmlResponseDoubleSigned = base64_decode(file_get_contents(TEST_ROOT . '/data/responses/double_signed_response.xml.base64'));
-        $this->assertTrue(Utils::validateSign($xmlResponseDoubleSigned, $cert));
-        $this->assertTrue(Utils::validateSign($xmlResponseDoubleSigned, null, $fingerprint));
+        $xmlResponseAssertSigned = new DOMDocument();
+        $xmlResponseAssertSigned->loadXML(base64_decode(file_get_contents(TEST_ROOT . '/data/responses/signed_assertion_response.xml.base64')));
+        $this->assertTrue(Utils::validateSign($xmlResponseAssertSigned, $cert, null, 'sha1', "//ds:Signature", null));
+        $this->assertTrue(Utils::validateSign($xmlResponseAssertSigned, null, $fingerprint, 'sha1', "//ds:Signature", null));
+
+        $xmlResponseDoubleSigned = new DOMDocument();
+        $xmlResponseDoubleSigned->loadXML(base64_decode(file_get_contents(TEST_ROOT . '/data/responses/double_signed_response.xml.base64')));
+        $this->assertTrue(Utils::validateSign($xmlResponseDoubleSigned, $cert, null, 'sha1', "//ds:Signature", null));
+        $this->assertTrue(Utils::validateSign($xmlResponseDoubleSigned, null, $fingerprint, 'sha1', "//ds:Signature", null));
+
+        $xmlResponseMsgSigned->firstChild->firstChild->nodeValue = 'https://example.com/other-idp';
+        try {
+            $this->assertFalse(Utils::validateSign($xmlResponseMsgSigned, $cert, null, 'sha1', "//ds:Signature", null));
+            $this->fail('Exception was not raised');
+        } catch (Exception $e) {
+            $this->assertContains('Reference validation failed', $e->getMessage());
+        }
+
+        $this->assertFalse(Utils::validateSign($xmlMetadataSigned, null, 'afe71c34ef740bc87434be13a2263d31271da1f9', 'sha1', "//ds:Signature", null));
 
         $dom = new DOMDocument();
-        $dom->loadXML($xmlResponseMsgSigned);
-        $this->assertTrue(Utils::validateSign($dom, $cert));
-
-        $dom->firstChild->firstChild->nodeValue = 'https://example.com/other-idp';
+        $dom->loadXML(base64_decode(file_get_contents(TEST_ROOT . '/data/responses/invalids/no_signature.xml.base64')));
         try {
-            $this->assertFalse(Utils::validateSign($dom, $cert));
-            $this->fail('Exception was not raised');
-        } catch (Exception $e) {
-            $this->assertContains('Reference validation failed', $e->getMessage());
-        }
-
-        $dom2 = new DOMDocument();
-        $dom2->loadXML($xmlResponseMsgSigned);
-        $this->assertTrue(Utils::validateSign($dom2->firstChild->firstChild->nextSibling->nextSibling, $cert));
-
-        $dom3 = new DOMDocument();
-        $dom3->loadXML($xmlResponseMsgSigned);
-        $dom3->firstChild->firstChild->nodeValue = 'https://example.com/other-idp';
-        try {
-            $this->assertTrue(Utils::validateSign($dom3->firstChild->firstChild->nextSibling->nextSibling, $cert));
-            $this->fail('Exception was not raised');
-        } catch (Exception $e) {
-            $this->assertContains('Reference validation failed', $e->getMessage());
-        }
-
-        $this->assertFalse(Utils::validateSign($xmlMetadataSigned, null, 'afe71c34ef740bc87434be13a2263d31271da1f9'));
-
-        try {
-            $this->assertFalse(Utils::validateSign(base64_decode(file_get_contents(TEST_ROOT . '/data/responses/invalids/no_signature.xml.base64')), $cert));
+            $this->assertFalse(Utils::validateSign($dom, $cert, null, 'sha1', "//ds:Signature", null));
             $this->fail('Exception was not raised');
         } catch (Exception $e) {
             $this->assertContains('Cannot locate Signature Node', $e->getMessage());
         }
 
+        $dom = new DOMDocument();
+        $dom->loadXML(base64_decode(file_get_contents(TEST_ROOT . '/data/responses/invalids/no_key.xml.base64')));
         try {
-            $this->assertFalse(Utils::validateSign(base64_decode(file_get_contents(TEST_ROOT . '/data/responses/invalids/no_key.xml.base64')), $cert));
+            $this->assertFalse(Utils::validateSign($dom, $cert, null, 'sha1', "//ds:Signature", null));
             $this->fail('Exception was not raised');
         } catch (Exception $e) {
             $this->assertContains('We have no idea about the key', $e->getMessage());
         }
 
+        $dom = new DOMDocument();
+        $dom->loadXML(base64_decode(file_get_contents(TEST_ROOT . '/data/responses/invalids/signature_wrapping_attack.xml.base64')));
         try {
-            $this->assertFalse(Utils::validateSign(
-                base64_decode(file_get_contents(TEST_ROOT . '/data/responses/invalids/signature_wrapping_attack.xml.base64')),
-                $cert
-            ));
+            $this->assertFalse(Utils::validateSign($dom, $cert, null, "sha1", "//ds:Signature", null));
             $this->fail('Exception was not raised');
         } catch (Exception $e) {
             $this->assertContains('Reference validation failed', $e->getMessage());

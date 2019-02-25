@@ -348,7 +348,7 @@ class Response
             $fingerprint = $idpData['certFingerprint'];
             $fingerprintalg = $idpData['certFingerprintAlgorithm'];
 
-            $multiCerts = null;
+            $multiCerts = [];
             if (isset($idpData['x509certMulti']['signing']) && !empty($idpData['x509certMulti']['signing'])) {
                 $multiCerts = $idpData['x509certMulti']['signing'];
             }
@@ -475,7 +475,7 @@ class Response
     /**
      * Gets the NameID Data provided by the SAML response from the IdP.
      *
-     * @return array{?Value:string,?Format:string,?NameQualifier:string,?SPNameQualifier:string}
+     * @return array{Value?:string,Format?:string,NameQualifier?:string,SPNameQualifier?:string}
      *
      * @throws ValidationError
      */
@@ -856,9 +856,9 @@ class Response
     /**
      * Extracts a node from the DOMDocument (Assertion).
      */
-    protected function queryAssertion(string $assertionXpath): DOMNodeList
+    private function queryAssertion(string $assertionXpath): DOMNodeList
     {
-        $xpath = $this->encrypted ? new DOMXPath($this->decryptedDocument) : new DOMXPath($this->document);
+        $xpath = new DOMXPath($this->encrypted ? $this->decryptedDocument : $this->document);
 
         $xpath->registerNamespace('samlp', Constants::NS_SAMLP);
         $xpath->registerNamespace('saml', Constants::NS_SAML);
@@ -896,7 +896,7 @@ class Response
      * @throws Exception
      * @throws ValidationError
      */
-    protected function decryptAssertion(DOMNode $dom): DOMDocument
+    private function decryptAssertion(DOMDocument $dom): DOMDocument
     {
         $pem = $this->settings->getSPkey();
 
@@ -908,9 +908,6 @@ class Response
         }
 
         $objenc = new XMLSecEnc();
-        if (!$dom instanceof DOMDocument) {
-            $dom = $dom->ownerDocument;
-        }
         $encData = $objenc->locateEncryptedData($dom);
         if (!$encData instanceof DOMElement) {
             throw new ValidationError(

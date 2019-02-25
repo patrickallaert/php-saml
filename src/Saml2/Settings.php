@@ -712,7 +712,7 @@ class Settings
             $certMetadata = file_get_contents($certMetadataFile);
         }
 
-        return Metadata::signMetadata(
+        return Utils::addSign(
             $metadata,
             $keyMetadata,
             $certMetadata,

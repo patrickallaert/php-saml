@@ -183,7 +183,7 @@ class Auth
      * @param bool        $keepLocalSession             When false will destroy the local session, otherwise will keep it
      * @param string|null $requestId                    The ID of the LogoutRequest sent by this SP to the IdP
      * @param bool        $retrieveParametersFromServer True if we want to use parameters from $_SERVER to validate the signature
-     * @param callable    $cbDeleteSession              Callback to be executed to delete session
+     * @param ?callable   $cbDeleteSession              Callback to be executed to delete session
      * @param bool        $stay                         True if we want to stay (returns the url string) False to redirect
      *
      * @return string|null
