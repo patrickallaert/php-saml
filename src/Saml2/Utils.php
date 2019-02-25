@@ -13,6 +13,7 @@ use Exception;
 use RobRichards\XMLSecLibs\XMLSecEnc;
 use RobRichards\XMLSecLibs\XMLSecurityDSig;
 use RobRichards\XMLSecLibs\XMLSecurityKey;
+use RuntimeException;
 
 class Utils
 {
@@ -803,6 +804,11 @@ class Utils
             }
 
             $encKey = $symmetricKeyInfo->encryptedCtx;
+
+            if (!$encKey instanceof XMLSecEnc) {
+                throw new RuntimeException("Incorrect type of encrypted context encountered.");
+            }
+
             $symmetricKeyInfo->key = $inputKey->key;
             $keySize = $symmetricKey->getSymmetricKeySize();
             if ($keySize === null) {
