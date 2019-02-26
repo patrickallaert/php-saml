@@ -60,22 +60,6 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Auth::getSSOurl
-     */
-    public function testGetSSOurl()
-    {
-        $this->assertEquals($this->auth->getSSOurl(), $this->settingsInfo['idp']['singleSignOnService']['url']);
-    }
-
-    /**
-     * @covers OneLogin\Saml2\Auth::getSLOurl
-     */
-    public function testGetSLOurl()
-    {
-        $this->assertEquals($this->auth->getSLOurl(), $this->settingsInfo['idp']['singleLogoutService']['url']);
-    }
-
-    /**
      * Case No Response, An exception is throw
      *
      * @covers OneLogin\Saml2\Auth::processResponse

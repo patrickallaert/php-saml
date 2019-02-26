@@ -109,12 +109,148 @@ class Settings
             $this->certPath = ONELOGIN_CUSTOMPATH . 'certs/';
         }
 
-        if (!$this->loadSettingsFromArray($settings)) {
+        if (isset($settings['sp'])) {
+            $this->sp = $settings['sp'];
+        }
+        if (isset($settings['idp'])) {
+            $this->idp = $settings['idp'];
+        }
+
+        $errors = $this->checkSettings($settings);
+        if (!empty($errors)) {
+            $this->errors = $errors;
             throw new Error(
                 'Invalid array settings: %s',
                 Error::SETTINGS_INVALID,
                 [implode(', ', $this->errors)]
             );
+        }
+
+        if (isset($settings['strict'])) {
+            $this->strict = (bool)$settings['strict'];
+        }
+
+        if (isset($settings['baseurl'])) {
+            $this->baseurl = $settings['baseurl'];
+        }
+
+        if (isset($settings['compress'])) {
+            $this->compress = $settings['compress'];
+        }
+
+        if (isset($settings['security'])) {
+            $this->security = $settings['security'];
+        }
+
+        if (isset($settings['contactPerson'])) {
+            $this->contacts = $settings['contactPerson'];
+        }
+
+        if (isset($settings['organization'])) {
+            $this->organization = $settings['organization'];
+        }
+
+        if (!isset($this->sp['assertionConsumerService']['binding'])) {
+            $this->sp['assertionConsumerService']['binding'] = Constants::BINDING_HTTP_POST;
+        }
+        if (isset($this->sp['singleLogoutService']) && !isset($this->sp['singleLogoutService']['binding'])) {
+            $this->sp['singleLogoutService']['binding'] = Constants::BINDING_HTTP_REDIRECT;
+        }
+
+        if (!isset($this->compress['requests'])) {
+            $this->compress['requests'] = true;
+        }
+
+        if (!isset($this->compress['responses'])) {
+            $this->compress['responses'] = true;
+        }
+
+        // Related to nameID
+        if (!isset($this->sp['NameIDFormat'])) {
+            $this->sp['NameIDFormat'] = Constants::NAMEID_UNSPECIFIED;
+        }
+        if (!isset($this->security['nameIdEncrypted'])) {
+            $this->security['nameIdEncrypted'] = false;
+        }
+        if (!isset($this->security['requestedAuthnContext'])) {
+            $this->security['requestedAuthnContext'] = true;
+        }
+
+        // sign provided
+        if (!isset($this->security['authnRequestsSigned'])) {
+            $this->security['authnRequestsSigned'] = false;
+        }
+        if (!isset($this->security['logoutRequestSigned'])) {
+            $this->security['logoutRequestSigned'] = false;
+        }
+        if (!isset($this->security['logoutResponseSigned'])) {
+            $this->security['logoutResponseSigned'] = false;
+        }
+        if (!isset($this->security['signMetadata'])) {
+            $this->security['signMetadata'] = false;
+        }
+
+        // sign expected
+        if (!isset($this->security['wantMessagesSigned'])) {
+            $this->security['wantMessagesSigned'] = false;
+        }
+        if (!isset($this->security['wantAssertionsSigned'])) {
+            $this->security['wantAssertionsSigned'] = false;
+        }
+
+        // NameID element expected
+        if (!isset($this->security['wantNameId'])) {
+            $this->security['wantNameId'] = true;
+        }
+
+        // Relax Destination validation
+        if (!isset($this->security['relaxDestinationValidation'])) {
+            $this->security['relaxDestinationValidation'] = false;
+        }
+
+        // encrypt expected
+        if (!isset($this->security['wantAssertionsEncrypted'])) {
+            $this->security['wantAssertionsEncrypted'] = false;
+        }
+        if (!isset($this->security['wantNameIdEncrypted'])) {
+            $this->security['wantNameIdEncrypted'] = false;
+        }
+
+        // XML validation
+        if (!isset($this->security['wantXMLValidation'])) {
+            $this->security['wantXMLValidation'] = true;
+        }
+
+        // SignatureAlgorithm
+        if (!isset($this->security['signatureAlgorithm'])) {
+            $this->security['signatureAlgorithm'] = XMLSecurityKey::RSA_SHA256;
+        }
+
+        // DigestAlgorithm
+        if (!isset($this->security['digestAlgorithm'])) {
+            $this->security['digestAlgorithm'] = XMLSecurityDSig::SHA256;
+        }
+
+        if (!isset($this->security['lowercaseUrlencoding'])) {
+            $this->security['lowercaseUrlencoding'] = false;
+        }
+
+        // Certificates / Private key /Fingerprint
+        if (!isset($this->idp['x509cert'])) {
+            $this->idp['x509cert'] = '';
+        }
+        if (!isset($this->idp['certFingerprint'])) {
+            $this->idp['certFingerprint'] = '';
+        }
+        if (!isset($this->idp['certFingerprintAlgorithm'])) {
+            $this->idp['certFingerprintAlgorithm'] = 'sha1';
+        }
+
+        if (!isset($this->sp['x509cert'])) {
+            $this->sp['x509cert'] = '';
+        }
+        if (!isset($this->sp['privateKey'])) {
+            $this->sp['privateKey'] = '';
         }
 
         if (isset($this->idp['x509cert'])) {
@@ -145,152 +281,6 @@ class Settings
                 }
             }
         }
-    }
-
-    private function loadSettingsFromArray(array $settings): bool
-    {
-        if (isset($settings['sp'])) {
-            $this->sp = $settings['sp'];
-        }
-        if (isset($settings['idp'])) {
-            $this->idp = $settings['idp'];
-        }
-
-        $errors = $this->checkSettings($settings);
-        if (empty($errors)) {
-            $this->errors = [];
-
-            if (isset($settings['strict'])) {
-                $this->strict = (bool) $settings['strict'];
-            }
-
-            if (isset($settings['baseurl'])) {
-                $this->baseurl = $settings['baseurl'];
-            }
-
-            if (isset($settings['compress'])) {
-                $this->compress = $settings['compress'];
-            }
-
-            if (isset($settings['security'])) {
-                $this->security = $settings['security'];
-            }
-
-            if (isset($settings['contactPerson'])) {
-                $this->contacts = $settings['contactPerson'];
-            }
-
-            if (isset($settings['organization'])) {
-                $this->organization = $settings['organization'];
-            }
-
-            if (!isset($this->sp['assertionConsumerService']['binding'])) {
-                $this->sp['assertionConsumerService']['binding'] = Constants::BINDING_HTTP_POST;
-            }
-            if (isset($this->sp['singleLogoutService']) && !isset($this->sp['singleLogoutService']['binding'])) {
-                $this->sp['singleLogoutService']['binding'] = Constants::BINDING_HTTP_REDIRECT;
-            }
-
-            if (!isset($this->compress['requests'])) {
-                $this->compress['requests'] = true;
-            }
-
-            if (!isset($this->compress['responses'])) {
-                $this->compress['responses'] = true;
-            }
-
-            // Related to nameID
-            if (!isset($this->sp['NameIDFormat'])) {
-                $this->sp['NameIDFormat'] = Constants::NAMEID_UNSPECIFIED;
-            }
-            if (!isset($this->security['nameIdEncrypted'])) {
-                $this->security['nameIdEncrypted'] = false;
-            }
-            if (!isset($this->security['requestedAuthnContext'])) {
-                $this->security['requestedAuthnContext'] = true;
-            }
-
-            // sign provided
-            if (!isset($this->security['authnRequestsSigned'])) {
-                $this->security['authnRequestsSigned'] = false;
-            }
-            if (!isset($this->security['logoutRequestSigned'])) {
-                $this->security['logoutRequestSigned'] = false;
-            }
-            if (!isset($this->security['logoutResponseSigned'])) {
-                $this->security['logoutResponseSigned'] = false;
-            }
-            if (!isset($this->security['signMetadata'])) {
-                $this->security['signMetadata'] = false;
-            }
-
-            // sign expected
-            if (!isset($this->security['wantMessagesSigned'])) {
-                $this->security['wantMessagesSigned'] = false;
-            }
-            if (!isset($this->security['wantAssertionsSigned'])) {
-                $this->security['wantAssertionsSigned'] = false;
-            }
-
-            // NameID element expected
-            if (!isset($this->security['wantNameId'])) {
-                $this->security['wantNameId'] = true;
-            }
-
-            // Relax Destination validation
-            if (!isset($this->security['relaxDestinationValidation'])) {
-                $this->security['relaxDestinationValidation'] = false;
-            }
-
-            // encrypt expected
-            if (!isset($this->security['wantAssertionsEncrypted'])) {
-                $this->security['wantAssertionsEncrypted'] = false;
-            }
-            if (!isset($this->security['wantNameIdEncrypted'])) {
-                $this->security['wantNameIdEncrypted'] = false;
-            }
-
-            // XML validation
-            if (!isset($this->security['wantXMLValidation'])) {
-                $this->security['wantXMLValidation'] = true;
-            }
-
-            // SignatureAlgorithm
-            if (!isset($this->security['signatureAlgorithm'])) {
-                $this->security['signatureAlgorithm'] = XMLSecurityKey::RSA_SHA256;
-            }
-
-            // DigestAlgorithm
-            if (!isset($this->security['digestAlgorithm'])) {
-                $this->security['digestAlgorithm'] = XMLSecurityDSig::SHA256;
-            }
-
-            if (!isset($this->security['lowercaseUrlencoding'])) {
-                $this->security['lowercaseUrlencoding'] = false;
-            }
-
-            // Certificates / Private key /Fingerprint
-            if (!isset($this->idp['x509cert'])) {
-                $this->idp['x509cert'] = '';
-            }
-            if (!isset($this->idp['certFingerprint'])) {
-                $this->idp['certFingerprint'] = '';
-            }
-            if (!isset($this->idp['certFingerprintAlgorithm'])) {
-                $this->idp['certFingerprintAlgorithm'] = 'sha1';
-            }
-
-            if (!isset($this->sp['x509cert'])) {
-                $this->sp['x509cert'] = '';
-            }
-            if (!isset($this->sp['privateKey'])) {
-                $this->sp['privateKey'] = '';
-            }
-            return true;
-        }
-
-        $this->errors = $errors;
-        return false;
     }
 
     public function checkSettings(array $settings): array
@@ -471,9 +461,49 @@ class Settings
         return $this->idp;
     }
 
+    public function getIdPEntityId(): string
+    {
+        return $this->idp['entityId'];
+    }
+
+    public function getIdPSingleSignOnServiceUrl(): string
+    {
+        return $this->idp['singleSignOnService']['url'];
+    }
+
+    public function getIdPSingleLogoutServiceUrl(): ?string
+    {
+        return $this->idp['singleLogoutService']['url'] ?? null;
+    }
+
     public function getSPData(): array
     {
         return $this->sp;
+    }
+
+    public function getSPAssertionConsumerServiceUrl(): string
+    {
+        return $this->sp['assertionConsumerService']['url'];
+    }
+
+    public function getSPAssertionConsumerServiceBinding(): string
+    {
+        return $this->sp['assertionConsumerService']['binding'];
+    }
+
+    public function getSPEntityId(): string
+    {
+        return $this->sp['entityId'];
+    }
+
+    public function getSPNameIDFormat(): string
+    {
+        return $this->sp['NameIDFormat'];
+    }
+
+    public function getSPSingleLogoutServiceUrl(): string
+    {
+        return $this->sp['singleLogoutService']['url'];
     }
 
     public function getSecurityData(): array

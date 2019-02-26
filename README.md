@@ -1069,8 +1069,6 @@ Main class of PHP Toolkit
  * `getNameIdNameSPQualifier` - Gets the NameID SP NameQualifier provided from the SAML Response String.
  * `getSessionIndex` - Gets the SessionIndex from the AuthnStatement.
  * `getErrors` - Returns if there were any error
- * `getSSOurl` - Gets the SSO url.
- * `getSLOurl` - Gets the SLO url.
  * `getLastRequestID` - The ID of the last Request SAML message generated.
  * `buildRequestSignature` - Generates the Signature for a SAML Request
  * `buildResponseSignature` - Generates the Signature for a SAML Response

@@ -25,8 +25,7 @@ class AuthnRequest
     {
         $this->settings = $settings;
 
-        $spData = $this->settings->getSPData();
-        $idpData = $this->settings->getIdPData();
+        $ssoServiceUrl = $this->settings->getIdPSingleSignOnServiceUrl();
         $security = $this->settings->getSecurityData();
 
         $this->id = Utils::generateUniqueID();
@@ -34,7 +33,7 @@ class AuthnRequest
 
         $nameIdPolicyStr = '';
         if ($setNameIdPolicy) {
-            $nameIDPolicyFormat = $spData['NameIDFormat'];
+            $nameIDPolicyFormat = $this->settings->getSPNameIDFormat();
             if (isset($security['wantNameIdEncrypted']) && $security['wantNameIdEncrypted']) {
                 $nameIDPolicyFormat = Constants::NAMEID_ENCRYPTED;
             }
@@ -74,8 +73,9 @@ REQUESTEDAUTHN;
             }
         }
 
-        $spEntityId = htmlspecialchars($spData['entityId'], ENT_QUOTES);
-        $acsUrl = htmlspecialchars($spData['assertionConsumerService']['url'], ENT_QUOTES);
+        $spEntityId = htmlspecialchars($this->settings->getSPEntityId(), ENT_QUOTES);
+        $acsUrl = htmlspecialchars($this->settings->getSPAssertionConsumerServiceUrl(), ENT_QUOTES);
+        $acsBinding = $this->settings->getSPAssertionConsumerServiceBinding();
         $this->authnRequest = <<<AUTHNREQUEST
 <samlp:AuthnRequest
     xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
@@ -84,9 +84,9 @@ REQUESTEDAUTHN;
     Version="2.0"
 {$providerNameStr}{$forceAuthnStr}{$isPassiveStr}
     IssueInstant="$issueInstant"
-    Destination="{$idpData['singleSignOnService']['url']}"
-    ProtocolBinding="{$spData['assertionConsumerService']['binding']}"
-    AssertionConsumerServiceURL="{$acsUrl}">
+    Destination="$ssoServiceUrl"
+    ProtocolBinding="$acsBinding"
+    AssertionConsumerServiceURL="$acsUrl">
     <saml:Issuer>{$spEntityId}</saml:Issuer>
 {$nameIdPolicyStr}
 {$requestedAuthnStr}

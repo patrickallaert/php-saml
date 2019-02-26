@@ -16,10 +16,8 @@ use OneLogin\Saml2\Utils;
 
 $samlSettings = new Settings([]);
 
-$idpData = $samlSettings->getIdPData();
-if (isset($idpData['singleLogoutService']) && isset($idpData['singleLogoutService']['url'])) {
-    $sloUrl = $idpData['singleLogoutService']['url'];
-} else {
+$sloUrl = $samlSettings->getIdPSingleLogoutServiceUrl();
+if (empty($sloUrl)) {
     throw new Exception("The IdP does not support Single Log Out");
 }
 

@@ -18,10 +18,9 @@ use OneLogin\Saml2\Utils;
 
 if (!isset($_SESSION['samlUserdata'])) {
     $settings = new Settings([]);
-    $idpData = $settings->getIdPData();
     header(
         "Location: " . Utils::redirect(
-            $idpData['singleSignOnService']['url'],
+            $settings->getIdPSingleSignOnServiceUrl(),
             [
                 'SAMLRequest' => (new AuthnRequest($settings))->getRequest(),
                 'RelayState' => Utils::getSelfURLNoQuery(),

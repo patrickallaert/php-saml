@@ -60,8 +60,6 @@ class LogoutRequest
         }
 
         if ($request === null || empty($request)) {
-            $spData = $this->settings->getSPData();
-            $idpData = $this->settings->getIdPData();
             $security = $this->settings->getSecurityData();
 
             $id = Utils::generateUniqueID();
@@ -71,18 +69,20 @@ class LogoutRequest
 
             $cert = null;
             if (isset($security['nameIdEncrypted']) && $security['nameIdEncrypted']) {
+                $idpData = $this->settings->getIdPData();
                 $cert = isset($idpData['x509certMulti']['encryption']) && !empty($idpData['x509certMulti']['encryption']) ?
                     $idpData['x509certMulti']['encryption'][0] :
                     $idpData['x509cert'];
             }
 
             if (!empty($nameId)) {
+                $spNameIdFormat = $this->settings->getSPNameIDFormat();
                 if (empty($nameIdFormat)
-                    && $spData['NameIDFormat'] !== Constants::NAMEID_UNSPECIFIED) {
-                    $nameIdFormat = $spData['NameIDFormat'];
+                    && $spNameIdFormat !== Constants::NAMEID_UNSPECIFIED) {
+                    $nameIdFormat = $spNameIdFormat;
                 }
             } else {
-                $nameId = $idpData['entityId'];
+                $nameId = $this->settings->getIdPEntityId();
                 $nameIdFormat = Constants::NAMEID_ENTITY;
             }
 
@@ -109,7 +109,8 @@ class LogoutRequest
 
             $sessionIndexStr = isset($sessionIndex) ? "<samlp:SessionIndex>{$sessionIndex}</samlp:SessionIndex>" : "";
 
-            $spEntityId = htmlspecialchars($spData['entityId'], ENT_QUOTES);
+            $spEntityId = htmlspecialchars($this->settings->getSPEntityId(), ENT_QUOTES);
+            $sloServiceUrl = $this->settings->getIdPSingleLogoutServiceUrl();
             $logoutRequest = <<<LOGOUTREQUEST
 <samlp:LogoutRequest
     xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
@@ -117,7 +118,7 @@ class LogoutRequest
     ID="{$id}"
     Version="2.0"
     IssueInstant="{$issueInstant}"
-    Destination="{$idpData['singleLogoutService']['url']}">
+    Destination="$sloServiceUrl">
     <saml:Issuer>{$spEntityId}</saml:Issuer>
     {$nameIdObj}
     {$sessionIndexStr}
@@ -278,9 +279,6 @@ LOGOUTREQUEST;
             $dom = new DOMDocument();
             Utils::loadXML($dom, $this->logoutRequest);
 
-            $idpData = $this->settings->getIdPData();
-            $idPEntityId = $idpData['entityId'];
-
             if ($this->settings->isStrict()) {
                 $security = $this->settings->getSecurityData();
 
@@ -316,7 +314,7 @@ LOGOUTREQUEST;
 
                 // Check issuer
                 $issuer = static::getIssuer($dom);
-                if (!empty($issuer) && $issuer !== $idPEntityId) {
+                if (!empty($issuer) && $issuer !== $this->settings->getIdPEntityId()) {
                     throw new ValidationError(
                         "Invalid issuer in the Logout Request",
                         ValidationError::WRONG_ISSUER
@@ -332,7 +330,7 @@ LOGOUTREQUEST;
             }
 
             if (isset($_GET['Signature']) &&
-                !Utils::validateBinarySign("SAMLRequest", $_GET, $idpData, $retrieveParametersFromServer)) {
+                !Utils::validateBinarySign("SAMLRequest", $_GET, $this->settings->getIdPData(), $retrieveParametersFromServer)) {
                 throw new ValidationError(
                     "Signature validation failed. Logout Request rejected",
                     ValidationError::INVALID_SIGNATURE

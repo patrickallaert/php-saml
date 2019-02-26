@@ -242,7 +242,7 @@ class Auth
                     $parameters['Signature'] = $this->buildResponseSignature($parameters['SAMLResponse'], $parameters['RelayState'] ?? null, $security['signatureAlgorithm']);
                 }
 
-                return $this->redirectTo($this->getSLOurl(), $parameters, $stay);
+                return $this->redirectTo($this->settings->getIdPSingleLogoutServiceUrl(), $parameters, $stay);
             }
         } else {
             $this->errors[] = 'invalid_binding';
@@ -368,7 +368,8 @@ class Auth
             $parameters['Signature'] = $this->buildRequestSignature($parameters['SAMLRequest'], $parameters['RelayState'], $security['signatureAlgorithm']);
         }
 
-        return $this->redirectTo($this->getSSOurl(), $parameters, $stay);
+        ;
+        return $this->redirectTo($this->settings->getIdPSingleSignOnServiceUrl(), $parameters, $stay);
     }
 
     /**
@@ -394,7 +395,7 @@ class Auth
         ?string $nameIdNameQualifier = null,
         ?string $nameIdSPNameQualifier = null
     ): string {
-        $sloUrl = $this->getSLOurl();
+        $sloUrl = $this->settings->getIdPSingleLogoutServiceUrl();
         if (empty($sloUrl)) {
             throw new Error(
                 'The IdP does not support Single Log Out',
@@ -423,18 +424,6 @@ class Auth
         }
 
         return $this->redirectTo($sloUrl, $parameters, $stay);
-    }
-
-    public function getSSOurl(): string
-    {
-        $idpData = $this->settings->getIdPData();
-        return $idpData['singleSignOnService']['url'];
-    }
-
-    public function getSLOurl(): ?string
-    {
-        $idpData = $this->settings->getIdPData();
-        return $idpData['singleLogoutService']['url'] ?? null;
     }
 
     /**

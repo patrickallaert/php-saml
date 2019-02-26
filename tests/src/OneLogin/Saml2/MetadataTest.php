@@ -163,10 +163,7 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
      */
     public function testAddX509KeyDescriptors2Times()
     {
-        $settings = new Settings(require TEST_ROOT . '/settings/settings1.php');
-        $spData = $settings->getSPData();
-
-        $metadata = Metadata::builder($spData);
+        $metadataOriginal = $metadata = Metadata::builder((new Settings(require TEST_ROOT . '/settings/settings1.php'))->getSPData());
 
         $this->assertNotContains('<md:KeyDescriptor use="signing"', $metadata);
         $this->assertNotContains('<md:KeyDescriptor use="encryption"', $metadata);
@@ -181,7 +178,7 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
 
         $this->assertEquals(2, substr_count($metadata, "<md:KeyDescriptor"));
 
-        $metadata2 = Metadata::builder($spData);
+        $metadata2 = $metadataOriginal;
 
         $metadata2 = Metadata::addX509KeyDescriptors($metadata2, $cert);
 

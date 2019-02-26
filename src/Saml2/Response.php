@@ -123,11 +123,6 @@ class Response
                 );
             }
 
-            $idpData = $this->settings->getIdPData();
-            $idPEntityId = $idpData['entityId'];
-            $spData = $this->settings->getSPData();
-            $spEntityId = $spData['entityId'];
-
             $signedElements = $this->processSignedElements();
 
             $hasSignedResponse = in_array('{' . Constants::NS_SAMLP . '}Response', $signedElements);
@@ -227,6 +222,7 @@ class Response
                     }
                 }
 
+                $spEntityId = $this->settings->getSPEntityId();
                 if (!empty($validAudiences) && !isset($validAudiences[$spEntityId])) {
                     throw new ValidationError(
                         sprintf(
@@ -237,6 +233,8 @@ class Response
                         ValidationError::WRONG_AUDIENCE
                     );
                 }
+
+                $idPEntityId = $this->settings->getIdPEntityId();
 
                 // Check the issuers
                 foreach (array_keys($this->getIssuers()) as $issuer) {
@@ -344,6 +342,7 @@ class Response
                 );
             }
 
+            $idpData = $this->settings->getIdPData();
             $cert = $idpData['x509cert'];
             $fingerprint = $idpData['certFingerprint'];
             $fingerprintalg = $idpData['certFingerprintAlgorithm'];
@@ -519,7 +518,7 @@ class Response
             }
             if ($nameId->hasAttribute("SPNameQualifier")) {
                 $spNameQualifier = $nameId->getAttribute("SPNameQualifier");
-                if ($this->settings->isStrict() && $this->settings->getSPData()['entityId'] !== $spNameQualifier) {
+                if ($this->settings->isStrict() && $this->settings->getSPEntityId() !== $spNameQualifier) {
                     throw new ValidationError(
                         "The SPNameQualifier value mismatch the SP entityID value.",
                         ValidationError::SP_NAME_QUALIFIER_NAME_MISMATCH

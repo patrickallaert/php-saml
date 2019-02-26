@@ -548,19 +548,20 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     /**
      *
      * @covers OneLogin\Saml2\Settings::getIdPData
+     * @covers OneLogin\Saml2\Settings::getIdPEntityId
+     * @covers OneLogin\Saml2\Settings::getIdPSingleSignOnServiceUrl
+     * @covers OneLogin\Saml2\Settings::getIdPSingleLogoutServiceUrl
      */
     public function testGetIdPData()
     {
-        $idpData = (new Settings(require TEST_ROOT . '/settings/settings1.php'))->getIdPData();
+        $settings = new Settings(require TEST_ROOT . '/settings/settings1.php');
+        $idpData = $settings->getIdPData();
         $this->assertNotEmpty($idpData);
-        $this->assertArrayHasKey('entityId', $idpData);
-        $this->assertArrayHasKey('singleSignOnService', $idpData);
-        $this->assertArrayHasKey('singleLogoutService', $idpData);
         $this->assertArrayHasKey('x509cert', $idpData);
 
-        $this->assertSame('http://idp.example.com/', $idpData['entityId']);
-        $this->assertSame('http://idp.example.com/SSOService.php', $idpData['singleSignOnService']['url']);
-        $this->assertSame('http://idp.example.com/SingleLogoutService.php', $idpData['singleLogoutService']['url']);
+        $this->assertSame('http://idp.example.com/', $settings->getIdPEntityId());
+        $this->assertSame('http://idp.example.com/SSOService.php', $settings->getIdPSingleSignOnServiceUrl());
+        $this->assertSame('http://idp.example.com/SingleLogoutService.php', $settings->getIdPSingleLogoutServiceUrl());
         $formatedx509cert = Utils::formatCert('MIICgTCCAeoCCQCbOlrWDdX7FTANBgkqhkiG9w0BAQUFADCBhDELMAkGA1UEBhMCTk8xGDAWBgNVBAgTD0FuZHJlYXMgU29sYmVyZzEMMAoGA1UEBxMDRm9vMRAwDgYDVQQKEwdVTklORVRUMRgwFgYDVQQDEw9mZWlkZS5lcmxhbmcubm8xITAfBgkqhkiG9w0BCQEWEmFuZHJlYXNAdW5pbmV0dC5ubzAeFw0wNzA2MTUxMjAxMzVaFw0wNzA4MTQxMjAxMzVaMIGEMQswCQYDVQQGEwJOTzEYMBYGA1UECBMPQW5kcmVhcyBTb2xiZXJnMQwwCgYDVQQHEwNGb28xEDAOBgNVBAoTB1VOSU5FVFQxGDAWBgNVBAMTD2ZlaWRlLmVybGFuZy5ubzEhMB8GCSqGSIb3DQEJARYSYW5kcmVhc0B1bmluZXR0Lm5vMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDivbhR7P516x/S3BqKxupQe0LONoliupiBOesCO3SHbDrl3+q9IbfnfmE04rNuMcPsIxB161TdDpIesLCn7c8aPHISKOtPlAeTZSnb8QAu7aRjZq3+PbrP5uW3TcfCGPtKTytHOge/OlJbo078dVhXQ14d1EDwXJW1rRXuUt4C8QIDAQABMA0GCSqGSIb3DQEBBQUAA4GBACDVfp86HObqY+e8BUoWQ9+VMQx1ASDohBjwOsg2WykUqRXF+dLfcUH9dWR63CtZIKFDbStNomPnQz7nbK+onygwBspVEbnHuUihZq3ZUdmumQqCw4Uvs/1Uvq3orOo/WJVhTyvLgFVK2QarQ4/67OZfHd7R+POBXhophSMv1ZOo');
         $this->assertSame($formatedx509cert, $idpData['x509cert']);
 
@@ -577,20 +578,22 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
 
     /**
      * @covers OneLogin\Saml2\Settings::getSPData
+     * @covers OneLogin\Saml2\Settings::getSPEntityId
+     * @covers OneLogin\Saml2\Settings::getSPNameIDFormat
+     * @covers OneLogin\Saml2\Settings::getSPAssertionConsumerServiceUrl
+     * @covers OneLogin\Saml2\Settings::getSPSingleLogoutServiceUrl
      */
     public function testGetSPData()
     {
-        $spData = (new Settings(require TEST_ROOT . '/settings/settings1.php'))->getSPData();
+        $settings = new Settings(require TEST_ROOT . '/settings/settings1.php');
+        $spData = $settings->getSPData();
         $this->assertNotEmpty($spData);
-        $this->assertArrayHasKey('entityId', $spData);
-        $this->assertArrayHasKey('assertionConsumerService', $spData);
         $this->assertArrayHasKey('singleLogoutService', $spData);
-        $this->assertArrayHasKey('NameIDFormat', $spData);
 
-        $this->assertSame('http://stuff.com/endpoints/metadata.php', $spData['entityId']);
-        $this->assertSame('http://stuff.com/endpoints/endpoints/acs.php', $spData['assertionConsumerService']['url']);
-        $this->assertSame('http://stuff.com/endpoints/endpoints/sls.php', $spData['singleLogoutService']['url']);
-        $this->assertSame(Constants::NAMEID_UNSPECIFIED, $spData['NameIDFormat']);
+        $this->assertSame('http://stuff.com/endpoints/metadata.php', $settings->getSPEntityId());
+        $this->assertSame('http://stuff.com/endpoints/endpoints/acs.php', $settings->getSPAssertionConsumerServiceUrl());
+        $this->assertSame('http://stuff.com/endpoints/endpoints/sls.php', $settings->getSPSingleLogoutServiceUrl());
+        $this->assertSame(Constants::NAMEID_UNSPECIFIED, $settings->getSPNameIDFormat());
     }
 
     /**

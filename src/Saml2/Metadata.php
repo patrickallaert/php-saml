@@ -4,8 +4,6 @@ namespace OneLogin\Saml2;
 use DOMDocument;
 use DOMElement;
 use Exception;
-use RobRichards\XMLSecLibs\XMLSecurityDSig;
-use RobRichards\XMLSecLibs\XMLSecurityKey;
 
 class Metadata
 {

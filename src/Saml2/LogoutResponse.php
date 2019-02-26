@@ -117,7 +117,6 @@ class LogoutResponse
     {
         $this->error = null;
         try {
-            $idpData = $this->settings->getIdPData();
             if ($this->settings->isStrict()) {
                 $security = $this->settings->getSecurityData();
 
@@ -143,7 +142,7 @@ class LogoutResponse
 
                 // Check issuer
                 $issuer = $this->getIssuer();
-                if (!empty($issuer) && $issuer !== $idpData['entityId']) {
+                if (!empty($issuer) && $issuer !== $this->settings->getIdPEntityId()) {
                     throw new ValidationError(
                         "Invalid issuer in the Logout Response",
                         ValidationError::WRONG_ISSUER
@@ -172,7 +171,7 @@ class LogoutResponse
             }
 
             if (isset($_GET['Signature']) &&
-                !Utils::validateBinarySign("SAMLResponse", $_GET, $idpData, $retrieveParametersFromServer)) {
+                !Utils::validateBinarySign("SAMLResponse", $_GET, $this->settings->getIdPData(), $retrieveParametersFromServer)) {
                 throw new ValidationError(
                     "Signature validation failed. Logout Response rejected",
                     ValidationError::INVALID_SIGNATURE
@@ -192,23 +191,22 @@ class LogoutResponse
      */
     public function build(string $inResponseTo): void
     {
-        $spData = $this->settings->getSPData();
-        $idpData = $this->settings->getIdPData();
+        $sloServiceUrl = $this->settings->getIdPSingleLogoutServiceUrl();
 
         $this->id = Utils::generateUniqueID();
         $issueInstant = Utils::parseTime2SAML(time());
 
-        $spEntityId = htmlspecialchars($spData['entityId'], ENT_QUOTES);
+        $spEntityId = htmlspecialchars($this->settings->getSPEntityId(), ENT_QUOTES);
         $this->logoutResponse = <<<LOGOUTRESPONSE
 <samlp:LogoutResponse xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
                   xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
                   ID="{$this->id}"
                   Version="2.0"
-                  IssueInstant="{$issueInstant}"
-                  Destination="{$idpData['singleLogoutService']['url']}"
-                  InResponseTo="{$inResponseTo}"
+                  IssueInstant="$issueInstant"
+                  Destination="$sloServiceUrl"
+                  InResponseTo="$inResponseTo"
                   >
-    <saml:Issuer>{$spEntityId}</saml:Issuer>
+    <saml:Issuer>$spEntityId</saml:Issuer>
     <samlp:Status>
         <samlp:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success" />
     </samlp:Status>

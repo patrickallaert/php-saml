@@ -12,6 +12,9 @@ use OneLogin\Saml2\ValidationError;
 
 class LogoutRequestTest extends \PHPUnit\Framework\TestCase
 {
+    /**
+     * @var Settings
+     */
     private $settings;
 
 
@@ -317,14 +320,14 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
                 "ONELOGIN_1e442c129e1f822c8096086a1103c5ee2c7cae1c",
                 null,
                 Constants::NAMEID_PERSISTENT,
-                $this->settings->getIdPData()['entityId'],
-                $this->settings->getSPData()['entityId']
+                $this->settings->getIdPEntityId(),
+                $this->settings->getSPEntityId()
             )
         )->getXML();
         $this->assertContains('ONELOGIN_1e442c129e1f822c8096086a1103c5ee2c7cae1c', $logoutRequestStr);
         $this->assertContains('Format="' . Constants::NAMEID_PERSISTENT, $logoutRequestStr);
-        $this->assertContains('NameQualifier="' . $this->settings->getIdPData()['entityId'], $logoutRequestStr);
-        $this->assertContains('SPNameQualifier="' . $this->settings->getSPData()['entityId'], $logoutRequestStr);
+        $this->assertContains('NameQualifier="' . $this->settings->getIdPEntityId(), $logoutRequestStr);
+        $this->assertContains('SPNameQualifier="' . $this->settings->getSPEntityId(), $logoutRequestStr);
 
         $logoutRequestStr2 = (
             new LogoutRequest(
@@ -333,8 +336,8 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
                 "ONELOGIN_1e442c129e1f822c8096086a1103c5ee2c7cae1c",
                 null,
                 Constants::NAMEID_ENTITY,
-                $this->settings->getIdPData()['entityId'],
-                $this->settings->getSPData()['entityId']
+                $this->settings->getIdPEntityId(),
+                $this->settings->getSPEntityId()
             )
         )->getXML();
         $this->assertContains('ONELOGIN_1e442c129e1f822c8096086a1103c5ee2c7cae1c', $logoutRequestStr2);
