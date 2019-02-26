@@ -17,7 +17,7 @@ use OneLogin\Saml2\Settings;
 use OneLogin\Saml2\Utils;
 
 if (!isset($_SESSION['samlUserdata'])) {
-    $settings = new Settings();
+    $settings = new Settings([]);
     $idpData = $settings->getIdPData();
     header(
         "Location: " . Utils::redirect(

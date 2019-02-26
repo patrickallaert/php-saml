@@ -115,10 +115,8 @@ class Auth
 
     /**
      * Initializes the SP SAML instance.
-     *
-     * @param array|null $settings Setting data
      */
-    public function __construct(array $settings = null)
+    public function __construct(array $settings)
     {
         $this->settings = new Settings($settings);
     }

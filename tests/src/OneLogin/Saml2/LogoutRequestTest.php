@@ -717,8 +717,8 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
         $settingsInfo = require TEST_ROOT . '/settings/settings6.php';
         $settingsInfo['strict'] = true;
         $settingsInfo['security']['wantMessagesSigned'] = true;
+        $settingsInfo['baseurl'] = "http://stuff.com/endpoints/endpoints/";
         $settings = new Settings($settingsInfo);
-        $settings->setBaseURL("http://stuff.com/endpoints/endpoints/");
         $_SERVER['REQUEST_URI'] = "/endpoints/endpoints/sls.php";
         unset($_SERVER['REQUEST_URI']);
         Utils::setBaseURL(null);

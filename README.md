@@ -1147,11 +1147,7 @@ Configuration of the SAML PHP Toolkit
    the different folders and Loads settings info from settings file or
    array/object provided
  * `checkSettings` - Checks the settings info.
- * `getBasePath` - Returns base path.
- * `getCertPath` - Returns cert path.
- * `getLibPath` - Returns lib path.
  * `getExtLibPath` - Returns external lib path.
- * `getSchemasPath` - Returns schema path.
  * `checkSPCerts` - Checks if the x509 certs of the SP exists and are valid.
  * `getSPkey` - Returns the x509 private key of the SP.
  * `getSPcert` - Returns the x509 public cert of the SP.
@@ -1167,7 +1163,6 @@ Configuration of the SAML PHP Toolkit
    the settings is ok.
  * `getLastErrorException` - Returns the exception related to the last error
  * `getBaseURL` -  Returns the baseurl set on the settings if any.
- * `setBaseURL` - Set a baseurl value
  * `setStrict` - Activates or deactivates the strict mode.
  * `isStrict` - Returns if the 'strict' mode is active.
 

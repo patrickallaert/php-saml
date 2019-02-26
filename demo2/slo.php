@@ -14,7 +14,7 @@ use OneLogin\Saml2\LogoutRequest;
 use OneLogin\Saml2\Settings;
 use OneLogin\Saml2\Utils;
 
-$samlSettings = new Settings();
+$samlSettings = new Settings([]);
 
 $idpData = $samlSettings->getIdPData();
 if (isset($idpData['singleLogoutService']) && isset($idpData['singleLogoutService']['url'])) {

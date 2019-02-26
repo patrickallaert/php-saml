@@ -15,7 +15,7 @@ require_once __DIR__ . "/../vendor/autoload.php";
 use OneLogin\Saml2\Utils;
 
 if (!isset($_SESSION['samlUserdata'])) {
-    (new OneLogin\Saml2\Auth())->login();
+    (new OneLogin\Saml2\Auth([]))->login();
 } else {
     Utils::redirect(str_replace('/sso.php', '/index.php', Utils::getSelfURLNoQuery()));
 }

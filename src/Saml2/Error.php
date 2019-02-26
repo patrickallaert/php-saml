@@ -5,7 +5,6 @@ use Exception;
 
 class Error extends Exception
 {
-    public const SETTINGS_FILE_NOT_FOUND = 0;
     public const SETTINGS_INVALID_SYNTAX = 1;
     public const SETTINGS_INVALID = 2;
     public const METADATA_SP_INVALID = 3;

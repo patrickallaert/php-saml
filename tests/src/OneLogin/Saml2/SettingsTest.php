@@ -43,58 +43,12 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Case load setting from file
-     *
-     * @covers OneLogin\Saml2\Settings
-     */
-    public function testLoadSettingsFromFile()
-    {
-        $this->assertEmpty((new Settings())->getErrors());
-    }
-
-    /**
-     * Tests getCertPath method of the Settings
-     *
-     * @covers OneLogin\Saml2\Settings::getBasePath
-     * @covers OneLogin\Saml2\Settings::getCertPath
-     */
-    public function testGetCertPath()
-    {
-        $this->assertSame(ONELOGIN_CUSTOMPATH . 'certs/', (new Settings())->getCertPath());
-    }
-
-    /**
-     * Tests getLibPath method of the Settings
-     *
-     * @covers OneLogin\Saml2\Settings::getLibPath
-     */
-    public function testGetLibPath()
-    {
-        $settings = new Settings();
-        $this->assertSame($settings->getBasePath() . 'src/', $settings->getLibPath());
-    }
-
-    /**
-     * Tests getSchemasPath method of the Settings
-     *
-     * @covers OneLogin\Saml2\Settings::getSchemasPath
-     */
-    public function testGetSchemasPath()
-    {
-        $settings = new Settings();
-        $this->assertSame($settings->getBasePath() . 'src/schemas/', $settings->getSchemasPath());
-    }
-
-    /**
      * Tests shouldCompressRequests method of Settings.
      *
      * @covers OneLogin\Saml2\Settings::shouldCompressRequests
      */
     public function testShouldCompressRequests()
     {
-        //The default value should be true.
-        $this->assertTrue((new Settings())->shouldCompressRequests());
-
         //settings1.php contains a true value for compress => requests.
         $this->assertTrue((new Settings(require TEST_ROOT . '/settings/settings1.php'))->shouldCompressRequests());
 
@@ -109,9 +63,6 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
      */
     public function testShouldCompressResponses()
     {
-        //The default value should be true.
-        $this->assertTrue((new Settings())->shouldCompressResponses());
-
         //settings1.php contains a true value for compress => responses.
         $this->assertTrue((new Settings(require TEST_ROOT . '/settings/settings1.php'))->shouldCompressResponses());
 
@@ -123,7 +74,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
      * @dataProvider invalidCompressSettingsProvider
      * @param string $invalidValue invalidCompressSettingsProvider
      *
-     * @covers OneLogin\Saml2\Settings::checkCompressionSettings
+     * @covers OneLogin\Saml2\Settings::checkSettings
      */
     public function testNonArrayCompressionSettingsCauseSyntaxError($invalidValue)
     {
@@ -142,7 +93,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
      * @dataProvider invalidCompressSettingsProvider
      * @param string $invalidValue invalidCompressSettingsProvider
      *
-     * @covers OneLogin\Saml2\Settings::checkCompressionSettings
+     * @covers OneLogin\Saml2\Settings::checkSettings
      */
     public function testThatOnlyBooleansCanBeUsedForCompressionSettings($invalidValue)
     {
@@ -186,7 +137,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
      */
     public function testCheckSPCerts()
     {
-        $settings = new Settings();
+        $settings = new Settings(require TEST_ROOT . '/settings/settings1.php');
 
         $settings2 = new Settings(require TEST_ROOT . '/settings/settings2.php');
 

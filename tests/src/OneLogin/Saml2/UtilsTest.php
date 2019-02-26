@@ -801,7 +801,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     {
         $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
 
-        $certPath = (new Settings($settingsInfo))->getCertPath();
+        $certPath = TEST_ROOT . '/data/customPath/certs/';
 
         $cert = file_get_contents($certPath . 'sp.crt');
 

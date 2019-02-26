@@ -121,13 +121,14 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
      */
     public function testAddX509KeyDescriptors()
     {
-        $settings = new Settings(require TEST_ROOT . '/settings/settings1.php');
+        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
+        $settings = new Settings($settingsInfo);
         $metadata = Metadata::builder($settings->getSPData());
 
         $this->assertNotContains('<md:KeyDescriptor use="signing"', $metadata);
         $this->assertNotContains('<md:KeyDescriptor use="encryption"', $metadata);
 
-        $cert = file_get_contents($settings->getCertPath() . 'sp.crt');
+        $cert = file_get_contents(TEST_ROOT . '/data/customPath/certs/sp.crt');
 
         $metadataWithDescriptors = Metadata::addX509KeyDescriptors($metadata, $cert);
 
@@ -170,7 +171,7 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
         $this->assertNotContains('<md:KeyDescriptor use="signing"', $metadata);
         $this->assertNotContains('<md:KeyDescriptor use="encryption"', $metadata);
 
-        $cert = file_get_contents($settings->getCertPath() . 'sp.crt');
+        $cert = file_get_contents(TEST_ROOT . '/data/customPath/certs/sp.crt');
 
         $metadata = Metadata::addX509KeyDescriptors($metadata, $cert, false);
 
