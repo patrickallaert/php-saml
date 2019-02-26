@@ -237,7 +237,7 @@ class Settings
         }
 
         if (isset($settings['strict'])) {
-            $this->strict = (bool)$settings['strict'];
+            $this->strict = (bool) $settings['strict'];
         }
 
         if (isset($settings['baseurl'])) {
