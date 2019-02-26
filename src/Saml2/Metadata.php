@@ -13,23 +13,16 @@ class Metadata
     /**
      * Generates the metadata of the SP based on the settings
      *
-     * @param array    $sp            The SP data
-     * @param bool     $authnsign     authnRequestsSigned attribute
-     * @param bool     $wsign         wantAssertionsSigned attribute
      * @param int|null $validUntil    Metadata's valid time
      * @param int|null $cacheDuration Duration of the cache in seconds
-     * @param array    $contacts      Contacts info
-     * @param array    $organization  Organization ingo
      */
     public static function builder(
-        array $sp,
-        bool $authnsign = false,
-        bool $wsign = false,
+        Settings $settings,
         ?int $validUntil = null,
-        ?int $cacheDuration = null,
-        array $contacts = [],
-        array $organization = []
+        ?int $cacheDuration = null
     ): string {
+        $contacts = $settings->getContacts();
+        $organization = $settings->getOrganization();
         if (!isset($validUntil)) {
             $validUntil =  time() + self::TIME_VALID;
         }
@@ -41,17 +34,18 @@ class Metadata
 
         $sls = '';
 
-        if (isset($sp['singleLogoutService'])) {
-            $slsUrl = htmlspecialchars($sp['singleLogoutService']['url'], ENT_QUOTES);
-            $sls = <<<SLS_TEMPLATE
-        <md:SingleLogoutService Binding="{$sp['singleLogoutService']['binding']}"
-                                Location="{$slsUrl}" />
+        $slsUrl = $settings->getSPSingleLogoutServiceUrl();
 
+        if (!empty($slsUrl)) {
+            $slsUrl = htmlspecialchars($slsUrl, ENT_QUOTES);
+            $slsBinding = $settings->getSPSingleLogoutServiceBinding();
+            $sls = <<<SLS_TEMPLATE
+        <md:SingleLogoutService Binding="$slsBinding" Location="$slsUrl" />
 SLS_TEMPLATE;
         }
 
-        $strAuthnsign = $authnsign ? 'true' : 'false';
-        $strWsign = $wsign ? 'true' : 'false';
+        $strAuthnsign = $settings->getSecurityAuthnRequestsSigned() ? 'true' : 'false';
+        $strWsign = $settings->getSecurityWantAssertionsSigned() ? 'true' : 'false';
         $strOrganization = '';
 
         if (!empty($organization)) {
@@ -95,19 +89,16 @@ CONTACT;
         }
 
         $strAttributeConsumingService = '';
-        if (isset($sp['attributeConsumingService'])) {
+
+        if ($settings->hasSPAttributeConsumingService()) {
             $attrCsDesc = '';
-            if (isset($sp['attributeConsumingService']['serviceDescription'])) {
-                $attrCsDesc = " <md:ServiceDescription xml:lang=\"en\">{$sp['attributeConsumingService']['serviceDescription']}</md:ServiceDescription>\n";
-            }
-            if (!isset($sp['attributeConsumingService']['serviceName'])) {
-                $sp['attributeConsumingService']['serviceName'] = 'Service';
-            }
-            if (!isset($sp['attributeConsumingService']['requestedAttributes'])) {
-                $sp['attributeConsumingService']['requestedAttributes'] = [];
+            $serviceDescription = $settings->getSPAttributeConsumingServiceDescription();
+            $serviceName = $settings->getSPAttributeConsumingServiceName();
+            if (!empty($serviceDescription)) {
+                $attrCsDesc = " <md:ServiceDescription xml:lang=\"en\">$serviceDescription</md:ServiceDescription>\n";
             }
             $requestedAttributeData = [];
-            foreach ($sp['attributeConsumingService']['requestedAttributes'] as $attribute) {
+            foreach ($settings->getSPAttributeConsumingServiceRequestedAttributes() as $attribute) {
                 $requestedAttributeStr = "<md:RequestedAttribute Name=\"$attribute[name]\"";
                 if (isset($attribute['nameFormat'])) {
                     $requestedAttributeStr .= " NameFormat=\"$attribute[nameFormat]\"";
@@ -139,27 +130,27 @@ ATTRIBUTEVALUE;
             $requestedAttributeStr = implode(PHP_EOL, $requestedAttributeData);
             $strAttributeConsumingService = <<<METADATA_TEMPLATE
 <md:AttributeConsumingService index="1">
-            <md:ServiceName xml:lang="en">{$sp['attributeConsumingService']['serviceName']}</md:ServiceName>
+            <md:ServiceName xml:lang="en">$serviceName</md:ServiceName>
 {$attrCsDesc}{$requestedAttributeStr}
         </md:AttributeConsumingService>
 METADATA_TEMPLATE;
         }
 
-        $spEntityId = htmlspecialchars($sp['entityId'], ENT_QUOTES);
-        $acsUrl = htmlspecialchars($sp['assertionConsumerService']['url'], ENT_QUOTES);
+        $spEntityId = htmlspecialchars($settings->getSPEntityId(), ENT_QUOTES);
+        $acsUrl = htmlspecialchars($settings->getSPAssertionConsumerServiceUrl(), ENT_QUOTES);
+        $acsBinding = $settings->getSPAssertionConsumerServiceBinding();
+        $spNameIdFormat = $settings->getSPNameIDFormat();
         return <<<METADATA_TEMPLATE
 <?xml version="1.0"?>
 <md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata"
-                     validUntil="{$validUntilTime}"
+                     validUntil="$validUntilTime"
                      cacheDuration="PT{$cacheDuration}S"
-                     entityID="{$spEntityId}">
-    <md:SPSSODescriptor AuthnRequestsSigned="{$strAuthnsign}" WantAssertionsSigned="{$strWsign}"
+                     entityID="$spEntityId">
+    <md:SPSSODescriptor AuthnRequestsSigned="$strAuthnsign" WantAssertionsSigned="$strWsign"
     protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
-{$sls}        <md:NameIDFormat>{$sp['NameIDFormat']}</md:NameIDFormat>
-        <md:AssertionConsumerService Binding="{$sp['assertionConsumerService']['binding']}"
-                                     Location="{$acsUrl}"
-                                     index="1" />
-        {$strAttributeConsumingService}
+$sls        <md:NameIDFormat>$spNameIdFormat</md:NameIDFormat>
+        <md:AssertionConsumerService Binding="$acsBinding" Location="$acsUrl" index="1" />
+        $strAttributeConsumingService
     </md:SPSSODescriptor>{$strOrganization}{$strContacts}
 </md:EntityDescriptor>
 METADATA_TEMPLATE;

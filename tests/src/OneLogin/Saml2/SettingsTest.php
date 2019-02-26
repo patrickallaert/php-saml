@@ -547,37 +547,31 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
 
     /**
      *
-     * @covers OneLogin\Saml2\Settings::getIdPData
      * @covers OneLogin\Saml2\Settings::getIdPEntityId
      * @covers OneLogin\Saml2\Settings::getIdPSingleSignOnServiceUrl
      * @covers OneLogin\Saml2\Settings::getIdPSingleLogoutServiceUrl
+     * @covers OneLogin\Saml2\Settings::getIdPX509Certificate
+     * @covers OneLogin\Saml2\Settings::getIdPMultipleX509SigningCertificate
      */
     public function testGetIdPData()
     {
         $settings = new Settings(require TEST_ROOT . '/settings/settings1.php');
-        $idpData = $settings->getIdPData();
-        $this->assertNotEmpty($idpData);
-        $this->assertArrayHasKey('x509cert', $idpData);
 
         $this->assertSame('http://idp.example.com/', $settings->getIdPEntityId());
         $this->assertSame('http://idp.example.com/SSOService.php', $settings->getIdPSingleSignOnServiceUrl());
         $this->assertSame('http://idp.example.com/SingleLogoutService.php', $settings->getIdPSingleLogoutServiceUrl());
         $formatedx509cert = Utils::formatCert('MIICgTCCAeoCCQCbOlrWDdX7FTANBgkqhkiG9w0BAQUFADCBhDELMAkGA1UEBhMCTk8xGDAWBgNVBAgTD0FuZHJlYXMgU29sYmVyZzEMMAoGA1UEBxMDRm9vMRAwDgYDVQQKEwdVTklORVRUMRgwFgYDVQQDEw9mZWlkZS5lcmxhbmcubm8xITAfBgkqhkiG9w0BCQEWEmFuZHJlYXNAdW5pbmV0dC5ubzAeFw0wNzA2MTUxMjAxMzVaFw0wNzA4MTQxMjAxMzVaMIGEMQswCQYDVQQGEwJOTzEYMBYGA1UECBMPQW5kcmVhcyBTb2xiZXJnMQwwCgYDVQQHEwNGb28xEDAOBgNVBAoTB1VOSU5FVFQxGDAWBgNVBAMTD2ZlaWRlLmVybGFuZy5ubzEhMB8GCSqGSIb3DQEJARYSYW5kcmVhc0B1bmluZXR0Lm5vMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDivbhR7P516x/S3BqKxupQe0LONoliupiBOesCO3SHbDrl3+q9IbfnfmE04rNuMcPsIxB161TdDpIesLCn7c8aPHISKOtPlAeTZSnb8QAu7aRjZq3+PbrP5uW3TcfCGPtKTytHOge/OlJbo078dVhXQ14d1EDwXJW1rRXuUt4C8QIDAQABMA0GCSqGSIb3DQEBBQUAA4GBACDVfp86HObqY+e8BUoWQ9+VMQx1ASDohBjwOsg2WykUqRXF+dLfcUH9dWR63CtZIKFDbStNomPnQz7nbK+onygwBspVEbnHuUihZq3ZUdmumQqCw4Uvs/1Uvq3orOo/WJVhTyvLgFVK2QarQ4/67OZfHd7R+POBXhophSMv1ZOo');
-        $this->assertSame($formatedx509cert, $idpData['x509cert']);
+        $this->assertSame($formatedx509cert, $settings->getIdPX509Certificate());
 
-        $idpData2 = (new Settings(require TEST_ROOT . '/settings/settings6.php'))->getIdPData();
-        $this->assertNotEmpty($idpData2);
-        $this->assertArrayHasKey('x509certMulti', $idpData2);
-        $this->assertArrayHasKey('signing', $idpData2['x509certMulti']);
-        $this->assertArrayHasKey('encryption', $idpData2['x509certMulti']);
+        $settings = new Settings(require TEST_ROOT . '/settings/settings6.php');
 
-        $this->assertSame(Utils::formatCert('MIICbDCCAdWgAwIBAgIBADANBgkqhkiG9w0BAQ0FADBTMQswCQYDVQQGEwJ1czETMBEGA1UECAwKQ2FsaWZvcm5pYTEVMBMGA1UECgwMT25lbG9naW4gSW5jMRgwFgYDVQQDDA9pZHAuZXhhbXBsZS5jb20wHhcNMTQwOTIzMTIyNDA4WhcNNDIwMjA4MTIyNDA4WjBTMQswCQYDVQQGEwJ1czETMBEGA1UECAwKQ2FsaWZvcm5pYTEVMBMGA1UECgwMT25lbG9naW4gSW5jMRgwFgYDVQQDDA9pZHAuZXhhbXBsZS5jb20wgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAOWA+YHU7cvPOrBOfxCscsYTJB+kH3MaA9BFrSHFS+KcR6cw7oPSktIJxUgvDpQbtfNcOkE/tuOPBDoech7AXfvH6d7Bw7xtW8PPJ2mB5Hn/HGW2roYhxmfh3tR5SdwN6i4ERVF8eLkvwCHsNQyK2Ref0DAJvpBNZMHCpS24916/AgMBAAGjUDBOMB0GA1UdDgQWBBQ77/qVeiigfhYDITplCNtJKZTM8DAfBgNVHSMEGDAWgBQ77/qVeiigfhYDITplCNtJKZTM8DAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBDQUAA4GBAJO2j/1uO80E5C2PM6Fk9mzerrbkxl7AZ/mvlbOn+sNZE+VZ1AntYuG8ekbJpJtG1YfRfc7EA9mEtqvv4dhv7zBy4nK49OR+KpIBjItWB5kYvrqMLKBa32sMbgqqUqeF1ENXKjpvLSuPdfGJZA3dNa/+Dyb8GGqWe707zLyc5F8m'), $idpData2['x509certMulti']['signing'][0]);
-        $this->assertSame($formatedx509cert, $idpData2['x509certMulti']['signing'][1]);
-        $this->assertSame($formatedx509cert, $idpData2['x509certMulti']['encryption'][0]);
+        $signingCertificates = $settings->getIdPMultipleX509SigningCertificate();
+        $this->assertSame(Utils::formatCert('MIICbDCCAdWgAwIBAgIBADANBgkqhkiG9w0BAQ0FADBTMQswCQYDVQQGEwJ1czETMBEGA1UECAwKQ2FsaWZvcm5pYTEVMBMGA1UECgwMT25lbG9naW4gSW5jMRgwFgYDVQQDDA9pZHAuZXhhbXBsZS5jb20wHhcNMTQwOTIzMTIyNDA4WhcNNDIwMjA4MTIyNDA4WjBTMQswCQYDVQQGEwJ1czETMBEGA1UECAwKQ2FsaWZvcm5pYTEVMBMGA1UECgwMT25lbG9naW4gSW5jMRgwFgYDVQQDDA9pZHAuZXhhbXBsZS5jb20wgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAOWA+YHU7cvPOrBOfxCscsYTJB+kH3MaA9BFrSHFS+KcR6cw7oPSktIJxUgvDpQbtfNcOkE/tuOPBDoech7AXfvH6d7Bw7xtW8PPJ2mB5Hn/HGW2roYhxmfh3tR5SdwN6i4ERVF8eLkvwCHsNQyK2Ref0DAJvpBNZMHCpS24916/AgMBAAGjUDBOMB0GA1UdDgQWBBQ77/qVeiigfhYDITplCNtJKZTM8DAfBgNVHSMEGDAWgBQ77/qVeiigfhYDITplCNtJKZTM8DAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBDQUAA4GBAJO2j/1uO80E5C2PM6Fk9mzerrbkxl7AZ/mvlbOn+sNZE+VZ1AntYuG8ekbJpJtG1YfRfc7EA9mEtqvv4dhv7zBy4nK49OR+KpIBjItWB5kYvrqMLKBa32sMbgqqUqeF1ENXKjpvLSuPdfGJZA3dNa/+Dyb8GGqWe707zLyc5F8m'), $signingCertificates[0]);
+        $this->assertSame($formatedx509cert, $signingCertificates[1]);
+        $this->assertSame($formatedx509cert, $settings->getIdPOneEncryptionCertificate());
     }
 
     /**
-     * @covers OneLogin\Saml2\Settings::getSPData
      * @covers OneLogin\Saml2\Settings::getSPEntityId
      * @covers OneLogin\Saml2\Settings::getSPNameIDFormat
      * @covers OneLogin\Saml2\Settings::getSPAssertionConsumerServiceUrl
@@ -586,9 +580,6 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     public function testGetSPData()
     {
         $settings = new Settings(require TEST_ROOT . '/settings/settings1.php');
-        $spData = $settings->getSPData();
-        $this->assertNotEmpty($spData);
-        $this->assertArrayHasKey('singleLogoutService', $spData);
 
         $this->assertSame('http://stuff.com/endpoints/metadata.php', $settings->getSPEntityId());
         $this->assertSame('http://stuff.com/endpoints/endpoints/acs.php', $settings->getSPAssertionConsumerServiceUrl());
@@ -597,74 +588,38 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Settings::getSecurityData
-     */
-    public function testGetSecurityData()
-    {
-        $security = (new Settings(require TEST_ROOT . '/settings/settings1.php'))->getSecurityData();
-        $this->assertNotEmpty($security);
-        $this->assertArrayHasKey('nameIdEncrypted', $security);
-        $this->assertArrayHasKey('authnRequestsSigned', $security);
-        $this->assertArrayHasKey('logoutRequestSigned', $security);
-        $this->assertArrayHasKey('logoutResponseSigned', $security);
-        $this->assertArrayHasKey('signMetadata', $security);
-        $this->assertArrayHasKey('wantMessagesSigned', $security);
-        $this->assertArrayHasKey('wantAssertionsSigned', $security);
-        $this->assertArrayHasKey('wantAssertionsEncrypted', $security);
-        $this->assertArrayHasKey('wantNameIdEncrypted', $security);
-        $this->assertArrayHasKey('requestedAuthnContext', $security);
-        $this->assertArrayHasKey('wantXMLValidation', $security);
-        $this->assertArrayHasKey('wantNameId', $security);
-    }
-
-    /**
      * Tests default values of Security advanced sesettings
      *
-     * @covers OneLogin\Saml2\Settings::getSecurityData
+     * @covers OneLogin\Saml2\Settings::getSecurityNameIdEncrypted());
+     * @covers OneLogin\Saml2\Settings::getSecurityAuthnRequestsSigned());
+     * @covers OneLogin\Saml2\Settings::getSecurityWantLogoutRequestSigned());
+     * @covers OneLogin\Saml2\Settings::getSecurityWantLogoutResponseSigned());
+     * @covers OneLogin\Saml2\Settings::getSecurityWantMessagesSigned());
+     * @covers OneLogin\Saml2\Settings::getSecurityWantAssertionsSigned());
+     * @covers OneLogin\Saml2\Settings::getSecurityWantAssertionsEncrypted());
+     * @covers OneLogin\Saml2\Settings::getSecurityWantNameIdEncrypted());
+     * @covers OneLogin\Saml2\Settings::getSecurityRequestedAuthnContext());
+     * @covers OneLogin\Saml2\Settings::getSecurityWantXMLValidation());
+     * @covers OneLogin\Saml2\Settings::getSecurityWantNameId());
      */
     public function testGetDefaultSecurityValues()
     {
         $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
         unset($settingsInfo['security']);
 
-        $security = (new Settings($settingsInfo))->getSecurityData();
-        $this->assertNotEmpty($security);
+        $settings = new Settings($settingsInfo);
 
-        $this->assertArrayHasKey('nameIdEncrypted', $security);
-        $this->assertFalse($security['nameIdEncrypted']);
-
-        $this->assertArrayHasKey('authnRequestsSigned', $security);
-        $this->assertFalse($security['authnRequestsSigned']);
-
-        $this->assertArrayHasKey('logoutRequestSigned', $security);
-        $this->assertFalse($security['logoutRequestSigned']);
-
-        $this->assertArrayHasKey('logoutResponseSigned', $security);
-        $this->assertFalse($security['logoutResponseSigned']);
-
-        $this->assertArrayHasKey('signMetadata', $security);
-        $this->assertFalse($security['signMetadata']);
-
-        $this->assertArrayHasKey('wantMessagesSigned', $security);
-        $this->assertFalse($security['wantMessagesSigned']);
-
-        $this->assertArrayHasKey('wantAssertionsSigned', $security);
-        $this->assertFalse($security['wantAssertionsSigned']);
-
-        $this->assertArrayHasKey('wantAssertionsEncrypted', $security);
-        $this->assertFalse($security['wantAssertionsEncrypted']);
-
-        $this->assertArrayHasKey('wantNameIdEncrypted', $security);
-        $this->assertFalse($security['wantNameIdEncrypted']);
-
-        $this->assertArrayHasKey('requestedAuthnContext', $security);
-        $this->assertTrue($security['requestedAuthnContext']);
-
-        $this->assertArrayHasKey('wantXMLValidation', $security);
-        $this->assertTrue($security['wantXMLValidation']);
-
-        $this->assertArrayHasKey('wantNameId', $security);
-        $this->assertTrue($security['wantNameId']);
+        $this->assertFalse($settings->getSecurityNameIdEncrypted());
+        $this->assertFalse($settings->getSecurityAuthnRequestsSigned());
+        $this->assertFalse($settings->getSecurityWantLogoutRequestSigned());
+        $this->assertFalse($settings->getSecurityWantLogoutResponseSigned());
+        $this->assertFalse($settings->getSecurityWantMessagesSigned());
+        $this->assertFalse($settings->getSecurityWantAssertionsSigned());
+        $this->assertFalse($settings->getSecurityWantAssertionsEncrypted());
+        $this->assertFalse($settings->getSecurityWantNameIdEncrypted());
+        $this->assertTrue($settings->getSecurityRequestedAuthnContext());
+        $this->assertTrue($settings->getSecurityWantXMLValidation());
+        $this->assertTrue($settings->getSecurityWantNameId());
     }
 
     /**

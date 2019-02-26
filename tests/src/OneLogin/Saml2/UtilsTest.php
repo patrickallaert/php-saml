@@ -994,8 +994,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
      */
     public function testValidateSign()
     {
-        $idpData = (new Settings(require TEST_ROOT . '/settings/settings1.php'))->getIdPData();
-        $cert = $idpData['x509cert'];
+        $cert = (new Settings(require TEST_ROOT . '/settings/settings1.php'))->getIdPX509Certificate();
         $fingerprint = Utils::calculateX509Fingerprint($cert);
 
         $xmlMetadataSigned = new DOMDocument();

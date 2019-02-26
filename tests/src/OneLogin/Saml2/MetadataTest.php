@@ -15,18 +15,9 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
      */
     public function testBuilder()
     {
-        $settings = new Settings(require TEST_ROOT . '/settings/settings1.php');
-        $spData = $settings->getSPData();
-        $security = $settings->getSecurityData();
-        $metadata = Metadata::builder(
-            $spData,
-            $security['authnRequestsSigned'],
-            $security['wantAssertionsSigned'],
-            null,
-            null,
-            $settings->getContacts(),
-            $settings->getOrganization()
-        );
+        $settingsData = require TEST_ROOT . '/settings/settings1.php';
+        $settings = new Settings($settingsData);
+        $metadata = Metadata::builder($settings);
 
         $this->assertNotEmpty($metadata);
 
@@ -46,11 +37,12 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
         $this->assertContains('<md:ContactPerson contactType="technical">', $metadata);
         $this->assertContains('<md:GivenName>technical_name</md:GivenName>', $metadata);
 
-        $security['authnRequestsSigned'] = true;
-        $security['wantAssertionsSigned'] = true;
-        unset($spData['singleLogoutService']);
+        $settingsData['security']['authnRequestsSigned'] = true;
+        $settingsData['security']['wantAssertionsSigned'] = true;
 
-        $metadata2 = Metadata::builder($spData, $security['authnRequestsSigned'], $security['wantAssertionsSigned']);
+        unset($settingsData['sp']['singleLogoutService']);
+
+        $metadata2 = Metadata::builder($settings = new Settings($settingsData));
 
         $this->assertNotEmpty($metadata2);
 
@@ -66,17 +58,7 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
      */
     public function testBuilderWithAttributeConsumingService()
     {
-        $settings = new Settings(require TEST_ROOT . '/settings/settings3.php');
-        $security = $settings->getSecurityData();
-        $metadata = Metadata::builder(
-            $settings->getSPData(),
-            $security['authnRequestsSigned'],
-            $security['wantAssertionsSigned'],
-            null,
-            null,
-            $settings->getContacts(),
-            $settings->getOrganization()
-        );
+        $metadata = Metadata::builder(new Settings(require TEST_ROOT . '/settings/settings3.php'));
 
         $this->assertContains('<md:ServiceName xml:lang="en">Service Name</md:ServiceName>', $metadata);
         $this->assertContains('<md:ServiceDescription xml:lang="en">Service Description</md:ServiceDescription>', $metadata);
@@ -93,17 +75,7 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
      */
     public function testBuilderWithAttributeConsumingServiceWithMultipleAttributeValue()
     {
-        $settings = new Settings(require TEST_ROOT . '/settings/settings4.php');
-        $security = $settings->getSecurityData();
-        $metadata = Metadata::builder(
-            $settings->getSPData(),
-            $security['authnRequestsSigned'],
-            $security['wantAssertionsSigned'],
-            null,
-            null,
-            $settings->getContacts(),
-            $settings->getOrganization()
-        );
+        $metadata = Metadata::builder(new Settings(require TEST_ROOT . '/settings/settings4.php'));
 
         $this->assertContains('<md:ServiceName xml:lang="en">Service Name</md:ServiceName>', $metadata);
         $this->assertContains('<md:ServiceDescription xml:lang="en">Service Description</md:ServiceDescription>', $metadata);
@@ -121,9 +93,7 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
      */
     public function testAddX509KeyDescriptors()
     {
-        $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
-        $settings = new Settings($settingsInfo);
-        $metadata = Metadata::builder($settings->getSPData());
+        $metadata = Metadata::builder(new Settings(require TEST_ROOT . '/settings/settings1.php'));
 
         $this->assertNotContains('<md:KeyDescriptor use="signing"', $metadata);
         $this->assertNotContains('<md:KeyDescriptor use="encryption"', $metadata);
@@ -163,7 +133,7 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
      */
     public function testAddX509KeyDescriptors2Times()
     {
-        $metadataOriginal = $metadata = Metadata::builder((new Settings(require TEST_ROOT . '/settings/settings1.php'))->getSPData());
+        $metadataOriginal = $metadata = Metadata::builder((new Settings(require TEST_ROOT . '/settings/settings1.php')));
 
         $this->assertNotContains('<md:KeyDescriptor use="signing"', $metadata);
         $this->assertNotContains('<md:KeyDescriptor use="encryption"', $metadata);

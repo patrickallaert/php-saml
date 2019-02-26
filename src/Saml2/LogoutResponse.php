@@ -118,9 +118,7 @@ class LogoutResponse
         $this->error = null;
         try {
             if ($this->settings->isStrict()) {
-                $security = $this->settings->getSecurityData();
-
-                if ($security['wantXMLValidation'] &&
+                if ($this->settings->getSecurityWantXMLValidation() &&
                     !Utils::validateXML($this->document, 'saml-schema-protocol-2.0.xsd')) {
                     throw new ValidationError(
                         "Invalid SAML Logout Response. Not match the saml-schema-protocol-2.0.xsd",
@@ -162,7 +160,7 @@ class LogoutResponse
                     }
                 }
 
-                if ($security['wantMessagesSigned'] && !isset($_GET['Signature'])) {
+                if ($this->settings->getSecurityWantMessagesSigned() && !isset($_GET['Signature'])) {
                     throw new ValidationError(
                         "The Message of the Logout Response is not signed and the SP requires it",
                         ValidationError::NO_SIGNED_MESSAGE
@@ -171,7 +169,7 @@ class LogoutResponse
             }
 
             if (isset($_GET['Signature']) &&
-                !Utils::validateBinarySign("SAMLResponse", $_GET, $this->settings->getIdPData(), $retrieveParametersFromServer)) {
+                !Utils::validateBinarySign("SAMLResponse", $_GET, $this->settings, $retrieveParametersFromServer)) {
                 throw new ValidationError(
                     "Signature validation failed. Logout Response rejected",
                     ValidationError::INVALID_SIGNATURE

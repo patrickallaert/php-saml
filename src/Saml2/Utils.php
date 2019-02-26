@@ -1027,7 +1027,7 @@ class Utils
     public static function validateBinarySign(
         string $messageType,
         array $getData,
-        array $idpData,
+        Settings $settings,
         bool $retrieveParametersFromServer
     ): bool {
         $signAlg = $getData['SigAlg'] ?? XMLSecurityKey::RSA_SHA1;
@@ -1048,15 +1048,17 @@ class Utils
 
         $strMessageType = $messageType === "SAMLRequest" ? "Logout Request" : "Logout Response";
 
-        $existsMultiX509Sign = isset($idpData['x509certMulti']) && isset($idpData['x509certMulti']['signing']) && !empty($idpData['x509certMulti']['signing']);
-        if ((!isset($idpData['x509cert']) || empty($idpData['x509cert'])) && !$existsMultiX509Sign) {
+        $multiX509SigningCertificates = $settings->getIdPMultipleX509SigningCertificate();
+        $x509SigningCertificate = $settings->getIdPX509Certificate();
+        $existsMultiX509Sign = !empty($multiX509SigningCertificates);
+        if (empty($x509SigningCertificate) && !$existsMultiX509Sign) {
             throw new Error(
                 "In order to validate the sign on the " . $strMessageType . ", the x509cert of the IdP is required",
                 Error::CERT_NOT_FOUND
             );
         }
 
-        $multiCerts = $existsMultiX509Sign ? $idpData['x509certMulti']['signing'] : [$idpData['x509cert']];
+        $multiCerts = $existsMultiX509Sign ? $multiX509SigningCertificates : [$x509SigningCertificate];
 
         foreach ($multiCerts as $cert) {
             $objKey = new XMLSecurityKey(XMLSecurityKey::RSA_SHA1, ['type' => 'public']);

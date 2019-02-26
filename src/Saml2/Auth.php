@@ -236,10 +236,9 @@ class Auth
                     $parameters['RelayState'] = $_GET['RelayState'];
                 }
 
-                $security = $this->settings->getSecurityData();
-                if (isset($security['logoutResponseSigned']) && $security['logoutResponseSigned']) {
-                    $parameters['SigAlg'] = $security['signatureAlgorithm'];
-                    $parameters['Signature'] = $this->buildResponseSignature($parameters['SAMLResponse'], $parameters['RelayState'] ?? null, $security['signatureAlgorithm']);
+                if ($this->settings->getSecurityWantLogoutResponseSigned()) {
+                    $parameters['SigAlg'] = $this->settings->getSecuritySignatureAlgorithm();
+                    $parameters['Signature'] = $this->buildResponseSignature($parameters['SAMLResponse'], $parameters['RelayState'] ?? null, $parameters['SigAlg']);
                 }
 
                 return $this->redirectTo($this->settings->getIdPSingleLogoutServiceUrl(), $parameters, $stay);
@@ -362,10 +361,9 @@ class Auth
         $parameters['SAMLRequest'] = $authnRequest->getRequest();
         $parameters['RelayState'] = !empty($returnTo) ? $returnTo : Utils::getSelfRoutedURLNoQuery();
 
-        $security = $this->settings->getSecurityData();
-        if (isset($security['authnRequestsSigned']) && $security['authnRequestsSigned']) {
-            $parameters['SigAlg'] = $security['signatureAlgorithm'];
-            $parameters['Signature'] = $this->buildRequestSignature($parameters['SAMLRequest'], $parameters['RelayState'], $security['signatureAlgorithm']);
+        if ($this->settings->getSecurityAuthnRequestsSigned()) {
+            $parameters['SigAlg'] = $this->settings->getSecuritySignatureAlgorithm();
+            $parameters['Signature'] = $this->buildRequestSignature($parameters['SAMLRequest'], $parameters['RelayState'], $parameters['SigAlg']);
         }
 
         ;
@@ -417,10 +415,9 @@ class Auth
         $parameters['SAMLRequest'] = $logoutRequest->getRequest();
         $parameters['RelayState'] = !empty($returnTo) ? $returnTo : Utils::getSelfRoutedURLNoQuery();
 
-        $security = $this->settings->getSecurityData();
-        if (isset($security['logoutRequestSigned']) && $security['logoutRequestSigned']) {
-            $parameters['SigAlg'] = $security['signatureAlgorithm'];
-            $parameters['Signature'] = $this->buildRequestSignature($parameters['SAMLRequest'], $parameters['RelayState'], $security['signatureAlgorithm']);
+        if ($this->settings->getSecurityWantLogoutRequestSigned()) {
+            $parameters['SigAlg'] = $this->settings->getSecuritySignatureAlgorithm();
+            $parameters['Signature'] = $this->buildRequestSignature($parameters['SAMLRequest'], $parameters['RelayState'], $parameters['SigAlg']);
         }
 
         return $this->redirectTo($sloUrl, $parameters, $stay);
@@ -477,8 +474,7 @@ class Auth
         $objKey = new XMLSecurityKey($signAlgorithm, ['type' => 'private']);
         $objKey->loadKey($key);
 
-        $security = $this->settings->getSecurityData();
-        if ($security['lowercaseUrlencoding']) {
+        if ($this->settings->getSecurityLowercaseUrlEncoding()) {
             $msg = $type . '=' . rawurlencode($samlMessage);
             if (isset($relayState)) {
                 $msg .= '&RelayState=' . rawurlencode($relayState);

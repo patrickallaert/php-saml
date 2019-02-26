@@ -11,7 +11,7 @@ require_once __DIR__ . "/../vendor/autoload.php";
 use OneLogin\Saml2\Auth;
 use OneLogin\Saml2\Utils;
 
-$auth = new Auth();
+$auth = new Auth([]);
 
 $auth->processResponse();
 

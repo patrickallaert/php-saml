@@ -129,9 +129,7 @@ class Response
             $hasSignedAssertion = in_array('{' . Constants::NS_SAML . '}Assertion', $signedElements);
 
             if ($this->settings->isStrict()) {
-                $security = $this->settings->getSecurityData();
-
-                if ($security['wantXMLValidation'] &&
+                if ($this->settings->getSecurityWantXMLValidation() &&
                     (
                         !Utils::validateXML($this->document, 'saml-schema-protocol-2.0.xsd') ||
                         ($this->encrypted && !Utils::validateXML($this->decryptedDocument, 'saml-schema-protocol-2.0.xsd'))
@@ -157,14 +155,14 @@ class Response
                     );
                 }
 
-                if (!$this->encrypted && $security['wantAssertionsEncrypted']) {
+                if (!$this->encrypted && $this->settings->getSecurityWantAssertionsEncrypted()) {
                     throw new ValidationError(
                         "The assertion of the Response is not encrypted and the SP requires it",
                         ValidationError::NO_ENCRYPTED_ASSERTION
                     );
                 }
 
-                if ($security['wantNameIdEncrypted'] && $this->queryAssertion('/saml:Subject/saml:EncryptedID/xenc:EncryptedData')->length !== 1) {
+                if ($this->settings->getSecurityWantNameIdEncrypted() && $this->queryAssertion('/saml:Subject/saml:EncryptedID/xenc:EncryptedData')->length !== 1) {
                     throw new ValidationError(
                         "The NameID of the Response is not encrypted and the SP requires it",
                         ValidationError::NO_ENCRYPTED_NAMEID
@@ -199,7 +197,7 @@ class Response
                 if ($this->document->documentElement->hasAttribute('Destination')) {
                     $destination = trim($this->document->documentElement->getAttribute('Destination'));
                     if (empty($destination)) {
-                        if (!$security['relaxDestinationValidation']) {
+                        if (!$this->settings->getSecurityRelaxDestinationValidation()) {
                             throw new ValidationError(
                                 "The response has an empty Destination value",
                                 ValidationError::EMPTY_DESTINATION
@@ -309,14 +307,14 @@ class Response
                     );
                 }
 
-                if (!$hasSignedAssertion && $security['wantAssertionsSigned']) {
+                if (!$hasSignedAssertion && $this->settings->getSecurityWantAssertionsSigned()) {
                     throw new ValidationError(
                         "The Assertion of the Response is not signed and the SP requires it",
                         ValidationError::NO_SIGNED_ASSERTION
                     );
                 }
 
-                if (!$hasSignedResponse && $security['wantMessagesSigned']) {
+                if (!$hasSignedResponse && $this->settings->getSecurityWantMessagesSigned()) {
                     throw new ValidationError(
                         "The Message of the Response is not signed and the SP requires it",
                         ValidationError::NO_SIGNED_MESSAGE
@@ -342,15 +340,10 @@ class Response
                 );
             }
 
-            $idpData = $this->settings->getIdPData();
-            $cert = $idpData['x509cert'];
-            $fingerprint = $idpData['certFingerprint'];
-            $fingerprintalg = $idpData['certFingerprintAlgorithm'];
-
-            $multiCerts = [];
-            if (isset($idpData['x509certMulti']['signing']) && !empty($idpData['x509certMulti']['signing'])) {
-                $multiCerts = $idpData['x509certMulti']['signing'];
-            }
+            $cert = $this->settings->getIdPX509Certificate();
+            $fingerprint = $this->settings->getIdPCertFingerprint();
+            $fingerprintalg = $this->settings->getIdPCertFingerprintAlgorithm();
+            $multiCerts = $this->settings->getIdPMultipleX509SigningCertificate();
 
             // If find a Signature on the Response, validates it checking the original response
             if ($hasSignedResponse &&
@@ -499,7 +492,7 @@ class Response
         $nameIdData = [];
 
         if (!isset($nameId)) {
-            if ($this->settings->getSecurityData()['wantNameId']) {
+            if ($this->settings->getSecurityWantNameId()) {
                 throw new ValidationError(
                     "NameID not found in the assertion of the Response",
                     ValidationError::NO_NAMEID
@@ -930,11 +923,11 @@ class Response
             $objKeyInfo->loadKey($pem);
             if ($objKeyInfo->isEncrypted) {
                 $encryptedContext = $objKeyInfo->encryptedCtx;
-                if ($encryptedContext instanceof XMLSecEnc &&
-                    empty($objKey->key) &&
-                    is_string($key = $encryptedContext->decryptKey($objKeyInfo))
-                ) {
-                    $objKey->loadKey($key);
+                if ($encryptedContext instanceof XMLSecEnc && empty($objKey->key)) {
+                    $key = $encryptedContext->decryptKey($objKeyInfo);
+                    if (is_string($key)) {
+                        $objKey->loadKey($key);
+                    }
                 }
             }
         }

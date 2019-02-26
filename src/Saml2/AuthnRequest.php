@@ -26,7 +26,6 @@ class AuthnRequest
         $this->settings = $settings;
 
         $ssoServiceUrl = $this->settings->getIdPSingleSignOnServiceUrl();
-        $security = $this->settings->getSecurityData();
 
         $this->id = Utils::generateUniqueID();
         $issueInstant = Utils::parseTime2SAML(time());
@@ -34,7 +33,7 @@ class AuthnRequest
         $nameIdPolicyStr = '';
         if ($setNameIdPolicy) {
             $nameIDPolicyFormat = $this->settings->getSPNameIDFormat();
-            if (isset($security['wantNameIdEncrypted']) && $security['wantNameIdEncrypted']) {
+            if ($this->settings->getSecurityWantNameIdEncrypted()) {
                 $nameIDPolicyFormat = Constants::NAMEID_ENCRYPTED;
             }
 
@@ -55,10 +54,10 @@ class AuthnRequest
         $isPassiveStr = $isPassive ? ' IsPassive="true"' : '';
 
         $requestedAuthnStr = '';
-        if (isset($security['requestedAuthnContext']) && $security['requestedAuthnContext'] !== false) {
-            $authnComparison = $security['requestedAuthnContextComparison'] ?? 'exact';
+        if ($requestedAuthnContext = $this->settings->getSecurityRequestedAuthnContext()) {
+            $authnComparison = $this->settings->getSecurityRequestedAuthnContextComparison();
 
-            if ($security['requestedAuthnContext'] === true) {
+            if ($requestedAuthnContext === true) {
                 $requestedAuthnStr = <<<REQUESTEDAUTHN
     <samlp:RequestedAuthnContext Comparison="$authnComparison">
         <saml:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport</saml:AuthnContextClassRef>
@@ -66,7 +65,7 @@ class AuthnRequest
 REQUESTEDAUTHN;
             } else {
                 $requestedAuthnStr .= "    <samlp:RequestedAuthnContext Comparison=\"$authnComparison\">\n";
-                foreach ($security['requestedAuthnContext'] as $contextValue) {
+                foreach ($requestedAuthnContext as $contextValue) {
                     $requestedAuthnStr .= "        <saml:AuthnContextClassRef>$contextValue</saml:AuthnContextClassRef>\n";
                 }
                 $requestedAuthnStr .= '    </samlp:RequestedAuthnContext>';

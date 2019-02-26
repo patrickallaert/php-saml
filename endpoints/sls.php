@@ -10,7 +10,7 @@ require_once __DIR__ . "/../vendor/autoload.php";
 
 use OneLogin\Saml2\Auth;
 
-$auth = new Auth();
+$auth = new Auth([]);
 
 $auth->processSLO();
 

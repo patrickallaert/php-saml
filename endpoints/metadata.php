@@ -10,7 +10,7 @@ use OneLogin\Saml2\Auth;
 use OneLogin\Saml2\Error;
 
 try {
-    $auth = new Auth();
+    $auth = new Auth([]);
     $settings = $auth->getSettings();
     $metadata = $settings->getSPMetadata();
     $errors = $settings->validateMetadata($metadata);

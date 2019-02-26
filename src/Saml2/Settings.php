@@ -14,11 +14,6 @@ class Settings
     private $certPath;
 
     /**
-     * @var string
-     */
-    private $configPath;
-
-    /**
      * @var ?string
      */
     private $baseurl;
@@ -83,13 +78,6 @@ class Settings
     private $errors = [];
 
     /**
-     * Validate SP data only flag
-     *
-     * @var bool
-     */
-    private $spValidationOnly;
-
-    /**
      * Initializes the settings:
      * - Sets the paths of the different folders
      * - Loads settings info from settings file or array/object provided
@@ -99,13 +87,10 @@ class Settings
      */
     public function __construct(array $settings, bool $spValidationOnly = false)
     {
-        $this->spValidationOnly = $spValidationOnly;
         $basePath = dirname(__DIR__, 2) . '/';
         $this->certPath = $basePath . 'certs/';
-        $this->configPath = $basePath;
 
         if (defined('ONELOGIN_CUSTOMPATH')) {
-            $this->configPath = ONELOGIN_CUSTOMPATH;
             $this->certPath = ONELOGIN_CUSTOMPATH . 'certs/';
         }
 
@@ -116,180 +101,11 @@ class Settings
             $this->idp = $settings['idp'];
         }
 
-        $errors = $this->checkSettings($settings);
-        if (!empty($errors)) {
-            $this->errors = $errors;
-            throw new Error(
-                'Invalid array settings: %s',
-                Error::SETTINGS_INVALID,
-                [implode(', ', $this->errors)]
-            );
-        }
-
-        if (isset($settings['strict'])) {
-            $this->strict = (bool)$settings['strict'];
-        }
-
-        if (isset($settings['baseurl'])) {
-            $this->baseurl = $settings['baseurl'];
-        }
-
-        if (isset($settings['compress'])) {
-            $this->compress = $settings['compress'];
-        }
-
-        if (isset($settings['security'])) {
-            $this->security = $settings['security'];
-        }
-
-        if (isset($settings['contactPerson'])) {
-            $this->contacts = $settings['contactPerson'];
-        }
-
-        if (isset($settings['organization'])) {
-            $this->organization = $settings['organization'];
-        }
-
-        if (!isset($this->sp['assertionConsumerService']['binding'])) {
-            $this->sp['assertionConsumerService']['binding'] = Constants::BINDING_HTTP_POST;
-        }
-        if (isset($this->sp['singleLogoutService']) && !isset($this->sp['singleLogoutService']['binding'])) {
-            $this->sp['singleLogoutService']['binding'] = Constants::BINDING_HTTP_REDIRECT;
-        }
-
-        if (!isset($this->compress['requests'])) {
-            $this->compress['requests'] = true;
-        }
-
-        if (!isset($this->compress['responses'])) {
-            $this->compress['responses'] = true;
-        }
-
-        // Related to nameID
-        if (!isset($this->sp['NameIDFormat'])) {
-            $this->sp['NameIDFormat'] = Constants::NAMEID_UNSPECIFIED;
-        }
-        if (!isset($this->security['nameIdEncrypted'])) {
-            $this->security['nameIdEncrypted'] = false;
-        }
-        if (!isset($this->security['requestedAuthnContext'])) {
-            $this->security['requestedAuthnContext'] = true;
-        }
-
-        // sign provided
-        if (!isset($this->security['authnRequestsSigned'])) {
-            $this->security['authnRequestsSigned'] = false;
-        }
-        if (!isset($this->security['logoutRequestSigned'])) {
-            $this->security['logoutRequestSigned'] = false;
-        }
-        if (!isset($this->security['logoutResponseSigned'])) {
-            $this->security['logoutResponseSigned'] = false;
-        }
-        if (!isset($this->security['signMetadata'])) {
-            $this->security['signMetadata'] = false;
-        }
-
-        // sign expected
-        if (!isset($this->security['wantMessagesSigned'])) {
-            $this->security['wantMessagesSigned'] = false;
-        }
-        if (!isset($this->security['wantAssertionsSigned'])) {
-            $this->security['wantAssertionsSigned'] = false;
-        }
-
-        // NameID element expected
-        if (!isset($this->security['wantNameId'])) {
-            $this->security['wantNameId'] = true;
-        }
-
-        // Relax Destination validation
-        if (!isset($this->security['relaxDestinationValidation'])) {
-            $this->security['relaxDestinationValidation'] = false;
-        }
-
-        // encrypt expected
-        if (!isset($this->security['wantAssertionsEncrypted'])) {
-            $this->security['wantAssertionsEncrypted'] = false;
-        }
-        if (!isset($this->security['wantNameIdEncrypted'])) {
-            $this->security['wantNameIdEncrypted'] = false;
-        }
-
-        // XML validation
-        if (!isset($this->security['wantXMLValidation'])) {
-            $this->security['wantXMLValidation'] = true;
-        }
-
-        // SignatureAlgorithm
-        if (!isset($this->security['signatureAlgorithm'])) {
-            $this->security['signatureAlgorithm'] = XMLSecurityKey::RSA_SHA256;
-        }
-
-        // DigestAlgorithm
-        if (!isset($this->security['digestAlgorithm'])) {
-            $this->security['digestAlgorithm'] = XMLSecurityDSig::SHA256;
-        }
-
-        if (!isset($this->security['lowercaseUrlencoding'])) {
-            $this->security['lowercaseUrlencoding'] = false;
-        }
-
-        // Certificates / Private key /Fingerprint
-        if (!isset($this->idp['x509cert'])) {
-            $this->idp['x509cert'] = '';
-        }
-        if (!isset($this->idp['certFingerprint'])) {
-            $this->idp['certFingerprint'] = '';
-        }
-        if (!isset($this->idp['certFingerprintAlgorithm'])) {
-            $this->idp['certFingerprintAlgorithm'] = 'sha1';
-        }
-
-        if (!isset($this->sp['x509cert'])) {
-            $this->sp['x509cert'] = '';
-        }
-        if (!isset($this->sp['privateKey'])) {
-            $this->sp['privateKey'] = '';
-        }
-
-        if (isset($this->idp['x509cert'])) {
-            $this->idp['x509cert'] = Utils::formatCert($this->idp['x509cert']);
-        }
-
-        if (isset($this->sp['x509cert'])) {
-            $this->sp['x509cert'] = Utils::formatCert($this->sp['x509cert']);
-        }
-
-        if (isset($this->sp['privateKey'])) {
-            $this->sp['privateKey'] = Utils::formatPrivateKey($this->sp['privateKey']);
-        }
-
-        if (isset($this->sp['x509certNew'])) {
-            $this->sp['x509certNew'] = Utils::formatCert($this->sp['x509certNew']);
-        }
-
-        if (isset($this->idp['x509certMulti'])) {
-            if (isset($this->idp['x509certMulti']['signing'])) {
-                foreach ($this->idp['x509certMulti']['signing'] as $i => $cert) {
-                    $this->idp['x509certMulti']['signing'][$i] = Utils::formatCert($cert);
-                }
-            }
-            if (isset($this->idp['x509certMulti']['encryption'])) {
-                foreach ($this->idp['x509certMulti']['encryption'] as $i => $cert) {
-                    $this->idp['x509certMulti']['encryption'][$i] = Utils::formatCert($cert);
-                }
-            }
-        }
-    }
-
-    public function checkSettings(array $settings): array
-    {
-        if (empty($settings)) {
-            return ['invalid_syntax'];
-        }
-
         $errors = [];
+
+        if (empty($settings)) {
+            $errors[] = "invalid_syntax";
+        }
 
         if (isset($settings['compress'])) {
             if (!is_array($settings['compress'])) {
@@ -301,18 +117,16 @@ class Settings
             }
         }
 
-        if (!isset($settings['sp']) || empty($settings['sp'])) {
+        if (empty($settings['sp'])) {
             $errors[] = 'sp_not_found';
         } else {
             $sp = $settings['sp'];
 
-            if (!isset($sp['entityId']) || empty($sp['entityId'])) {
+            if (empty($sp['entityId'])) {
                 $errors[] = 'sp_entityId_not_found';
             }
 
-            if (!isset($sp['assertionConsumerService']['url'])
-                || empty($sp['assertionConsumerService']['url'])
-            ) {
+            if (empty($sp['assertionConsumerService']['url'])) {
                 $errors[] = 'sp_acs_not_found';
             } elseif (!filter_var($sp['assertionConsumerService']['url'], FILTER_VALIDATE_URL)) {
                 $errors[] = 'sp_acs_url_invalid';
@@ -356,7 +170,7 @@ class Settings
             }
 
             foreach ($settings['contactPerson'] as $contact) {
-                if (!isset($contact['givenName'], $contact['emailAddress']) || empty($contact['givenName']) || empty($contact['emailAddress'])) {
+                if (empty($contact['givenName']) || empty($contact['emailAddress'])) {
                     $errors[] = 'contact_not_enough_data';
                     break;
                 }
@@ -365,34 +179,29 @@ class Settings
 
         if (isset($settings['organization'])) {
             foreach ($settings['organization'] as $organization) {
-                if (!isset($organization['name'], $organization['displayname'], $organization['url']) ||
-                    empty($organization['name']) || empty($organization['displayname']) || empty($organization['url'])
-                ) {
+                if (empty($organization['name']) || empty($organization['displayname']) || empty($organization['url'])) {
                     $errors[] = 'organization_not_enough_data';
                     break;
                 }
             }
         }
 
-        if (!$this->spValidationOnly) {
-            if (!isset($settings['idp']) || empty($settings['idp'])) {
+        if (!$spValidationOnly) {
+            if (empty($settings['idp'])) {
                 $errors[] = 'idp_not_found';
             } else {
                 $idp = $settings['idp'];
-                if (!isset($idp['entityId']) || empty($idp['entityId'])) {
+                if (empty($idp['entityId'])) {
                     $errors[] = 'idp_entityId_not_found';
                 }
 
-                if (!isset($idp['singleSignOnService']['url'])
-                    || empty($idp['singleSignOnService']['url'])
-                ) {
+                if (empty($idp['singleSignOnService']['url'])) {
                     $errors[] = 'idp_sso_not_found';
                 } elseif (!filter_var($idp['singleSignOnService']['url'], FILTER_VALIDATE_URL)) {
                     $errors[] = 'idp_sso_url_invalid';
                 }
 
-                if (isset($idp['singleLogoutService']['url'])
-                    && !empty($idp['singleLogoutService']['url'])
+                if (!empty($idp['singleLogoutService']['url'])
                     && !filter_var($idp['singleLogoutService']['url'], FILTER_VALIDATE_URL)
                 ) {
                     $errors[] = 'idp_slo_url_invalid';
@@ -401,16 +210,16 @@ class Settings
                 if (isset($settings['security'])) {
                     $security = $settings['security'];
 
-                    $existsX509 = isset($idp['x509cert']) && !empty($idp['x509cert']);
+                    $existsX509 = !empty($idp['x509cert']);
                     if (!(
                         $existsX509 ||
-                        (isset($idp['certFingerprint']) && !empty($idp['certFingerprint'])) ||
-                        (isset($idp['x509certMulti']['signing']) && !empty($idp['x509certMulti']['signing']))
+                        !empty($idp['certFingerprint']) ||
+                        !empty($idp['x509certMulti']['signing'])
                     )) {
                         $errors[] = 'idp_cert_or_fingerprint_not_found_and_required';
                     }
                     if ((isset($security['nameIdEncrypted']) && $security['nameIdEncrypted'] === true)
-                        && !($existsX509 || (isset($idp['x509certMulti']['encryption']) && !empty($idp['x509certMulti']['encryption'])))
+                        && !($existsX509 || !empty($idp['x509certMulti']['encryption']))
                     ) {
                         $errors[] = 'idp_cert_not_found_and_required';
                     }
@@ -418,12 +227,89 @@ class Settings
             }
         }
 
-        return $errors;
+        if (!empty($errors)) {
+            $this->errors = $errors;
+            throw new Error(
+                'Invalid array settings: %s',
+                Error::SETTINGS_INVALID,
+                [implode(', ', $this->errors)]
+            );
+        }
+
+        if (isset($settings['strict'])) {
+            $this->strict = (bool)$settings['strict'];
+        }
+
+        if (isset($settings['baseurl'])) {
+            $this->baseurl = $settings['baseurl'];
+        }
+
+        if (isset($settings['compress'])) {
+            $this->compress = $settings['compress'];
+        }
+
+        if (isset($settings['security'])) {
+            $this->security = $settings['security'];
+        }
+
+        if (isset($settings['contactPerson'])) {
+            $this->contacts = $settings['contactPerson'];
+        }
+
+        if (isset($settings['organization'])) {
+            $this->organization = $settings['organization'];
+        }
+
+        if (!isset($this->compress['requests'])) {
+            $this->compress['requests'] = true;
+        }
+
+        if (!isset($this->compress['responses'])) {
+            $this->compress['responses'] = true;
+        }
+
+        // sign provided
+        if (!isset($this->security['signMetadata'])) {
+            $this->security['signMetadata'] = false;
+        }
+
+        // Certificates / Private key /Fingerprint
+        if (!isset($this->idp['x509cert'])) {
+            $this->idp['x509cert'] = '';
+        }
+
+        if (!isset($this->sp['x509cert'])) {
+            $this->sp['x509cert'] = '';
+        }
+        if (!isset($this->sp['privateKey'])) {
+            $this->sp['privateKey'] = '';
+        }
+
+        $this->idp['x509cert'] = Utils::formatCert($this->idp['x509cert']);
+        $this->sp['x509cert'] = Utils::formatCert($this->sp['x509cert']);
+        $this->sp['privateKey'] = Utils::formatPrivateKey($this->sp['privateKey']);
+
+        if (isset($this->sp['x509certNew'])) {
+            $this->sp['x509certNew'] = Utils::formatCert($this->sp['x509certNew']);
+        }
+
+        if (isset($this->idp['x509certMulti'])) {
+            if (isset($this->idp['x509certMulti']['signing'])) {
+                foreach ($this->idp['x509certMulti']['signing'] as $i => $cert) {
+                    $this->idp['x509certMulti']['signing'][$i] = Utils::formatCert($cert);
+                }
+            }
+            if (isset($this->idp['x509certMulti']['encryption'])) {
+                foreach ($this->idp['x509certMulti']['encryption'] as $i => $cert) {
+                    $this->idp['x509certMulti']['encryption'][$i] = Utils::formatCert($cert);
+                }
+            }
+        }
     }
 
-    private function getSpFileContentHelper(string $spKey, string $fileName): ?string
+    private function getSPFileContentHelper(string $spKey, string $fileName): ?string
     {
-        if (isset($this->sp[$spKey]) && !empty($this->sp[$spKey])) {
+        if (!empty($this->sp[$spKey])) {
             return $this->sp[$spKey];
         }
 
@@ -438,12 +324,12 @@ class Settings
 
     public function getSPkey(): ?string
     {
-        return $this->getSpFileContentHelper("privateKey", "sp.key");
+        return $this->getSPFileContentHelper("privateKey", "sp.key");
     }
 
     public function getSPcert(): ?string
     {
-        return $this->getSpFileContentHelper("x509cert", "sp.crt");
+        return $this->getSPFileContentHelper("x509cert", "sp.crt");
     }
 
     /**
@@ -453,12 +339,26 @@ class Settings
      */
     public function getSPcertNew(): ?string
     {
-        return $this->getSpFileContentHelper("x509certNew", "sp_new.crt");
+        return $this->getSPFileContentHelper("x509certNew", "sp_new.crt");
     }
 
-    public function getIdPData(): array
+    public function getIdPX509Certificate(): string
     {
-        return $this->idp;
+        return $this->idp['x509cert'];
+    }
+
+    public function getIdPMultipleX509SigningCertificate(): array
+    {
+        if (!empty($this->idp['x509certMulti']['signing'])) {
+            return $this->idp['x509certMulti']['signing'];
+        }
+
+        return [];
+    }
+
+    public function getIdPOneEncryptionCertificate(): string
+    {
+        return $this->idp['x509certMulti']['encryption'][0] ?? $this->idp['x509cert'];
     }
 
     public function getIdPEntityId(): string
@@ -476,9 +376,34 @@ class Settings
         return $this->idp['singleLogoutService']['url'] ?? null;
     }
 
-    public function getSPData(): array
+    public function getIdPCertFingerprint(): string
     {
-        return $this->sp;
+        return $this->idp['certFingerprint'] ?? '';
+    }
+
+    public function getIdPCertFingerprintAlgorithm(): string
+    {
+        return $this->idp['certFingerprintAlgorithm'] ?? 'sha1';
+    }
+
+    public function hasSPAttributeConsumingService(): bool
+    {
+        return isset($this->sp['attributeConsumingService']);
+    }
+
+    public function getSPAttributeConsumingServiceDescription(): string
+    {
+        return $this->sp['attributeConsumingService']['serviceDescription'];
+    }
+
+    public function getSPAttributeConsumingServiceName(): string
+    {
+        return $this->sp['attributeConsumingService']['serviceName'] ?? 'Service';
+    }
+
+    public function getSPAttributeConsumingServiceRequestedAttributes(): array
+    {
+        return $this->sp['attributeConsumingService']['requestedAttributes'] ?? [];
     }
 
     public function getSPAssertionConsumerServiceUrl(): string
@@ -488,7 +413,7 @@ class Settings
 
     public function getSPAssertionConsumerServiceBinding(): string
     {
-        return $this->sp['assertionConsumerService']['binding'];
+        return $this->sp['assertionConsumerService']['binding'] ?? Constants::BINDING_HTTP_POST;
     }
 
     public function getSPEntityId(): string
@@ -498,17 +423,100 @@ class Settings
 
     public function getSPNameIDFormat(): string
     {
-        return $this->sp['NameIDFormat'];
+        return $this->sp['NameIDFormat'] ?? Constants::NAMEID_UNSPECIFIED;
     }
 
-    public function getSPSingleLogoutServiceUrl(): string
+    public function getSPSingleLogoutServiceUrl(): ?string
     {
-        return $this->sp['singleLogoutService']['url'];
+        return $this->sp['singleLogoutService']['url'] ?? null;
     }
 
-    public function getSecurityData(): array
+    public function getSPSingleLogoutServiceBinding(): string
     {
-        return $this->security;
+        return $this->sp['singleLogoutService']['binding'] ?? Constants::BINDING_HTTP_REDIRECT;
+    }
+
+    /**
+     * @return bool|array
+     */
+    public function getSecurityRequestedAuthnContext()
+    {
+        return $this->security['requestedAuthnContext'] ?? true;
+    }
+
+    public function getSecurityRequestedAuthnContextComparison(): string
+    {
+        return $this->security['requestedAuthnContextComparison'] ?? 'exact';
+    }
+
+    public function getSecurityLowercaseUrlEncoding(): bool
+    {
+        return $this->security['lowercaseUrlencoding'] ?? false;
+    }
+
+    public function getSecurityAuthnRequestsSigned(): bool
+    {
+        return $this->security['authnRequestsSigned'] ?? false;
+    }
+
+    public function getSecurityWantAssertionsSigned(): bool
+    {
+        return $this->security['wantAssertionsSigned'] ?? false;
+    }
+
+    public function getSecurityWantAssertionsEncrypted(): bool
+    {
+        return $this->security['wantAssertionsEncrypted'] ?? false;
+    }
+
+    public function getSecurityWantXMLValidation(): bool
+    {
+        return $this->security['wantXMLValidation'] ?? true;
+    }
+
+    public function getSecurityNameIdEncrypted(): bool
+    {
+        return $this->security['nameIdEncrypted'] ?? false;
+    }
+
+    public function getSecurityWantNameId(): bool
+    {
+        return $this->security['wantNameId'] ?? true;
+    }
+
+    public function getSecurityWantNameIdEncrypted(): bool
+    {
+        return $this->security['wantNameIdEncrypted'] ?? false;
+    }
+
+    public function getSecurityWantMessagesSigned(): bool
+    {
+        return $this->security['wantMessagesSigned'] ?? false;
+    }
+
+    public function getSecurityWantLogoutRequestSigned(): bool
+    {
+        return $this->security['logoutRequestSigned'] ?? false;
+    }
+
+    public function getSecurityWantLogoutResponseSigned(): bool
+    {
+        return $this->security['logoutResponseSigned'] ?? false;
+    }
+
+    public function getSecuritySignatureAlgorithm(): string
+    {
+        return $this->security['signatureAlgorithm'] ?? XMLSecurityKey::RSA_SHA256;
+    }
+
+    private function getSecurityDigestAlgorithm(): string
+    {
+        return $this->security['digestAlgorithm'] ?? XMLSecurityDSig::SHA256;
+    }
+
+    public function getSecurityRelaxDestinationValidation(): bool
+    {
+        return $this->security['relaxDestinationValidation'] ?? false;
     }
 
     public function getContacts(): array
@@ -546,13 +554,9 @@ class Settings
     public function getSPMetadata(bool $alwaysPublishEncryptionCert = false, ?int $validUntil = null, ?int $cacheDuration = null): string
     {
         $metadata = Metadata::builder(
-            $this->sp,
-            $this->security['authnRequestsSigned'],
-            $this->security['wantAssertionsSigned'],
+            $this,
             $validUntil,
-            $cacheDuration,
-            $this->getContacts(),
-            $this->getOrganization()
+            $cacheDuration
         );
 
         $certNew = $this->getSPcertNew();
@@ -560,7 +564,7 @@ class Settings
             $metadata = Metadata::addX509KeyDescriptors(
                 $metadata,
                 $certNew,
-                $alwaysPublishEncryptionCert || $this->security['wantNameIdEncrypted'] || $this->security['wantAssertionsEncrypted']
+                $alwaysPublishEncryptionCert || $this->getSecurityWantNameIdEncrypted() || $this->getSecurityWantAssertionsEncrypted()
             );
         }
 
@@ -569,7 +573,7 @@ class Settings
             $metadata = Metadata::addX509KeyDescriptors(
                 $metadata,
                 $cert,
-                $alwaysPublishEncryptionCert || $this->security['wantNameIdEncrypted'] || $this->security['wantAssertionsEncrypted']
+                $alwaysPublishEncryptionCert || $this->getSecurityWantNameIdEncrypted() || $this->getSecurityWantAssertionsEncrypted()
             );
         }
 
@@ -628,8 +632,8 @@ class Settings
             $metadata,
             $keyMetadata,
             $certMetadata,
-            $this->security['signatureAlgorithm'],
-            $this->security['digestAlgorithm']
+            $this->getSecuritySignatureAlgorithm(),
+            $this->getSecurityDigestAlgorithm()
         );
     }
 

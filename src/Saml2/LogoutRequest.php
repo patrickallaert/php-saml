@@ -60,20 +60,10 @@ class LogoutRequest
         }
 
         if ($request === null || empty($request)) {
-            $security = $this->settings->getSecurityData();
-
             $id = Utils::generateUniqueID();
             $this->id = $id;
 
             $issueInstant = Utils::parseTime2SAML(time());
-
-            $cert = null;
-            if (isset($security['nameIdEncrypted']) && $security['nameIdEncrypted']) {
-                $idpData = $this->settings->getIdPData();
-                $cert = isset($idpData['x509certMulti']['encryption']) && !empty($idpData['x509certMulti']['encryption']) ?
-                    $idpData['x509certMulti']['encryption'][0] :
-                    $idpData['x509cert'];
-            }
 
             if (!empty($nameId)) {
                 $spNameIdFormat = $this->settings->getSPNameIDFormat();
@@ -103,7 +93,7 @@ class LogoutRequest
                 $nameId,
                 $nameIdSPNameQualifier,
                 $nameIdFormat,
-                $cert,
+                $this->settings->getSecurityNameIdEncrypted() ? $this->settings->getIdPOneEncryptionCertificate() : null,
                 $nameIdNameQualifier
             );
 
@@ -280,9 +270,7 @@ LOGOUTREQUEST;
             Utils::loadXML($dom, $this->logoutRequest);
 
             if ($this->settings->isStrict()) {
-                $security = $this->settings->getSecurityData();
-
-                if ($security['wantXMLValidation'] &&
+                if ($this->settings->getSecurityWantXMLValidation() &&
                     !Utils::validateXML($dom, 'saml-schema-protocol-2.0.xsd')) {
                     throw new ValidationError(
                         "Invalid SAML Logout Request. Not match the saml-schema-protocol-2.0.xsd",
@@ -321,7 +309,7 @@ LOGOUTREQUEST;
                     );
                 }
 
-                if ($security['wantMessagesSigned'] && !isset($_GET['Signature'])) {
+                if ($this->settings->getSecurityWantMessagesSigned() && !isset($_GET['Signature'])) {
                     throw new ValidationError(
                         "The Message of the Logout Request is not signed and the SP require it",
                         ValidationError::NO_SIGNED_MESSAGE
@@ -330,7 +318,7 @@ LOGOUTREQUEST;
             }
 
             if (isset($_GET['Signature']) &&
-                !Utils::validateBinarySign("SAMLRequest", $_GET, $this->settings->getIdPData(), $retrieveParametersFromServer)) {
+                !Utils::validateBinarySign("SAMLRequest", $_GET, $this->settings, $retrieveParametersFromServer)) {
                 throw new ValidationError(
                     "Signature validation failed. Logout Request rejected",
                     ValidationError::INVALID_SIGNATURE
