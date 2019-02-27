@@ -131,7 +131,7 @@
     <rule ref="SlevomatCodingStandard.Commenting.DisallowOneLinePropertyDocComment"/>
     <rule ref="SlevomatCodingStandard.ControlStructures.DisallowYodaComparison"/>
     <!-- Forbid weak comparisons -->
-    <rule ref="SlevomatCodingStandard.ControlStructures.DisallowEqualOperators"/>
+    <rule ref="SlevomatCodingStandard.Operators.DisallowEqualOperators"/>
     <!-- Require usage of early exit -->
     <!-- To adopt, one day... rule ref="SlevomatCodingStandard.ControlStructures.EarlyExit"/-->
     <!-- Require language constructs without parentheses -->
@@ -224,7 +224,7 @@
         </properties>
     </rule-->
     <!-- Forbid empty lines around type declarations -->
-    <rule ref="SlevomatCodingStandard.Types.EmptyLinesAroundTypeBraces">
+    <rule ref="SlevomatCodingStandard.Classes.EmptyLinesAroundClassBraces">
         <properties>
             <property name="linesCountAfterOpeningBrace" value="0"/>
             <property name="linesCountBeforeClosingBrace" value="0"/>
