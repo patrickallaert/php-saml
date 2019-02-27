@@ -15,7 +15,7 @@ class SignedResponseTest extends \PHPUnit\Framework\TestCase
     public function testResponseSignedAssertionNot()
     {
         // The Response is signed, the Assertion is not
-        $this->assertEquals(
+        $this->assertSame(
             'someone@example.org',
             (new Response(
                 new Settings(require TEST_ROOT . '/settings/settings1.php'),
@@ -36,7 +36,7 @@ class SignedResponseTest extends \PHPUnit\Framework\TestCase
         $settingsInfo['idp']['entityId'] = "https://federate.example.net/saml/saml2/idp/metadata.php";
         $settingsInfo['sp']['entityId'] = "hello.com";
         // Both the Response and the Asseretion are signed
-        $this->assertEquals(
+        $this->assertSame(
             'someone@example.com',
             (new Response(
                 new Settings($settingsInfo),

@@ -13,6 +13,6 @@ class ErrorTest extends \PHPUnit\Framework\TestCase
      */
     public function testError()
     {
-        $this->assertEquals('test', (new Error('test'))->getMessage());
+        $this->assertSame('test', (new Error('test'))->getMessage());
     }
 }

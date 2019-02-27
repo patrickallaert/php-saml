@@ -3,6 +3,7 @@
 namespace Saml2\Tests;
 
 use Saml2\Constants;
+use Saml2\Error;
 use Saml2\LogoutResponse;
 use Saml2\Settings;
 use Saml2\Utils;
@@ -12,7 +13,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
     private $settings;
 
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->settings = new Settings(require TEST_ROOT . '/settings/settings1.php');
     }
@@ -53,12 +54,12 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetStatus()
     {
-        $this->assertEquals(
-            (new LogoutResponse($this->settings, file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64')))->getStatus(),
-            Constants::STATUS_SUCCESS
+        $this->assertSame(
+            Constants::STATUS_SUCCESS,
+            (new LogoutResponse($this->settings, file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64')))->getStatus()
         );
 
-        $this->assertNULL(
+        $this->assertNull(
             (new LogoutResponse($this->settings, file_get_contents(TEST_ROOT . '/data/logout_responses/invalids/no_status.xml.base64')))->getStatus()
         );
     }
@@ -70,7 +71,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
     {
         $response = new LogoutResponse($this->settings, file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64'));
 
-        $this->assertEquals('http://idp.example.com/', $response->getIssuer());
+        $this->assertSame('http://idp.example.com/', $response->getIssuer());
     }
 
     /**
@@ -81,7 +82,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
         $response = new LogoutResponse($this->settings, file_get_contents(TEST_ROOT . '/data/logout_responses/logout_response_deflated.xml.base64'));
         $this->settings->setStrict(true);
         $this->assertFalse($response->isValid('invalid_request_id'));
-        $this->assertEquals(
+        $this->assertSame(
             'The InResponseTo of the Logout Response: ONELOGIN_21584ccdfaca36a145ae990442dcd96bfe60151e, does not match the ID of the Logout request sent by the SP: invalid_request_id',
             $response->getErrorException()->getMessage()
         );
@@ -118,7 +119,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue($response2->isValid());
 
         $this->assertFalse($response2->isValid($requestId));
-        $this->assertContains('The InResponseTo of the Logout Response:', $response2->getErrorException()->getMessage());
+        $this->assertStringContainsString('The InResponseTo of the Logout Response:', $response2->getErrorException()->getMessage());
     }
 
     /**
@@ -152,7 +153,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
         $response2 = new LogoutResponse($this->settings, $message);
 
         $this->assertFalse($response2->isValid());
-        $this->assertEquals('Invalid issuer in the Logout Response', $response2->getErrorException()->getMessage());
+        $this->assertSame('Invalid issuer in the Logout Response', $response2->getErrorException()->getMessage());
     }
 
     /**
@@ -189,7 +190,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
         $settings2->setStrict(true);
         $response4 = new LogoutResponse($settings2, $message);
         $this->assertFalse($response4->isValid());
-        $this->assertEquals('Invalid SAML Logout Response. Not match the saml-schema-protocol-2.0.xsd', $response4->getErrorException()->getMessage());
+        $this->assertSame('Invalid SAML Logout Response. Not match the saml-schema-protocol-2.0.xsd', $response4->getErrorException()->getMessage());
     }
 
     /**
@@ -210,7 +211,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
         $this->settings->setStrict(true);
         $response2 = new LogoutResponse($this->settings, $message);
         $this->assertFalse($response2->isValid());
-        $this->assertContains('The LogoutResponse was received at', $response2->getErrorException()->getMessage());
+        $this->assertStringContainsString('The LogoutResponse was received at', $response2->getErrorException()->getMessage());
     }
 
     /**
@@ -232,7 +233,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
         $this->settings->setStrict(true);
         $response2 = new LogoutResponse($this->settings, $_GET['SAMLResponse']);
         $this->assertFalse($response2->isValid());
-        $this->assertContains('Invalid issuer in the Logout Response', $response2->getErrorException()->getMessage());
+        $this->assertStringContainsString('Invalid issuer in the Logout Response', $response2->getErrorException()->getMessage());
 
         $this->settings->setStrict(false);
         $oldSignature = $_GET['Signature'];
@@ -240,7 +241,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
         $response3 = new LogoutResponse($this->settings, $_GET['SAMLResponse']);
 
         $this->assertFalse($response3->isValid());
-        $this->assertEquals('Signature validation failed. Logout Response rejected', $response3->getErrorException()->getMessage());
+        $this->assertSame('Signature validation failed. Logout Response rejected', $response3->getErrorException()->getMessage());
 
         $_GET['Signature'] = $oldSignature;
         $oldSigAlg = $_GET['SigAlg'];
@@ -250,7 +251,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
         $_GET['RelayState'] = 'http://example.com/relaystate';
         $response5 = new LogoutResponse($this->settings, $_GET['SAMLResponse']);
         $this->assertFalse($response5->isValid());
-        $this->assertEquals('Signature validation failed. Logout Response rejected', $response5->getErrorException()->getMessage());
+        $this->assertSame('Signature validation failed. Logout Response rejected', $response5->getErrorException()->getMessage());
 
         $this->settings->setStrict(true);
 
@@ -270,17 +271,17 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
 
         $response6 = new LogoutResponse($this->settings, $_GET['SAMLResponse']);
         $this->assertFalse($response6->isValid());
-        $this->assertEquals('Signature validation failed. Logout Response rejected', $response6->getErrorException()->getMessage());
+        $this->assertSame('Signature validation failed. Logout Response rejected', $response6->getErrorException()->getMessage());
 
         $this->settings->setStrict(false);
         $response7 = new LogoutResponse($this->settings, $_GET['SAMLResponse']);
         $this->assertFalse($response7->isValid());
-        $this->assertEquals('Signature validation failed. Logout Response rejected', $response7->getErrorException()->getMessage());
+        $this->assertSame('Signature validation failed. Logout Response rejected', $response7->getErrorException()->getMessage());
 
         $_GET['SigAlg'] = 'http://www.w3.org/2000/09/xmldsig#dsa-sha1';
         $response8 = new LogoutResponse($this->settings, $_GET['SAMLResponse']);
         $this->assertFalse($response8->isValid());
-        $this->assertEquals('Invalid signAlg in the received Logout Response', $response8->getErrorException()->getMessage());
+        $this->assertSame('Invalid signAlg in the received Logout Response', $response8->getErrorException()->getMessage());
 
         $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
         $settingsInfo['strict'] = true;
@@ -304,7 +305,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
         );
         $response9 = new LogoutResponse(new Settings($settingsInfo), $_GET['SAMLResponse']);
         $this->assertFalse($response9->isValid());
-        $this->assertEquals('The Message of the Logout Response is not signed and the SP requires it', $response9->getErrorException()->getMessage());
+        $this->assertSame('The Message of the Logout Response is not signed and the SP requires it', $response9->getErrorException()->getMessage());
 
         $_GET['Signature'] = $oldSignature;
 
@@ -312,7 +313,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
         unset($settingsInfo['idp']['x509cert']);
         $response10 = new LogoutResponse(new Settings($settingsInfo), $_GET['SAMLResponse']);
         $this->assertFalse($response10->isValid());
-        $this->assertEquals('In order to validate the sign on the Logout Response, the x509cert of the IdP is required', $response10->getErrorException()->getMessage());
+        $this->assertSame('In order to validate the sign on the Logout Response, the x509cert of the IdP is required', $response10->getErrorException()->getMessage());
     }
 
     /**
@@ -352,7 +353,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
         $this->settings->setStrict(true);
         $response2 = new LogoutResponse($this->settings, $message);
         $this->assertFalse($response2->isValid());
-        $this->assertContains('The LogoutResponse was received at', $response2->getErrorException()->getMessage());
+        $this->assertStringContainsString('The LogoutResponse was received at', $response2->getErrorException()->getMessage());
 
         $this->assertTrue(
             (new LogoutResponse(
@@ -449,12 +450,11 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
      * Tests that the LogoutRequest throws an exception
      *
      * @covers \Saml2\LogoutRequest::getID()
-     *
-     * @expectedException Saml2\Error
-     * @expectedExceptionMessage LogoutResponse could not be processed
      */
     public function testGetIDException()
     {
+        $this->expectException(Error::class);
+        $this->expectExceptionMessage("LogoutResponse could not be processed");
         new LogoutResponse(new Settings(require TEST_ROOT . '/settings/settings1.php'), '<garbage>');
     }
 }

@@ -36,7 +36,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
             new Settings($settingsInfo);
             $this->fail('Error was not raised');
         } catch (Error $e) {
-            $this->assertContains('Invalid array settings', $e->getMessage());
+            $this->assertStringContainsString('Invalid array settings', $e->getMessage());
         }
 
         $this->assertEmpty((new Settings(require TEST_ROOT . '/settings/settings2.php'))->getErrors());
@@ -166,7 +166,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
             new Settings($settingsInfo);
             $this->fail('Error was not raised');
         } catch (Error $e) {
-            $this->assertContains('Invalid array settings: invalid_syntax', $e->getMessage());
+            $this->assertStringContainsString('Invalid array settings: invalid_syntax', $e->getMessage());
         }
 
         $settingsInfo['strict'] = true;
@@ -174,8 +174,8 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
             new Settings($settingsInfo);
             $this->fail('Error was not raised');
         } catch (Error $e) {
-            $this->assertContains('idp_not_found', $e->getMessage());
-            $this->assertContains('sp_not_found', $e->getMessage());
+            $this->assertStringContainsString('idp_not_found', $e->getMessage());
+            $this->assertStringContainsString('sp_not_found', $e->getMessage());
         }
 
         $settingsInfo['idp'] = [];
@@ -188,10 +188,10 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
             new Settings($settingsInfo);
             $this->fail('Error was not raised');
         } catch (Error $e) {
-            $this->assertContains('idp_entityId_not_found', $e->getMessage());
-            $this->assertContains('idp_sso_not_found', $e->getMessage());
-            $this->assertContains('sp_entityId_not_found', $e->getMessage());
-            $this->assertContains('sp_acs_not_found', $e->getMessage());
+            $this->assertStringContainsString('idp_entityId_not_found', $e->getMessage());
+            $this->assertStringContainsString('idp_sso_not_found', $e->getMessage());
+            $this->assertStringContainsString('sp_entityId_not_found', $e->getMessage());
+            $this->assertStringContainsString('sp_acs_not_found', $e->getMessage());
         }
 
         $settingsInfo['idp']['entityID'] = 'entityId';
@@ -203,10 +203,10 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
             new Settings($settingsInfo);
             $this->fail('Error was not raised');
         } catch (Error $e) {
-            $this->assertContains('idp_sso_url_invalid', $e->getMessage());
-            $this->assertContains('idp_slo_url_invalid', $e->getMessage());
-            $this->assertContains('sp_acs_url_invalid', $e->getMessage());
-            $this->assertContains('sp_sls_url_invalid', $e->getMessage());
+            $this->assertStringContainsString('idp_sso_url_invalid', $e->getMessage());
+            $this->assertStringContainsString('idp_slo_url_invalid', $e->getMessage());
+            $this->assertStringContainsString('sp_acs_url_invalid', $e->getMessage());
+            $this->assertStringContainsString('sp_sls_url_invalid', $e->getMessage());
         }
 
         $settingsInfo['security']['wantAssertionsSigned'] = true;
@@ -214,7 +214,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
             new Settings($settingsInfo);
             $this->fail('Error was not raised');
         } catch (Error $e) {
-            $this->assertContains('idp_cert_or_fingerprint_not_found_and_required', $e->getMessage());
+            $this->assertStringContainsString('idp_cert_or_fingerprint_not_found_and_required', $e->getMessage());
         }
 
         $settingsInfo['security']['nameIdEncrypted'] = true;
@@ -222,7 +222,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
             new Settings($settingsInfo);
             $this->fail('Error was not raised');
         } catch (Error $e) {
-            $this->assertContains('idp_cert_not_found_and_required', $e->getMessage());
+            $this->assertStringContainsString('idp_cert_not_found_and_required', $e->getMessage());
         }
 
         $settingsInfo = require TEST_ROOT . '/settings/settings1.php';
@@ -244,9 +244,9 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
             new Settings($settingsInfo);
             $this->fail('Error was not raised');
         } catch (Error $e) {
-            $this->assertContains('sp_signMetadata_invalid', $e->getMessage());
-            $this->assertContains('organization_not_enough_data', $e->getMessage());
-            $this->assertContains('contact_type_invalid', $e->getMessage());
+            $this->assertStringContainsString('sp_signMetadata_invalid', $e->getMessage());
+            $this->assertStringContainsString('organization_not_enough_data', $e->getMessage());
+            $this->assertStringContainsString('contact_type_invalid', $e->getMessage());
         }
     }
 
@@ -261,13 +261,13 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
 
         $this->assertNotEmpty($metadata);
 
-        $this->assertContains('<md:SPSSODescriptor', $metadata);
-        $this->assertContains('entityID="http://stuff.com/endpoints/metadata.php"', $metadata);
-        $this->assertContains('AuthnRequestsSigned="false"', $metadata);
-        $this->assertContains('WantAssertionsSigned="false"', $metadata);
-        $this->assertContains('<md:AssertionConsumerService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="http://stuff.com/endpoints/endpoints/acs.php" index="1"/>', $metadata);
-        $this->assertContains('<md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="http://stuff.com/endpoints/endpoints/sls.php"/>', $metadata);
-        $this->assertContains('<md:NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified</md:NameIDFormat>', $metadata);
+        $this->assertStringContainsString('<md:SPSSODescriptor', $metadata);
+        $this->assertStringContainsString('entityID="http://stuff.com/endpoints/metadata.php"', $metadata);
+        $this->assertStringContainsString('AuthnRequestsSigned="false"', $metadata);
+        $this->assertStringContainsString('WantAssertionsSigned="false"', $metadata);
+        $this->assertStringContainsString('<md:AssertionConsumerService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="http://stuff.com/endpoints/endpoints/acs.php" index="1"/>', $metadata);
+        $this->assertStringContainsString('<md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="http://stuff.com/endpoints/endpoints/sls.php"/>', $metadata);
+        $this->assertStringContainsString('<md:NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified</md:NameIDFormat>', $metadata);
     }
 
     /**
@@ -352,13 +352,13 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
         $settings = new Settings(require TEST_ROOT . '/settings/settings1.php');
 
         $metadata = $settings->getSPMetadata();
-        $this->assertContains('validUntil="' . gmdate('Y-m-d\TH:i:s\Z', time() + Metadata::TIME_VALID) . '"', $metadata);
-        $this->assertContains('cacheDuration="PT604800S"', $metadata);
+        $this->assertStringContainsString('validUntil="' . gmdate('Y-m-d\TH:i:s\Z', time() + Metadata::TIME_VALID) . '"', $metadata);
+        $this->assertStringContainsString('cacheDuration="PT604800S"', $metadata);
 
         $newValidUntil = 2524668343;
         $metadata2 = $settings->getSPMetadata(false, $newValidUntil, 1209600);
-        $this->assertContains('validUntil="' . gmdate('Y-m-d\TH:i:s\Z', $newValidUntil) . '"', $metadata2);
-        $this->assertContains('cacheDuration="PT1209600S"', $metadata2);
+        $this->assertStringContainsString('validUntil="' . gmdate('Y-m-d\TH:i:s\Z', $newValidUntil) . '"', $metadata2);
+        $this->assertStringContainsString('cacheDuration="PT1209600S"', $metadata2);
     }
 
     /**
@@ -380,18 +380,18 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
 
         $this->assertNotEmpty($metadata);
 
-        $this->assertContains('<md:SPSSODescriptor', $metadata);
-        $this->assertContains('entityID="http://stuff.com/endpoints/metadata.php"', $metadata);
-        $this->assertContains('AuthnRequestsSigned="false"', $metadata);
-        $this->assertContains('WantAssertionsSigned="false"', $metadata);
-        $this->assertContains('<md:AssertionConsumerService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="http://stuff.com/endpoints/endpoints/acs.php" index="1"/>', $metadata);
-        $this->assertContains('<md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="http://stuff.com/endpoints/endpoints/sls.php"/>', $metadata);
-        $this->assertContains('<md:NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified</md:NameIDFormat>', $metadata);
+        $this->assertStringContainsString('<md:SPSSODescriptor', $metadata);
+        $this->assertStringContainsString('entityID="http://stuff.com/endpoints/metadata.php"', $metadata);
+        $this->assertStringContainsString('AuthnRequestsSigned="false"', $metadata);
+        $this->assertStringContainsString('WantAssertionsSigned="false"', $metadata);
+        $this->assertStringContainsString('<md:AssertionConsumerService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="http://stuff.com/endpoints/endpoints/acs.php" index="1"/>', $metadata);
+        $this->assertStringContainsString('<md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="http://stuff.com/endpoints/endpoints/sls.php"/>', $metadata);
+        $this->assertStringContainsString('<md:NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified</md:NameIDFormat>', $metadata);
 
-        $this->assertContains('<ds:SignedInfo><ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>', $metadata);
-        $this->assertContains('<ds:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/>', $metadata);
-        $this->assertContains('<ds:Reference', $metadata);
-        $this->assertContains('<ds:KeyInfo><ds:X509Data><ds:X509Certificate>', $metadata);
+        $this->assertStringContainsString('<ds:SignedInfo><ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>', $metadata);
+        $this->assertStringContainsString('<ds:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/>', $metadata);
+        $this->assertStringContainsString('<ds:Reference', $metadata);
+        $this->assertStringContainsString('<ds:KeyInfo><ds:X509Data><ds:X509Certificate>', $metadata);
 
         $settingsInfo = require TEST_ROOT . '/settings/settings2.php';
 
@@ -404,18 +404,18 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
 
         $this->assertNotEmpty($metadata2);
 
-        $this->assertContains('<md:SPSSODescriptor', $metadata2);
-        $this->assertContains('entityID="http://stuff.com/endpoints/metadata.php"', $metadata2);
-        $this->assertContains('AuthnRequestsSigned="false"', $metadata2);
-        $this->assertContains('WantAssertionsSigned="false"', $metadata2);
-        $this->assertContains('<md:AssertionConsumerService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="http://stuff.com/endpoints/endpoints/acs.php" index="1"/>', $metadata2);
-        $this->assertContains('<md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="http://stuff.com/endpoints/endpoints/sls.php"/>', $metadata2);
-        $this->assertContains('<md:NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified</md:NameIDFormat>', $metadata2);
+        $this->assertStringContainsString('<md:SPSSODescriptor', $metadata2);
+        $this->assertStringContainsString('entityID="http://stuff.com/endpoints/metadata.php"', $metadata2);
+        $this->assertStringContainsString('AuthnRequestsSigned="false"', $metadata2);
+        $this->assertStringContainsString('WantAssertionsSigned="false"', $metadata2);
+        $this->assertStringContainsString('<md:AssertionConsumerService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="http://stuff.com/endpoints/endpoints/acs.php" index="1"/>', $metadata2);
+        $this->assertStringContainsString('<md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="http://stuff.com/endpoints/endpoints/sls.php"/>', $metadata2);
+        $this->assertStringContainsString('<md:NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified</md:NameIDFormat>', $metadata2);
 
-        $this->assertContains('<ds:SignedInfo><ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>', $metadata2);
-        $this->assertContains('<ds:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/>', $metadata2);
-        $this->assertContains('<ds:Reference', $metadata2);
-        $this->assertContains('<ds:KeyInfo><ds:X509Data><ds:X509Certificate>', $metadata2);
+        $this->assertStringContainsString('<ds:SignedInfo><ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>', $metadata2);
+        $this->assertStringContainsString('<ds:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/>', $metadata2);
+        $this->assertStringContainsString('<ds:Reference', $metadata2);
+        $this->assertStringContainsString('<ds:KeyInfo><ds:X509Data><ds:X509Certificate>', $metadata2);
     }
 
     /**
@@ -436,7 +436,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
             (new Settings($settingsInfo))->getSPMetadata();
             $this->fail('Error was not raised');
         } catch (Error $e) {
-            $this->assertContains('sp_signMetadata_invalid', $e->getMessage());
+            $this->assertStringContainsString('sp_signMetadata_invalid', $e->getMessage());
         }
 
         $settingsInfo['security']['signMetadata'] = [
@@ -448,7 +448,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
             (new Settings($settingsInfo))->getSPMetadata();
             $this->fail('Error was not raised');
         } catch (Error $e) {
-            $this->assertContains('Private key file not found', $e->getMessage());
+            $this->assertStringContainsString('Private key file not found', $e->getMessage());
         }
 
         $settingsInfo['security']['signMetadata'] = [
@@ -459,7 +459,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
             (new Settings($settingsInfo))->getSPMetadata();
             $this->fail('Error was not raised');
         } catch (Error $e) {
-            $this->assertContains('Public cert file not found', $e->getMessage());
+            $this->assertStringContainsString('Public cert file not found', $e->getMessage());
         }
     }
 
@@ -501,11 +501,11 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
      * Case no metadata XML
      *
      * @covers \Saml2\Settings::validateMetadata
-     * @expectedException Exception
-     * @expectedExceptionMessage Empty string supplied as input
      */
     public function testValidateMetadataNoXML()
     {
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage("Empty string supplied as input");
         (new Settings(require TEST_ROOT . '/settings/settings1.php'))->validateMetadata('');
     }
 
@@ -513,11 +513,11 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
      * Case invalid metadata XML
      *
      * @covers \Saml2\Settings::validateMetadata
-     * @expectedException Exception
-     * @expectedExceptionMessage An error occurred while loading the XML data
      */
     public function testValidateMetadataInvalidXML()
     {
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage("An error occurred while loading the XML data");
         (new Settings(require TEST_ROOT . '/settings/settings1.php'))->validateMetadata('<no xml>');
     }
 
