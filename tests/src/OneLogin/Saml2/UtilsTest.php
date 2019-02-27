@@ -6,12 +6,12 @@ use DOMDocument;
 use DOMElement;
 use DOMXPath;
 use Exception;
+use RobRichards\XMLSecLibs\XMLSecurityDSig;
+use RobRichards\XMLSecLibs\XMLSecurityKey;
 use Saml2\Constants;
 use Saml2\Settings;
 use Saml2\Utils;
 use Saml2\ValidationError;
-use RobRichards\XMLSecLibs\XMLSecurityDSig;
-use RobRichards\XMLSecLibs\XMLSecurityKey;
 
 /**
  * @backupStaticAttributes enabled

@@ -3,6 +3,7 @@
 namespace Saml2\Tests;
 
 use Exception;
+use RobRichards\XMLSecLibs\XMLSecurityKey;
 use Saml2\Auth;
 use Saml2\Constants;
 use Saml2\Error;
@@ -10,7 +11,6 @@ use Saml2\LogoutRequest;
 use Saml2\Settings;
 use Saml2\Utils;
 use Saml2\ValidationError;
-use RobRichards\XMLSecLibs\XMLSecurityKey;
 
 class AuthTest extends \PHPUnit\Framework\TestCase
 {
