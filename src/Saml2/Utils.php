@@ -945,7 +945,7 @@ class Utils
     /**
      * Validates a signature (Message or Assertion).
      *
-     * @param string|\DomNode   $xml            The element we should validate
+     * @param DOMDocument       $xml            The element we should validate
      * @param string|null       $cert           The public cert
      * @param string|null       $fingerprint    The fingerprint of the public cert
      * @param string            $fingerprintalg The algorithm used to get the fingerprint
