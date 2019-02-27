@@ -1,16 +1,16 @@
 <?php
 
-namespace OneLogin\Saml2\Tests;
+namespace Saml2\Tests;
 
-use OneLogin\Saml2\Response;
-use OneLogin\Saml2\Settings;
+use Saml2\Response;
+use Saml2\Settings;
 
 class SignedResponseTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * Case valid signed response, unsigned assertion
      *
-     * @covers OneLogin\Saml2\Response::getNameId
+     * @covers \Saml2\Response::getNameId
      */
     public function testResponseSignedAssertionNot()
     {
@@ -27,7 +27,7 @@ class SignedResponseTest extends \PHPUnit\Framework\TestCase
     /**
      * Case valid signed response, signed assertion
      *
-     * @covers OneLogin\Saml2\Response::getNameId
+     * @covers \Saml2\Response::getNameId
      */
     public function testResponseAndAssertionSigned()
     {

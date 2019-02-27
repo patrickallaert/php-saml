@@ -1,11 +1,11 @@
 <?php
 
-namespace OneLogin\Saml2\Tests;
+namespace Saml2\Tests;
 
-use OneLogin\Saml2\Constants;
-use OneLogin\Saml2\LogoutResponse;
-use OneLogin\Saml2\Settings;
-use OneLogin\Saml2\Utils;
+use Saml2\Constants;
+use Saml2\LogoutResponse;
+use Saml2\Settings;
+use Saml2\Utils;
 
 class LogoutResponseTest extends \PHPUnit\Framework\TestCase
 {
@@ -18,7 +18,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\LogoutResponse
+     * @covers \Saml2\LogoutResponse
      */
     public function testConstructor()
     {
@@ -34,7 +34,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
     /**
      * The creation of a deflated SAML Logout Response
      *
-     * @covers OneLogin\Saml2\LogoutResponse
+     * @covers \Saml2\LogoutResponse
      */
     public function testCreateDeflatedSAMLLogoutResponseURLParameter()
     {
@@ -49,7 +49,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\LogoutResponse::getStatus
+     * @covers \Saml2\LogoutResponse::getStatus
      */
     public function testGetStatus()
     {
@@ -64,7 +64,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\LogoutResponse::getIssuer
+     * @covers \Saml2\LogoutResponse::getIssuer
      */
     public function testGetIssuer()
     {
@@ -74,7 +74,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\LogoutResponse::getErrorException
+     * @covers \Saml2\LogoutResponse::getErrorException
      */
     public function testGetErrorException()
     {
@@ -90,7 +90,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
     /**
      * Case invalid request Id
      *
-     * @covers OneLogin\Saml2\LogoutResponse::isValid
+     * @covers \Saml2\LogoutResponse::isValid
      *
      * @runInSeparateProcess
      * @preserveGlobalState disabled
@@ -124,7 +124,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
     /**
      * Case invalid Issuer
      *
-     * @covers OneLogin\Saml2\LogoutResponse::isValid
+     * @covers \Saml2\LogoutResponse::isValid
      *
      * @runInSeparateProcess
      * @preserveGlobalState disabled
@@ -158,7 +158,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
     /**
      * Case invalid xml
      *
-     * @covers OneLogin\Saml2\LogoutResponse::isValid
+     * @covers \Saml2\LogoutResponse::isValid
      *
      * @runInSeparateProcess
      * @preserveGlobalState disabled
@@ -195,7 +195,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
     /**
      * Case invalid Destination
      *
-     * @covers OneLogin\Saml2\LogoutResponse::isValid
+     * @covers \Saml2\LogoutResponse::isValid
      *
      * @runInSeparateProcess
      * @preserveGlobalState disabled
@@ -215,7 +215,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
 
     /**
      *
-     * @covers OneLogin\Saml2\LogoutResponse::isValid
+     * @covers \Saml2\LogoutResponse::isValid
      */
     public function testIsInValidSign()
     {
@@ -318,7 +318,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
     /**
      * Case: Using x509certMulti
      *
-     * @covers OneLogin\Saml2\LogoutResponse::isValid
+     * @covers \Saml2\LogoutResponse::isValid
      */
     public function testIsValidSignUsingX509certMulti()
     {
@@ -342,7 +342,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\LogoutResponse::isValid
+     * @covers \Saml2\LogoutResponse::isValid
      */
     public function testIsValid()
     {
@@ -370,7 +370,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
      * Tests that a 'true' value for compress => responses gets honored when we
      * try to obtain the request payload from getResponse()
      *
-     * @covers OneLogin\Saml2\LogoutResponse::getResponse()
+     * @covers \Saml2\LogoutResponse::getResponse()
      */
     public function testWeCanChooseToCompressAResponse()
     {
@@ -394,7 +394,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
      * Tests that a 'false' value for compress => responses gets honored when we
      * try to obtain the request payload from getResponse()
      *
-     * @covers OneLogin\Saml2\LogoutResponse::getResponse()
+     * @covers \Saml2\LogoutResponse::getResponse()
      */
     public function testWeCanChooseNotToCompressAResponse()
     {
@@ -416,7 +416,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
      * Test that we can choose to compress or not compress the request payload
      * with getResponse() method.
      *
-     * @covers OneLogin\Saml2\LogoutResponse::getResponse()
+     * @covers \Saml2\LogoutResponse::getResponse()
      */
     public function testWeCanChooseToDeflateAResponseBody()
     {
@@ -435,7 +435,7 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
     /**
      * Tests that we can get the ID of the LogoutResponse
      *
-     * @covers OneLogin\Saml2\LogoutRequest::getID()
+     * @covers \Saml2\LogoutRequest::getID()
      */
     public function testGetID()
     {
@@ -448,9 +448,9 @@ class LogoutResponseTest extends \PHPUnit\Framework\TestCase
     /**
      * Tests that the LogoutRequest throws an exception
      *
-     * @covers OneLogin\Saml2\LogoutRequest::getID()
+     * @covers \Saml2\LogoutRequest::getID()
      *
-     * @expectedException OneLogin\Saml2\Error
+     * @expectedException Saml2\Error
      * @expectedExceptionMessage LogoutResponse could not be processed
      */
     public function testGetIDException()

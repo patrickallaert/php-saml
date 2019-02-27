@@ -8,7 +8,7 @@ session_start();
 
 require_once __DIR__ . "/../vendor/autoload.php";
 
-use OneLogin\Saml2\Auth;
+use Saml2\Auth;
 
 $auth = new Auth([]);
 

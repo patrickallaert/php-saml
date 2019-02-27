@@ -1,14 +1,14 @@
 <?php
 
-namespace OneLogin\Saml2\Tests;
+namespace Saml2\Tests;
 
 use DOMDocument;
-use OneLogin\Saml2\Constants;
-use OneLogin\Saml2\Error;
-use OneLogin\Saml2\LogoutRequest;
-use OneLogin\Saml2\Settings;
-use OneLogin\Saml2\Utils;
-use OneLogin\Saml2\ValidationError;
+use Saml2\Constants;
+use Saml2\Error;
+use Saml2\LogoutRequest;
+use Saml2\Settings;
+use Saml2\Utils;
+use Saml2\ValidationError;
 
 class LogoutRequestTest extends \PHPUnit\Framework\TestCase
 {
@@ -24,7 +24,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\LogoutRequest
+     * @covers \Saml2\LogoutRequest
      */
     public function testConstructor()
     {
@@ -46,7 +46,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\LogoutRequest
+     * @covers \Saml2\LogoutRequest
      */
     public function testConstructorWithRequest()
     {
@@ -69,7 +69,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\LogoutRequest
+     * @covers \Saml2\LogoutRequest
      */
     public function testConstructorWithSessionIndex()
     {
@@ -91,7 +91,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\LogoutRequest
+     * @covers \Saml2\LogoutRequest
      */
     public function testConstructorWithNameIdFormatOnParameter()
     {
@@ -124,7 +124,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\LogoutRequest
+     * @covers \Saml2\LogoutRequest
      */
     public function testConstructorWithNameIdFormatOnSettings()
     {
@@ -147,7 +147,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\LogoutRequest
+     * @covers \Saml2\LogoutRequest
      */
     public function testConstructorWithoutNameIdFormat()
     {
@@ -169,7 +169,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
         $this->assertFalse(isset($logoutNameIdData['Format']));
     }
     /**
-     * @covers OneLogin\Saml2\LogoutRequest
+     * @covers \Saml2\LogoutRequest
      */
     public function testConstructorWithNameIdNameQualifier()
     {
@@ -205,7 +205,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     /**
      * The creation of a deflated SAML Logout Request
      *
-     * @covers OneLogin\Saml2\LogoutRequest
+     * @covers \Saml2\LogoutRequest
      */
     public function testCreateDeflatedSAMLLogoutRequestURLParameter()
     {
@@ -223,7 +223,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     /**
      * Case: Able to generate encryptedID with MultiCert
      *
-     * @covers OneLogin\Saml2\LogoutRequest
+     * @covers \Saml2\LogoutRequest
      */
     public function testConstructorEncryptIdUsingX509certMulti()
     {
@@ -245,7 +245,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\LogoutRequest::getID
+     * @covers \Saml2\LogoutRequest::getID
      */
     public function testGetIDFromSAMLLogoutRequest()
     {
@@ -258,7 +258,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\LogoutRequest::getID
+     * @covers \Saml2\LogoutRequest::getID
      */
     public function testGetIDFromDeflatedSAMLLogoutRequest()
     {
@@ -275,7 +275,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\LogoutRequest::getNameIdData
+     * @covers \Saml2\LogoutRequest::getNameIdData
      */
     public function testGetNameIdData()
     {
@@ -361,7 +361,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\LogoutRequest::getNameId
+     * @covers \Saml2\LogoutRequest::getNameId
      */
     public function testGetNameId()
     {
@@ -381,7 +381,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\LogoutRequest::getIssuer
+     * @covers \Saml2\LogoutRequest::getIssuer
      */
     public function testGetIssuer()
     {
@@ -391,7 +391,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\LogoutRequest::getSessionIndexes
+     * @covers \Saml2\LogoutRequest::getSessionIndexes
      */
     public function testGetSessionIndexes()
     {
@@ -404,7 +404,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\LogoutRequest::getErrorException
+     * @covers \Saml2\LogoutRequest::getErrorException
      */
     public function testGetErrorException()
     {
@@ -422,7 +422,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\LogoutRequest::getErrorException
+     * @covers \Saml2\LogoutRequest::getErrorException
      * @expectedException TypeError
      */
     public function testGetErrorExceptionNoException()
@@ -438,7 +438,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     /**
      * Case Invalid Issuer
      *
-     * @covers OneLogin\Saml2\LogoutRequest::isValid
+     * @covers \Saml2\LogoutRequest::isValid
      */
     public function testIsInvalidIssuer()
     {
@@ -464,7 +464,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     /**
      * Case invalid xml
      *
-     * @covers OneLogin\Saml2\LogoutRequest::isValid
+     * @covers \Saml2\LogoutRequest::isValid
      */
     public function testIsInValidWrongXML()
     {
@@ -498,7 +498,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     /**
      * Case Invalid Destination
      *
-     * @covers OneLogin\Saml2\LogoutRequest::isValid
+     * @covers \Saml2\LogoutRequest::isValid
      */
     public function testIsInvalidDestination()
     {
@@ -516,7 +516,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     /**
      * Case Invalid NotOnOrAfter
      *
-     * @covers OneLogin\Saml2\LogoutRequest::isValid
+     * @covers \Saml2\LogoutRequest::isValid
      */
     public function testIsInvalidNotOnOrAfter()
     {
@@ -540,7 +540,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\LogoutRequest::isValid
+     * @covers \Saml2\LogoutRequest::isValid
      */
     public function testIsValid()
     {
@@ -567,7 +567,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
      * Tests that a 'true' value for compress => requests gets honored when we
      * try to obtain the request payload from getRequest()
      *
-     * @covers OneLogin\Saml2\LogoutRequest::getRequest()
+     * @covers \Saml2\LogoutRequest::getRequest()
      */
     public function testWeCanChooseToCompressARequest()
     {
@@ -579,7 +579,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
      * Tests that a 'false' value for compress => requests gets honored when we
      * try to obtain the request payload from getRequest()
      *
-     * @covers OneLogin\Saml2\LogoutRequest::getRequest()
+     * @covers \Saml2\LogoutRequest::getRequest()
      */
     public function testWeCanChooseNotToCompressARequest()
     {
@@ -592,7 +592,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
      * method to choose whether it should 'gzdeflate' the body
      * of the request.
      *
-     * @covers OneLogin\Saml2\LogoutRequest::getRequest()
+     * @covers \Saml2\LogoutRequest::getRequest()
      */
     public function testWeCanChooseToDeflateARequestBody()
     {
@@ -606,7 +606,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\LogoutRequest::isValid
+     * @covers \Saml2\LogoutRequest::isValid
      */
     public function testIsInValidSign()
     {
@@ -706,7 +706,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     /**
      * Case: Using x509certMulti
      *
-     * @covers OneLogin\Saml2\LogoutRequest::isValid
+     * @covers \Saml2\LogoutRequest::isValid
      */
     public function testIsValidSignUsingX509certMulti()
     {
@@ -732,7 +732,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
      * Tests that we can get the request XML directly without
      * going through intermediate steps
      *
-     * @covers OneLogin\Saml2\LogoutRequest::getXML()
+     * @covers \Saml2\LogoutRequest::getXML()
      */
     public function testGetXML()
     {
@@ -746,7 +746,7 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     /**
      * Tests that we can get the ID of the LogoutRequest
      *
-     * @covers OneLogin\Saml2\LogoutRequest::getID()
+     * @covers \Saml2\LogoutRequest::getID()
      */
     public function testGetID()
     {
@@ -761,9 +761,9 @@ class LogoutRequestTest extends \PHPUnit\Framework\TestCase
     /**
      * Tests that the LogoutRequest throws an exception
      *
-     * @covers OneLogin\Saml2\LogoutRequest::getID()
+     * @covers \Saml2\LogoutRequest::getID()
      *
-     * @expectedException OneLogin\Saml2\Error
+     * @expectedException Saml2\Error
      * @expectedExceptionMessage LogoutRequest could not be processed
      */
     public function testGetIDException()

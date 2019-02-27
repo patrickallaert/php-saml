@@ -8,8 +8,8 @@
 
 require_once __DIR__ . "/../vendor/autoload.php";
 
-use OneLogin\Saml2\Metadata;
-use OneLogin\Saml2\Settings;
+use Saml2\Metadata;
+use Saml2\Settings;
 
 header('Content-Type: text/xml');
 

@@ -1,5 +1,5 @@
 <?php
-namespace OneLogin\Saml2;
+namespace Saml2;
 
 /**
  * @suppress PhanUnreferencedPublicClassConstant

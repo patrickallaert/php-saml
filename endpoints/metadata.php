@@ -6,8 +6,8 @@
 
 require_once __DIR__ . "/../vendor/autoload.php";
 
-use OneLogin\Saml2\Auth;
-use OneLogin\Saml2\Error;
+use Saml2\Auth;
+use Saml2\Error;
 
 try {
     $auth = new Auth([]);

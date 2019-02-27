@@ -1,6 +1,6 @@
 <?php
 
-use OneLogin\Saml2\Constants;
+use Saml2\Constants;
 
 return [
     'strict' => false,
@@ -14,18 +14,18 @@ return [
             'serviceDescription' => 'Service Description',
             'requestedAttributes' => [
                 [
-                    'nameFormat' => OneLogin\Saml2\Constants::ATTRNAME_FORMAT_URI,
+                    'nameFormat' => Saml2\Constants::ATTRNAME_FORMAT_URI,
                     'isRequired' => true,
                     'name' => 'Email',
                     'friendlyName' => 'Email',
                 ],
                 [
-                    'nameFormat' => OneLogin\Saml2\Constants::ATTRNAME_FORMAT_URI,
+                    'nameFormat' => Saml2\Constants::ATTRNAME_FORMAT_URI,
                     'isRequired' => true,
                     'name' => 'FirstName',
                 ],
                 [
-                    'nameFormat' => OneLogin\Saml2\Constants::ATTRNAME_FORMAT_URI,
+                    'nameFormat' => Saml2\Constants::ATTRNAME_FORMAT_URI,
                     'isRequired' => true,
                     'name' => 'LastName',
                 ],

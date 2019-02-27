@@ -8,8 +8,8 @@ session_start();
 
 require_once __DIR__ . "/../vendor/autoload.php";
 
-use OneLogin\Saml2\Auth;
-use OneLogin\Saml2\Utils;
+use Saml2\Auth;
+use Saml2\Utils;
 
 $auth = new Auth(require 'settings.php');
 

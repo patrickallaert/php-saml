@@ -1,15 +1,15 @@
 <?php
 
-namespace OneLogin\Saml2\Tests;
+namespace Saml2\Tests;
 
 use DOMDocument;
 use DOMElement;
 use DOMXPath;
 use Exception;
-use OneLogin\Saml2\Constants;
-use OneLogin\Saml2\Settings;
-use OneLogin\Saml2\Utils;
-use OneLogin\Saml2\ValidationError;
+use Saml2\Constants;
+use Saml2\Settings;
+use Saml2\Utils;
+use Saml2\ValidationError;
 use RobRichards\XMLSecLibs\XMLSecurityDSig;
 use RobRichards\XMLSecLibs\XMLSecurityKey;
 
@@ -19,7 +19,7 @@ use RobRichards\XMLSecLibs\XMLSecurityKey;
 class UtilsTest extends \PHPUnit\Framework\TestCase
 {
     /**
-     * @covers OneLogin\Saml2\Utils::loadXML
+     * @covers \Saml2\Utils::loadXML
      */
     public function testLoadXML()
     {
@@ -37,7 +37,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Utils::loadXML
+     * @covers \Saml2\Utils::loadXML
      * @expectedException Exception
      * @expectedExceptionMessage An error occurred while loading the XML data
      */
@@ -47,7 +47,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Utils::loadXML
+     * @covers \Saml2\Utils::loadXML
      */
     public function testXMLAttacks()
     {
@@ -116,7 +116,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Utils::validateXML
+     * @covers \Saml2\Utils::validateXML
      */
     public function testValidateXML()
     {
@@ -142,7 +142,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Utils::formatCert
+     * @covers \Saml2\Utils::formatCert
      */
     public function testFormatCert()
     {
@@ -182,7 +182,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Utils::formatPrivateKey
+     * @covers \Saml2\Utils::formatPrivateKey
      */
     public function testFormatPrivateKey()
     {
@@ -208,7 +208,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Utils::redirect
+     * @covers \Saml2\Utils::redirect
      */
     public function testRedirect()
     {
@@ -261,7 +261,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Utils::setSelfHost
+     * @covers \Saml2\Utils::setSelfHost
      *
      * @runInSeparateProcess
      * @preserveGlobalState disabled
@@ -276,8 +276,8 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Utils::setProxyVars()
-     * @covers OneLogin\Saml2\Utils::getProxyVars()
+     * @covers \Saml2\Utils::setProxyVars()
+     * @covers \Saml2\Utils::getProxyVars()
      *
      * @runInSeparateProcess
      * @preserveGlobalState disabled
@@ -299,7 +299,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Utils::getSelfHost
+     * @covers \Saml2\Utils::getSelfHost
      *
      * @runInSeparateProcess
      * @preserveGlobalState disabled
@@ -328,7 +328,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Utils::isHTTPS
+     * @covers \Saml2\Utils::isHTTPS
      *
      * @runInSeparateProcess
      * @preserveGlobalState disabled
@@ -347,7 +347,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Utils::getSelfURLhost
+     * @covers \Saml2\Utils::getSelfURLhost
      *
      * @runInSeparateProcess
      * @preserveGlobalState disabled
@@ -365,7 +365,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Utils::getSelfPort
+     * @covers \Saml2\Utils::getSelfPort
      *
      * @runInSeparateProcess
      * @preserveGlobalState disabled
@@ -394,7 +394,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Utils::setSelfProtocol
+     * @covers \Saml2\Utils::setSelfProtocol
      *
      * @runInSeparateProcess
      * @preserveGlobalState disabled
@@ -408,7 +408,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Utils::setBaseURLPath
+     * @covers \Saml2\Utils::setBaseURLPath
      *
      * @runInSeparateProcess
      * @preserveGlobalState disabled
@@ -431,7 +431,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Utils::setBaseURL
+     * @covers \Saml2\Utils::setBaseURL
      *
      * @runInSeparateProcess
      * @preserveGlobalState disabled
@@ -473,7 +473,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Utils::getSelfURLhost
+     * @covers \Saml2\Utils::getSelfURLhost
      *
      * @runInSeparateProcess
      * @preserveGlobalState disabled
@@ -509,7 +509,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Utils::getSelfURL
+     * @covers \Saml2\Utils::getSelfURL
      *
      * @runInSeparateProcess
      * @preserveGlobalState disabled
@@ -534,7 +534,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Utils::getSelfURLNoQuery
+     * @covers \Saml2\Utils::getSelfURLNoQuery
      *
      * @runInSeparateProcess
      * @preserveGlobalState disabled
@@ -551,7 +551,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Utils::getSelfRoutedURLNoQuery
+     * @covers \Saml2\Utils::getSelfRoutedURLNoQuery
      *
      * @runInSeparateProcess
      * @preserveGlobalState disabled
@@ -570,7 +570,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     /**
      * Gets the status of a message
      *
-     * @covers OneLogin\Saml2\Utils::getStatus
+     * @covers \Saml2\Utils::getStatus
      */
     public function testGetStatus()
     {
@@ -616,7 +616,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Utils::parseTime2SAML
+     * @covers \Saml2\Utils::parseTime2SAML
      */
     public function testParseTime2SAML()
     {
@@ -624,7 +624,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Utils::getExpireTime
+     * @covers \Saml2\Utils::getExpireTime
      */
     public function testGetExpireTime()
     {
@@ -638,7 +638,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Utils::query
+     * @covers \Saml2\Utils::query
      */
     public function testQuery()
     {
@@ -689,7 +689,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     /**
      * Adding a SPNameQualifier
      *
-     * @covers OneLogin\Saml2\Utils::generateNameId
+     * @covers \Saml2\Utils::generateNameId
      */
     public function testGenerateNameIdWithSPNameQualifier()
     {
@@ -719,7 +719,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Utils::generateNameId
+     * @covers \Saml2\Utils::generateNameId
      */
     public function testGenerateNameIdWithoutFormat()
     {
@@ -734,7 +734,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Utils::generateNameId
+     * @covers \Saml2\Utils::generateNameId
      */
     public function testGenerateNameIdWithoutSPNameQualifier()
     {
@@ -763,7 +763,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Utils::deleteLocalSession
+     * @covers \Saml2\Utils::deleteLocalSession
      */
     public function testDeleteLocalSession()
     {
@@ -795,7 +795,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Utils::calculateX509Fingerprint
+     * @covers \Saml2\Utils::calculateX509Fingerprint
      */
     public function testCalculateX509Fingerprint()
     {
@@ -825,7 +825,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Utils::formatFingerPrint
+     * @covers \Saml2\Utils::formatFingerPrint
      */
     public function testFormatFingerPrint()
     {
@@ -834,7 +834,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Utils::decryptElement
+     * @covers \Saml2\Utils::decryptElement
      */
     public function testDecryptElement()
     {
@@ -911,7 +911,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Utils::addSign
+     * @covers \Saml2\Utils::addSign
      */
     public function testAddSign()
     {
@@ -990,7 +990,7 @@ class UtilsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Utils::validateSign
+     * @covers \Saml2\Utils::validateSign
      */
     public function testValidateSign()
     {

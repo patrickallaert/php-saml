@@ -9,8 +9,8 @@
 
 require_once __DIR__ . "/../vendor/autoload.php";
 
-use OneLogin\Saml2\Response;
-use OneLogin\Saml2\Settings;
+use Saml2\Response;
+use Saml2\Settings;
 
 try {
     if (isset($_POST['SAMLResponse'])) {

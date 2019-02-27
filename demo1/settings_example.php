@@ -1,6 +1,6 @@
 <?php
 
-use OneLogin\Saml2\Constants;
+use Saml2\Constants;
 
 $spBaseUrl = 'https://<your_domain>'; //or http://<your_domain>
 

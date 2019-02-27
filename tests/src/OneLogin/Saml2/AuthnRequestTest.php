@@ -1,10 +1,10 @@
 <?php
 
-namespace OneLogin\Saml2\Tests;
+namespace Saml2\Tests;
 
-use OneLogin\Saml2\AuthnRequest;
-use OneLogin\Saml2\Settings;
-use OneLogin\Saml2\Utils;
+use Saml2\AuthnRequest;
+use Saml2\Settings;
+use Saml2\Utils;
 
 class AuthnRequestTest extends \PHPUnit\Framework\TestCase
 {
@@ -19,7 +19,7 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
     /**
      * The creation of a deflated SAML Request
      *
-     * @covers OneLogin\Saml2\AuthnRequest
+     * @covers \Saml2\AuthnRequest
      */
     public function testCreateDeflatedSAMLRequestURLParameter()
     {
@@ -33,7 +33,7 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
     /**
      * The creation of a deflated SAML Request with AuthNContext
      *
-     * @covers OneLogin\Saml2\AuthnRequest
+     * @covers \Saml2\AuthnRequest
      */
     public function testAuthNContext()
     {
@@ -74,7 +74,7 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
     /**
      * The creation of a deflated SAML Request with ForceAuthn
      *
-     * @covers OneLogin\Saml2\AuthnRequest
+     * @covers \Saml2\AuthnRequest
      */
     public function testForceAuthN()
     {
@@ -87,7 +87,7 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
     /**
      * The creation of a deflated SAML Request with isPassive
      *
-     * @covers OneLogin\Saml2\AuthnRequest
+     * @covers \Saml2\AuthnRequest
      */
     public function testIsPassive()
     {
@@ -100,7 +100,7 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
     /**
      * The creation of a deflated SAML Request with and without NameIDPolicy
      *
-     * @covers OneLogin\Saml2\AuthnRequest
+     * @covers \Saml2\AuthnRequest
      */
     public function testNameIDPolicy()
     {
@@ -113,7 +113,7 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
     /**
      * The creation of a deflated SAML Request
      *
-     * @covers OneLogin\Saml2\AuthnRequest
+     * @covers \Saml2\AuthnRequest
      */
     public function testCreateEncSAMLRequest()
     {
@@ -148,7 +148,7 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
      * Tests that a 'true' value for compress => requests gets honored when we
      * try to obtain the request payload from getRequest()
      *
-     * @covers OneLogin\Saml2\AuthnRequest::getRequest()
+     * @covers \Saml2\AuthnRequest::getRequest()
      */
     public function testWeCanChooseToCompressARequest()
     {
@@ -160,7 +160,7 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
      * Tests that a 'false' value for compress => requests gets honored when we
      * try to obtain the request payload from getRequest()
      *
-     * @covers OneLogin\Saml2\AuthnRequest::getRequest()
+     * @covers \Saml2\AuthnRequest::getRequest()
      */
     public function testWeCanChooseNotToCompressARequest()
     {
@@ -173,7 +173,7 @@ class AuthnRequestTest extends \PHPUnit\Framework\TestCase
      * method to choose whether it should 'gzdeflate' the body
      * of the request.
      *
-     * @covers OneLogin\Saml2\AuthnRequest::getRequest()
+     * @covers \Saml2\AuthnRequest::getRequest()
      */
     public function testWeCanChooseToDeflateARequestBody()
     {

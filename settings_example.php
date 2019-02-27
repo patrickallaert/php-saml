@@ -1,6 +1,6 @@
 <?php
 
-use OneLogin\Saml2\Constants;
+use Saml2\Constants;
 
 $settings = [
     // If 'strict' is True, then the PHP Toolkit will reject unsigned
@@ -57,7 +57,7 @@ $settings = [
         ],
         // Specifies constraints on the name identifier to be used to
         // represent the requested subject.
-        // Take a look at \OneLogin\Saml2\Constants::NAMEID_* constants to see the NameIdFormat supported
+        // Take a look at \Saml2\Constants::NAMEID_* constants to see the NameIdFormat supported
         'NameIDFormat' => Constants::NAMEID_UNSPECIFIED,
 
         // Usually x509cert and privateKey of the SP are provided by files placed at

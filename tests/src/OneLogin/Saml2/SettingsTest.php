@@ -1,20 +1,20 @@
 <?php
 
-namespace OneLogin\Saml2\Tests;
+namespace Saml2\Tests;
 
 use Exception;
-use OneLogin\Saml2\Constants;
-use OneLogin\Saml2\Error;
-use OneLogin\Saml2\Metadata;
-use OneLogin\Saml2\Settings;
-use OneLogin\Saml2\Utils;
+use Saml2\Constants;
+use Saml2\Error;
+use Saml2\Metadata;
+use Saml2\Settings;
+use Saml2\Utils;
 
 class SettingsTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * Case load setting from array
      *
-     * @covers OneLogin\Saml2\Settings
+     * @covers \Saml2\Settings
      */
     public function testLoadSettingsFromArray()
     {
@@ -45,7 +45,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     /**
      * Tests shouldCompressRequests method of Settings.
      *
-     * @covers OneLogin\Saml2\Settings::shouldCompressRequests
+     * @covers \Saml2\Settings::shouldCompressRequests
      */
     public function testShouldCompressRequests()
     {
@@ -59,7 +59,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     /**
      * Tests shouldCompressResponses method of Settings.
      *
-     * @covers OneLogin\Saml2\Settings::shouldCompressResponses
+     * @covers \Saml2\Settings::shouldCompressResponses
      */
     public function testShouldCompressResponses()
     {
@@ -74,7 +74,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
      * @dataProvider invalidCompressSettingsProvider
      * @param string $invalidValue invalidCompressSettingsProvider
      *
-     * @covers OneLogin\Saml2\Settings::checkSettings
+     * @covers \Saml2\Settings::checkSettings
      */
     public function testNonArrayCompressionSettingsCauseSyntaxError($invalidValue)
     {
@@ -93,7 +93,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
      * @dataProvider invalidCompressSettingsProvider
      * @param string $invalidValue invalidCompressSettingsProvider
      *
-     * @covers OneLogin\Saml2\Settings::checkSettings
+     * @covers \Saml2\Settings::checkSettings
      */
     public function testThatOnlyBooleansCanBeUsedForCompressionSettings($invalidValue)
     {
@@ -131,9 +131,9 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Settings::getSPcert
-     * @covers OneLogin\Saml2\Settings::getSPcertNew
-     * @covers OneLogin\Saml2\Settings::getSPkey
+     * @covers \Saml2\Settings::getSPcert
+     * @covers \Saml2\Settings::getSPcertNew
+     * @covers \Saml2\Settings::getSPkey
      */
     public function testCheckSPCerts()
     {
@@ -156,7 +156,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     /**
      * The checkSettings method is private and is used at the constructor
      *
-     * @covers OneLogin\Saml2\Settings::checkSettings
+     * @covers \Saml2\Settings::checkSettings
      */
     public function testCheckSettings()
     {
@@ -253,7 +253,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     /**
      * Case unsigned metadata
      *
-     * @covers OneLogin\Saml2\Settings::getSPMetadata
+     * @covers \Saml2\Settings::getSPMetadata
      */
     public function testGetSPMetadata()
     {
@@ -273,7 +273,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     /**
      * Case with x509certNew
      *
-     * @covers OneLogin\Saml2\Settings::getSPMetadata
+     * @covers \Saml2\Settings::getSPMetadata
      * @dataProvider getSPMetadataWithX509CertNewDataProvider
      */
     public function testGetSPMetadataWithX509CertNew($alwaysIncludeEncryption, $wantNameIdEncrypted, $wantAssertionsEncrypted, $expectEncryptionKeyDescriptor)
@@ -345,7 +345,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     /**
      * Case ValidUntil CacheDuration
      *
-     * @covers OneLogin\Saml2\Settings::getSPMetadata
+     * @covers \Saml2\Settings::getSPMetadata
      */
     public function testGetSPMetadataTiming()
     {
@@ -364,7 +364,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     /**
      * Case signed metadata
      *
-     * @covers OneLogin\Saml2\Settings::getSPMetadata
+     * @covers \Saml2\Settings::getSPMetadata
      */
     public function testGetSPMetadataSigned()
     {
@@ -421,7 +421,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     /**
      * Case signed metadata with specific certs
      *
-     * @covers OneLogin\Saml2\Settings::getSPMetadata
+     * @covers \Saml2\Settings::getSPMetadata
      */
     public function testGetSPMetadataSignedNoMetadataCert()
     {
@@ -466,7 +466,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     /**
      * Case valid metadata
      *
-     * @covers OneLogin\Saml2\Settings::validateMetadata
+     * @covers \Saml2\Settings::validateMetadata
      */
     public function testValidateMetadata()
     {
@@ -478,7 +478,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     /**
      * Case valid signed metadata
      *
-     * @covers OneLogin\Saml2\Settings::validateMetadata
+     * @covers \Saml2\Settings::validateMetadata
      */
     public function testValidateSignedMetadata()
     {
@@ -488,7 +488,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     /**
      * Case expired metadata
      *
-     * @covers OneLogin\Saml2\Settings::validateMetadata
+     * @covers \Saml2\Settings::validateMetadata
      */
     public function testValidateMetadataExpired()
     {
@@ -500,7 +500,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     /**
      * Case no metadata XML
      *
-     * @covers OneLogin\Saml2\Settings::validateMetadata
+     * @covers \Saml2\Settings::validateMetadata
      * @expectedException Exception
      * @expectedExceptionMessage Empty string supplied as input
      */
@@ -512,7 +512,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     /**
      * Case invalid metadata XML
      *
-     * @covers OneLogin\Saml2\Settings::validateMetadata
+     * @covers \Saml2\Settings::validateMetadata
      * @expectedException Exception
      * @expectedExceptionMessage An error occurred while loading the XML data
      */
@@ -524,7 +524,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     /**
      * Case invalid xml metadata: No entity
      *
-     * @covers OneLogin\Saml2\Settings::validateMetadata
+     * @covers \Saml2\Settings::validateMetadata
      */
     public function testValidateMetadataNoEntity()
     {
@@ -536,7 +536,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     /**
      * Case invalid xml metadata: Wrong order
      *
-     * @covers OneLogin\Saml2\Settings::validateMetadata
+     * @covers \Saml2\Settings::validateMetadata
      */
     public function testValidateMetadataWrongOrder()
     {
@@ -547,11 +547,11 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
 
     /**
      *
-     * @covers OneLogin\Saml2\Settings::getIdPEntityId
-     * @covers OneLogin\Saml2\Settings::getIdPSingleSignOnServiceUrl
-     * @covers OneLogin\Saml2\Settings::getIdPSingleLogoutServiceUrl
-     * @covers OneLogin\Saml2\Settings::getIdPX509Certificate
-     * @covers OneLogin\Saml2\Settings::getIdPMultipleX509SigningCertificate
+     * @covers \Saml2\Settings::getIdPEntityId
+     * @covers \Saml2\Settings::getIdPSingleSignOnServiceUrl
+     * @covers \Saml2\Settings::getIdPSingleLogoutServiceUrl
+     * @covers \Saml2\Settings::getIdPX509Certificate
+     * @covers \Saml2\Settings::getIdPMultipleX509SigningCertificate
      */
     public function testGetIdPData()
     {
@@ -572,10 +572,10 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Settings::getSPEntityId
-     * @covers OneLogin\Saml2\Settings::getSPNameIDFormat
-     * @covers OneLogin\Saml2\Settings::getSPAssertionConsumerServiceUrl
-     * @covers OneLogin\Saml2\Settings::getSPSingleLogoutServiceUrl
+     * @covers \Saml2\Settings::getSPEntityId
+     * @covers \Saml2\Settings::getSPNameIDFormat
+     * @covers \Saml2\Settings::getSPAssertionConsumerServiceUrl
+     * @covers \Saml2\Settings::getSPSingleLogoutServiceUrl
      */
     public function testGetSPData()
     {
@@ -590,17 +590,17 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     /**
      * Tests default values of Security advanced sesettings
      *
-     * @covers OneLogin\Saml2\Settings::getSecurityNameIdEncrypted());
-     * @covers OneLogin\Saml2\Settings::getSecurityAuthnRequestsSigned());
-     * @covers OneLogin\Saml2\Settings::getSecurityWantLogoutRequestSigned());
-     * @covers OneLogin\Saml2\Settings::getSecurityWantLogoutResponseSigned());
-     * @covers OneLogin\Saml2\Settings::getSecurityWantMessagesSigned());
-     * @covers OneLogin\Saml2\Settings::getSecurityWantAssertionsSigned());
-     * @covers OneLogin\Saml2\Settings::getSecurityWantAssertionsEncrypted());
-     * @covers OneLogin\Saml2\Settings::getSecurityWantNameIdEncrypted());
-     * @covers OneLogin\Saml2\Settings::getSecurityRequestedAuthnContext());
-     * @covers OneLogin\Saml2\Settings::getSecurityWantXMLValidation());
-     * @covers OneLogin\Saml2\Settings::getSecurityWantNameId());
+     * @covers \Saml2\Settings::getSecurityNameIdEncrypted());
+     * @covers \Saml2\Settings::getSecurityAuthnRequestsSigned());
+     * @covers \Saml2\Settings::getSecurityWantLogoutRequestSigned());
+     * @covers \Saml2\Settings::getSecurityWantLogoutResponseSigned());
+     * @covers \Saml2\Settings::getSecurityWantMessagesSigned());
+     * @covers \Saml2\Settings::getSecurityWantAssertionsSigned());
+     * @covers \Saml2\Settings::getSecurityWantAssertionsEncrypted());
+     * @covers \Saml2\Settings::getSecurityWantNameIdEncrypted());
+     * @covers \Saml2\Settings::getSecurityRequestedAuthnContext());
+     * @covers \Saml2\Settings::getSecurityWantXMLValidation());
+     * @covers \Saml2\Settings::getSecurityWantNameId());
      */
     public function testGetDefaultSecurityValues()
     {
@@ -623,7 +623,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Settings::getContacts
+     * @covers \Saml2\Settings::getContacts
      */
     public function testGetContacts()
     {
@@ -636,7 +636,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Settings::getOrganization
+     * @covers \Saml2\Settings::getOrganization
      */
     public function testGetOrganization()
     {
@@ -648,7 +648,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Settings::setStrict
+     * @covers \Saml2\Settings::setStrict
      */
     public function testSetStrict()
     {
@@ -663,7 +663,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Settings::isStrict
+     * @covers \Saml2\Settings::isStrict
      */
     public function testIsStrict()
     {

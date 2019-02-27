@@ -1,14 +1,14 @@
 <?php
 
-namespace OneLogin\Saml2\Tests;
+namespace Saml2\Tests;
 
-use OneLogin\Saml2\Constants;
-use OneLogin\Saml2\IdPMetadataParser;
+use Saml2\Constants;
+use Saml2\IdPMetadataParser;
 
 class IdPMetadataParserTest extends \PHPUnit\Framework\TestCase
 {
     /**
-     * @covers OneLogin\Saml2\IdPMetadataParser::parseFileXML
+     * @covers \Saml2\IdPMetadataParser::parseFileXML
      */
     public function testParseFileXML()
     {
@@ -50,7 +50,7 @@ class IdPMetadataParserTest extends \PHPUnit\Framework\TestCase
     /**
      * Case: Multix509cert
      *
-     * @covers OneLogin\Saml2\IdPMetadataParser::parseXML
+     * @covers \Saml2\IdPMetadataParser::parseXML
      */
     public function testParseXML()
     {
@@ -86,7 +86,7 @@ class IdPMetadataParserTest extends \PHPUnit\Framework\TestCase
      *       Note that the testshib metadata does not contain an SLO specification
      *       in the first <IDPSSODescriptor> tag.
      *
-     * @covers OneLogin\Saml2\IdPMetadataParser::parseXML
+     * @covers \Saml2\IdPMetadataParser::parseXML
      */
     public function testParseTestshibDesiredBindingSSORedirect()
     {
@@ -111,7 +111,7 @@ class IdPMetadataParserTest extends \PHPUnit\Framework\TestCase
      *       Note that the testshib metadata does not contain an SLO specification
      *       in the first <IDPSSODescriptor> tag.
      *
-     * @covers OneLogin\Saml2\IdPMetadataParser::parseXML
+     * @covers \Saml2\IdPMetadataParser::parseXML
      */
     public function testParseTestshibDesiredBindingSSOPost()
     {
@@ -136,7 +136,7 @@ class IdPMetadataParserTest extends \PHPUnit\Framework\TestCase
      *       Note: IdP metadata contains a SSO and SLO
      *       service and does not specify any endpoint for the POST binding.
      *
-     * @covers OneLogin\Saml2\IdPMetadataParser::parseXML
+     * @covers \Saml2\IdPMetadataParser::parseXML
      */
     public function testParseDesiredBindingAll()
     {
@@ -164,7 +164,7 @@ class IdPMetadataParserTest extends \PHPUnit\Framework\TestCase
     /**
      * Case: With and without specify EntityId
      *
-     * @covers OneLogin\Saml2\IdPMetadataParser::parseXML
+     * @covers \Saml2\IdPMetadataParser::parseXML
      */
     public function testParseXMLEntityId()
     {
@@ -204,7 +204,7 @@ class IdPMetadataParserTest extends \PHPUnit\Framework\TestCase
     /**
      * Case: With and without specify NameIdFormat
      *
-     * @covers OneLogin\Saml2\IdPMetadataParser::parseXML
+     * @covers \Saml2\IdPMetadataParser::parseXML
      */
     public function testParseXMLNameIdFormat()
     {
@@ -244,7 +244,7 @@ class IdPMetadataParserTest extends \PHPUnit\Framework\TestCase
     /**
      * Case: IdP metadata contains multiple certs
      *
-     * @covers OneLogin\Saml2\IdPMetadataParser::parseXML
+     * @covers \Saml2\IdPMetadataParser::parseXML
      */
     public function testParseMultiCerts()
     {
@@ -276,7 +276,7 @@ class IdPMetadataParserTest extends \PHPUnit\Framework\TestCase
     /**
      * Case: IdP metadata contains multiple certs
      *
-     * @covers OneLogin\Saml2\IdPMetadataParser::parseXML
+     * @covers \Saml2\IdPMetadataParser::parseXML
      */
     public function testParseMultiSigningCerts()
     {
@@ -310,7 +310,7 @@ class IdPMetadataParserTest extends \PHPUnit\Framework\TestCase
      * Case: IdP metadata contains multiple signature cert and encrypt cert
      *       that is the same
      *
-     * @covers OneLogin\Saml2\IdPMetadataParser::parseXML
+     * @covers \Saml2\IdPMetadataParser::parseXML
      */
     public function testParseMultiSameSigningAndEncryptCert()
     {

@@ -6,13 +6,13 @@
 
 require_once __DIR__ . "/../vendor/autoload.php";
 
-use OneLogin\Saml2\Error;
-use OneLogin\Saml2\Settings;
+use Saml2\Error;
+use Saml2\Settings;
 
 $settingsInfo = require 'settings.php';
 
 try {
-    // $auth = new OneLogin\Saml2\Auth($settingsInfo);
+    // $auth = new Saml2\Auth($settingsInfo);
     // $settings = $auth->getSettings();
     // Now we only validate SP settings
     $settings = new Settings($settingsInfo, true);

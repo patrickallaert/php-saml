@@ -1,15 +1,15 @@
 <?php
 
-namespace OneLogin\Saml2\Tests;
+namespace Saml2\Tests;
 
 use Exception;
-use OneLogin\Saml2\Auth;
-use OneLogin\Saml2\Constants;
-use OneLogin\Saml2\Error;
-use OneLogin\Saml2\LogoutRequest;
-use OneLogin\Saml2\Settings;
-use OneLogin\Saml2\Utils;
-use OneLogin\Saml2\ValidationError;
+use Saml2\Auth;
+use Saml2\Constants;
+use Saml2\Error;
+use Saml2\LogoutRequest;
+use Saml2\Settings;
+use Saml2\Utils;
+use Saml2\ValidationError;
 use RobRichards\XMLSecLibs\XMLSecurityKey;
 
 class AuthTest extends \PHPUnit\Framework\TestCase
@@ -36,7 +36,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      * and compare the value returned from the method of the
      * $auth object
      *
-     * @covers OneLogin\Saml2\Auth::getSettings
+     * @covers \Saml2\Auth::getSettings
      */
     public function testGetSettings()
     {
@@ -44,7 +44,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Auth::getLastRequestID
+     * @covers \Saml2\Auth::getLastRequestID
      */
     public function testGetLastRequestID()
     {
@@ -62,7 +62,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     /**
      * Case No Response, An exception is throw
      *
-     * @covers OneLogin\Saml2\Auth::processResponse
+     * @covers \Saml2\Auth::processResponse
      */
     public function testProcessNoResponse()
     {
@@ -81,18 +81,18 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      * is not authenticated, attributes are notreturned, no nameID and
      * the error array is not empty, contains 'invalid_response
      *
-     * @covers OneLogin\Saml2\Auth::processResponse
-     * @covers OneLogin\Saml2\Auth::isAuthenticated
-     * @covers OneLogin\Saml2\Auth::getAttributes
-     * @covers OneLogin\Saml2\Auth::getAttribute
-     * @covers OneLogin\Saml2\Auth::getNameId
-     * @covers OneLogin\Saml2\Auth::getNameIdFormat
-     * @covers OneLogin\Saml2\Auth::getNameIdNameQualifier
-     * @covers OneLogin\Saml2\Auth::getNameIdSPNameQualifier
-     * @covers OneLogin\Saml2\Auth::getErrors
-     * @covers OneLogin\Saml2\Auth::getSessionIndex
-     * @covers OneLogin\Saml2\Auth::getSessionExpiration
-     * @covers OneLogin\Saml2\Auth::getLastErrorException
+     * @covers \Saml2\Auth::processResponse
+     * @covers \Saml2\Auth::isAuthenticated
+     * @covers \Saml2\Auth::getAttributes
+     * @covers \Saml2\Auth::getAttribute
+     * @covers \Saml2\Auth::getNameId
+     * @covers \Saml2\Auth::getNameIdFormat
+     * @covers \Saml2\Auth::getNameIdNameQualifier
+     * @covers \Saml2\Auth::getNameIdSPNameQualifier
+     * @covers \Saml2\Auth::getErrors
+     * @covers \Saml2\Auth::getSessionIndex
+     * @covers \Saml2\Auth::getSessionExpiration
+     * @covers \Saml2\Auth::getLastErrorException
      */
     public function testProcessResponseInvalid()
     {
@@ -116,7 +116,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     /**
      * Case Invalid Response, Invalid requestID
      *
-     * @covers OneLogin\Saml2\Auth::processResponse
+     * @covers \Saml2\Auth::processResponse
      */
     public function testProcessResponseInvalidRequestId()
     {
@@ -146,15 +146,15 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      * is authenticated, attributes are returned, also has a nameID and
      * the error array is empty
      *
-     * @covers OneLogin\Saml2\Auth::processResponse
-     * @covers OneLogin\Saml2\Auth::isAuthenticated
-     * @covers OneLogin\Saml2\Auth::getAttributes
-     * @covers OneLogin\Saml2\Auth::getAttribute
-     * @covers OneLogin\Saml2\Auth::getNameId
-     * @covers OneLogin\Saml2\Auth::getNameIdFormat
-     * @covers OneLogin\Saml2\Auth::getSessionIndex
-     * @covers OneLogin\Saml2\Auth::getSessionExpiration
-     * @covers OneLogin\Saml2\Auth::getErrors
+     * @covers \Saml2\Auth::processResponse
+     * @covers \Saml2\Auth::isAuthenticated
+     * @covers \Saml2\Auth::getAttributes
+     * @covers \Saml2\Auth::getAttribute
+     * @covers \Saml2\Auth::getNameId
+     * @covers \Saml2\Auth::getNameIdFormat
+     * @covers \Saml2\Auth::getSessionIndex
+     * @covers \Saml2\Auth::getSessionExpiration
+     * @covers \Saml2\Auth::getErrors
      */
     public function testProcessResponseValid()
     {
@@ -173,7 +173,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
 
     /**
      * Case found
-     * @covers OneLogin\Saml2\Auth::getNameIdNameQualifier
+     * @covers \Saml2\Auth::getNameIdNameQualifier
      */
     public function testGetNameIdNameQualifier()
     {
@@ -186,7 +186,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
 
     /**
      * Case Null
-     * @covers OneLogin\Saml2\Auth::getNameIdNameQualifier
+     * @covers \Saml2\Auth::getNameIdNameQualifier
      */
     public function testGetNameIdNameQualifier2()
     {
@@ -199,7 +199,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
 
     /**
      * Case Found
-     * @covers OneLogin\Saml2\Auth::getNameIdSPNameQualifier
+     * @covers \Saml2\Auth::getNameIdSPNameQualifier
      */
     public function testGetNameIdSPNameQualifier()
     {
@@ -212,7 +212,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
 
     /**
      * Case Null
-     * @covers OneLogin\Saml2\Auth::getNameIdSPNameQualifier
+     * @covers \Saml2\Auth::getNameIdSPNameQualifier
      */
     public function testGetNameIdSPNameQualifier2()
     {
@@ -224,10 +224,10 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Auth::getAttributes
-     * @covers OneLogin\Saml2\Auth::getAttribute
-     * @covers OneLogin\Saml2\Auth::getAttributesWithFriendlyName
-     * @covers OneLogin\Saml2\Auth::getAttributeWithFriendlyName
+     * @covers \Saml2\Auth::getAttributes
+     * @covers \Saml2\Auth::getAttribute
+     * @covers \Saml2\Auth::getAttributesWithFriendlyName
+     * @covers \Saml2\Auth::getAttributeWithFriendlyName
      */
     public function testGetAttributes()
     {
@@ -269,14 +269,14 @@ class AuthTest extends \PHPUnit\Framework\TestCase
         $auth4 = new Auth($this->settingsInfo);
         try {
             $auth4->processResponse();
-            $this->fail('OneLogin\Saml2\ValidationError was not raised');
+            $this->fail('Saml2\ValidationError was not raised');
         } catch (ValidationError $e) {
             $this->assertContains('Found an Attribute element with duplicated FriendlyName', $e->getMessage());
         }
         $_POST['SAMLResponse'] = file_get_contents(TEST_ROOT . '/data/responses/invalids/duplicated_attributes.xml.base64');
         try {
             (new Auth($this->settingsInfo))->processResponse();
-            $this->fail('OneLogin\Saml2\ValidationError was not raised');
+            $this->fail('Saml2\ValidationError was not raised');
         } catch (ValidationError $e) {
             $this->assertContains('Found an Attribute element with duplicated Name', $e->getMessage());
         }
@@ -287,7 +287,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      * exception is catched and we check that the targetURL is correct)
      * Case redirect without url parameter
      *
-     * @covers OneLogin\Saml2\Auth::redirectTo
+     * @covers \Saml2\Auth::redirectTo
      *
      * @runInSeparateProcess
      * @preserveGlobalState disabled
@@ -312,7 +312,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      * exception is catched and we check that the targetURL is correct)
      * Case redirect with url parameter
      *
-     * @covers OneLogin\Saml2\Auth::redirectTo
+     * @covers \Saml2\Auth::redirectTo
      *
      * @runInSeparateProcess
      * @preserveGlobalState disabled
@@ -335,7 +335,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     /**
      * Case No Message, An exception is throw
      *
-     * @covers OneLogin\Saml2\Auth::processSLO
+     * @covers \Saml2\Auth::processSLO
      */
     public function testProcessNoSLO()
     {
@@ -352,7 +352,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     /**
      * Case Invalid Logout Response
      *
-     * @covers OneLogin\Saml2\Auth::processSLO
+     * @covers \Saml2\Auth::processSLO
      */
     public function testProcessSLOResponseInvalid()
     {
@@ -374,7 +374,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     /**
      * Case Logout Response not sucess
      *
-     * @covers OneLogin\Saml2\Auth::processSLO
+     * @covers \Saml2\Auth::processSLO
      */
     public function testProcessSLOResponseNoSucess()
     {
@@ -397,7 +397,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     /**
      * Case Logout Response with valid and invalid Request ID
      *
-     * @covers OneLogin\Saml2\Auth::processSLO
+     * @covers \Saml2\Auth::processSLO
      */
     public function testProcessSLOResponseRequestId()
     {
@@ -422,7 +422,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     /**
      * Case Valid Logout Response
      *
-     * @covers OneLogin\Saml2\Auth::processSLO
+     * @covers \Saml2\Auth::processSLO
      */
     public function testProcessSLOResponseValid()
     {
@@ -455,7 +455,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     /**
      * Case Valid Logout Response, validating deleting the local session
      *
-     * @covers OneLogin\Saml2\Auth::processSLO
+     * @covers \Saml2\Auth::processSLO
      */
     public function testProcessSLOResponseValidDeletingSession()
     {
@@ -486,7 +486,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     /**
      * Case Valid Logout Response, validating deleting the local session
      *
-     * @covers OneLogin\Saml2\Auth::processSLO
+     * @covers \Saml2\Auth::processSLO
      */
     public function testProcessSLOResponseValidDeletingSessionCallback()
     {
@@ -520,7 +520,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     /**
      * Case Invalid Logout Request
      *
-     * @covers OneLogin\Saml2\Auth::processSLO
+     * @covers \Saml2\Auth::processSLO
      *
      * @runInSeparateProcess
      * @preserveGlobalState disabled
@@ -555,7 +555,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     /**
      * Case Logout Request NotOnOrAfter failed
      *
-     * @covers OneLogin\Saml2\Auth::processSLO
+     * @covers \Saml2\Auth::processSLO
      *
      * @runInSeparateProcess
      * @preserveGlobalState disabled
@@ -582,7 +582,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      * Case Valid Logout Request, validating that the local session is deleted,
      * a LogoutResponse is created and a redirection executed
      *
-     * @covers OneLogin\Saml2\Auth::processSLO
+     * @covers \Saml2\Auth::processSLO
      *
      * @runInSeparateProcess
      * @preserveGlobalState disabled
@@ -648,7 +648,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      * deleted with callback, a LogoutResponse is created and
      * a redirection executed
      *
-     * @covers OneLogin\Saml2\Auth::processSLO
+     * @covers \Saml2\Auth::processSLO
      *
      * @runInSeparateProcess
      * @preserveGlobalState disabled
@@ -702,7 +702,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      * Case Valid Logout Request, validating the relayState,
      * a LogoutResponse is created and a redirection executed
      *
-     * @covers OneLogin\Saml2\Auth::processSLO
+     * @covers \Saml2\Auth::processSLO
      *
      * @runInSeparateProcess
      * @preserveGlobalState disabled
@@ -741,7 +741,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      * Case Valid Logout Request, validating the relayState,
      * a signed LogoutResponse is created and a redirection executed
      *
-     * @covers OneLogin\Saml2\Auth::processSLO
+     * @covers \Saml2\Auth::processSLO
      *
      * @runInSeparateProcess
      * @preserveGlobalState disabled
@@ -788,7 +788,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     /**
      * Case Login with no parameters. An AuthnRequest is built an redirection executed
      *
-     * @covers OneLogin\Saml2\Auth::login
+     * @covers \Saml2\Auth::login
      *
      * @runInSeparateProcess
      * @preserveGlobalState disabled
@@ -816,7 +816,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      * Case Login with relayState. An AuthnRequest is built. GET with SAMLRequest,
      * and RelayState. A redirection is executed
      *
-     * @covers OneLogin\Saml2\Auth::login
+     * @covers \Saml2\Auth::login
      *
      * @runInSeparateProcess
      * @preserveGlobalState disabled
@@ -845,7 +845,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      * Case Login with $elaySate and $parameters. An AuthnRequest is built. GET with
      * SAMLRequest, RelayState and extra parameters in the GET. A redirection is executed
      *
-     * @covers OneLogin\Saml2\Auth::login
+     * @covers \Saml2\Auth::login
      *
      * @runInSeparateProcess
      * @preserveGlobalState disabled
@@ -879,7 +879,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     /**
      * Case Login signed. An AuthnRequest signed is built an redirect executed
      *
-     * @covers OneLogin\Saml2\Auth::login
+     * @covers \Saml2\Auth::login
      *
      * @runInSeparateProcess
      * @preserveGlobalState disabled
@@ -914,7 +914,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     /**
      * Case Login with no parameters. A AuthN Request is built with ForceAuthn and redirect executed
      *
-     * @covers OneLogin\Saml2\Auth::login
+     * @covers \Saml2\Auth::login
      *
      * @runInSeparateProcess
      * @preserveGlobalState disabled
@@ -976,7 +976,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     /**
      * Case Login with no parameters. A AuthN Request is built with IsPassive and redirect executed
      *
-     * @covers OneLogin\Saml2\Auth::login
+     * @covers \Saml2\Auth::login
      *
      * @runInSeparateProcess
      * @preserveGlobalState disabled
@@ -1038,7 +1038,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     /**
      * Case Login with no parameters. A AuthN Request is built with and without NameIDPolicy
      *
-     * @covers OneLogin\Saml2\Auth::login
+     * @covers \Saml2\Auth::login
      *
      * @runInSeparateProcess
      * @preserveGlobalState disabled
@@ -1098,7 +1098,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     /**
      * Case Logout with no parameters. A logout Request is built and redirect executed
      *
-     * @covers OneLogin\Saml2\Auth::logout
+     * @covers \Saml2\Auth::logout
      *
      * @runInSeparateProcess
      * @preserveGlobalState disabled
@@ -1126,7 +1126,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      * Case Logout with relayState. A logout Request is build. GET with SAMLRequest,
      * RelayState. A redirection is executed
      *
-     * @covers OneLogin\Saml2\Auth::logout
+     * @covers \Saml2\Auth::logout
      *
      * @runInSeparateProcess
      * @preserveGlobalState disabled
@@ -1155,7 +1155,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      * Case Logout with relayState + parameters. A logout Request is build. GET with SAMLRequest,
      * RelayState and extra parameters. A redirection is executed
      *
-     * @covers OneLogin\Saml2\Auth::logout
+     * @covers \Saml2\Auth::logout
      *
      * @runInSeparateProcess
      * @preserveGlobalState disabled
@@ -1190,7 +1190,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      * Case Logout with relayState + NameID + SessionIndex. A logout Request is build. GET with SAMLRequest.
      * A redirection is executed
      *
-     * @covers OneLogin\Saml2\Auth::logout
+     * @covers \Saml2\Auth::logout
      *
      * @runInSeparateProcess
      * @preserveGlobalState disabled
@@ -1215,7 +1215,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     /**
      * Case nameID loaded after process SAML Response
      *
-     * @covers OneLogin\Saml2\Auth::logout
+     * @covers \Saml2\Auth::logout
      *
      * @runInSeparateProcess
      * @preserveGlobalState disabled
@@ -1244,7 +1244,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      * Case Logout signed. A logout Request signed in
      * the assertion is built and redirect executed
      *
-     * @covers OneLogin\Saml2\Auth::logout
+     * @covers \Saml2\Auth::logout
      *
      * @runInSeparateProcess
      * @preserveGlobalState disabled
@@ -1279,7 +1279,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     /**
      * Case IdP no SLO endpoint.
      *
-     * @covers OneLogin\Saml2\Auth::logout
+     * @covers \Saml2\Auth::logout
      */
     public function testLogoutNoSLO()
     {
@@ -1298,7 +1298,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Auth::setStrict
+     * @covers \Saml2\Auth::setStrict
      */
     public function testSetStrict()
     {
@@ -1317,7 +1317,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Auth::buildRequestSignature
+     * @covers \Saml2\Auth::buildRequestSignature
      */
     public function testBuildRequestSignature()
     {
@@ -1331,7 +1331,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Auth::buildResponseSignature
+     * @covers \Saml2\Auth::buildResponseSignature
      */
     public function testBuildResponseSignature()
     {
@@ -1345,9 +1345,9 @@ class AuthTest extends \PHPUnit\Framework\TestCase
      * Tests that we can get the Id of the SAMLResponse and
      * the assertion processed and the NotOnOrAfter value
      *
-     * @covers OneLogin\Saml2\Auth::getLastMessageId()
-     * @covers OneLogin\Saml2\Auth::getLastAssertionId()
-     * @covers OneLogin\Saml2\Auth::getLastAssertionNotOnOrAfter()
+     * @covers \Saml2\Auth::getLastMessageId()
+     * @covers \Saml2\Auth::getLastAssertionId()
+     * @covers \Saml2\Auth::getLastAssertionNotOnOrAfter()
      *
      * @runInSeparateProcess
      * @preserveGlobalState disabled
@@ -1395,7 +1395,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     /**
      * Tests that we can get the Id of the LogoutRequest processed
      *
-     * @covers OneLogin\Saml2\Auth::getLastMessageId()
+     * @covers \Saml2\Auth::getLastMessageId()
      *
      * @runInSeparateProcess
      * @preserveGlobalState disabled
@@ -1410,7 +1410,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
     /**
      * Tests that we can get the Id of the LogoutResponse processed
      *
-     * @covers OneLogin\Saml2\Auth::getLastMessageId()
+     * @covers \Saml2\Auth::getLastMessageId()
      */
     public function testGetIdFromLastLogoutResponse()
     {

@@ -1,17 +1,17 @@
 <?php
 
-namespace OneLogin\Saml2\Tests;
+namespace Saml2\Tests;
 
 use DOMDocument;
 use Exception;
-use OneLogin\Saml2\Metadata;
-use OneLogin\Saml2\Settings;
-use OneLogin\Saml2\Utils;
+use Saml2\Metadata;
+use Saml2\Settings;
+use Saml2\Utils;
 
 class MetadataTest extends \PHPUnit\Framework\TestCase
 {
     /**
-     * @covers OneLogin\Saml2\Metadata::builder
+     * @covers \Saml2\Metadata::builder
      */
     public function testBuilder()
     {
@@ -54,7 +54,7 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Metadata::builder
+     * @covers \Saml2\Metadata::builder
      */
     public function testBuilderWithAttributeConsumingService()
     {
@@ -71,7 +71,7 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Metadata::builder
+     * @covers \Saml2\Metadata::builder
      */
     public function testBuilderWithAttributeConsumingServiceWithMultipleAttributeValue()
     {
@@ -89,7 +89,7 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @covers OneLogin\Saml2\Metadata::addX509KeyDescriptors
+     * @covers \Saml2\Metadata::addX509KeyDescriptors
      */
     public function testAddX509KeyDescriptors()
     {
@@ -129,7 +129,7 @@ class MetadataTest extends \PHPUnit\Framework\TestCase
     /**
      * Case: Execute 2 addX509KeyDescriptors calls
      *
-     * @covers OneLogin\Saml2\Metadata::addX509KeyDescriptors
+     * @covers \Saml2\Metadata::addX509KeyDescriptors
      */
     public function testAddX509KeyDescriptors2Times()
     {

@@ -10,9 +10,9 @@ session_start();
 
 require_once __DIR__ . "/../vendor/autoload.php";
 
-use OneLogin\Saml2\LogoutRequest;
-use OneLogin\Saml2\Settings;
-use OneLogin\Saml2\Utils;
+use Saml2\LogoutRequest;
+use Saml2\Settings;
+use Saml2\Utils;
 
 $samlSettings = new Settings([]);
 

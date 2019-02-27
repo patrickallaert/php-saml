@@ -12,9 +12,9 @@ session_start();
 
 require_once __DIR__ . "/../vendor/autoload.php";
 
-use OneLogin\Saml2\AuthnRequest;
-use OneLogin\Saml2\Settings;
-use OneLogin\Saml2\Utils;
+use Saml2\AuthnRequest;
+use Saml2\Settings;
+use Saml2\Utils;
 
 if (!isset($_SESSION['samlUserdata'])) {
     $settings = new Settings([]);
