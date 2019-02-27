@@ -74,7 +74,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
      * @dataProvider invalidCompressSettingsProvider
      * @param string $invalidValue invalidCompressSettingsProvider
      *
-     * @covers \Saml2\Settings::checkSettings
+     * @covers \Saml2\Settings::__construct
      */
     public function testNonArrayCompressionSettingsCauseSyntaxError($invalidValue)
     {
@@ -93,7 +93,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
      * @dataProvider invalidCompressSettingsProvider
      * @param string $invalidValue invalidCompressSettingsProvider
      *
-     * @covers \Saml2\Settings::checkSettings
+     * @covers \Saml2\Settings::__construct
      */
     public function testThatOnlyBooleansCanBeUsedForCompressionSettings($invalidValue)
     {
@@ -156,7 +156,7 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     /**
      * The checkSettings method is private and is used at the constructor
      *
-     * @covers \Saml2\Settings::checkSettings
+     * @covers \Saml2\Settings::__construct
      */
     public function testCheckSettings()
     {
@@ -588,19 +588,19 @@ class SettingsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Tests default values of Security advanced sesettings
+     * Tests default values of Security advanced settings
      *
-     * @covers \Saml2\Settings::getSecurityNameIdEncrypted());
-     * @covers \Saml2\Settings::getSecurityAuthnRequestsSigned());
-     * @covers \Saml2\Settings::getSecurityWantLogoutRequestSigned());
-     * @covers \Saml2\Settings::getSecurityWantLogoutResponseSigned());
-     * @covers \Saml2\Settings::getSecurityWantMessagesSigned());
-     * @covers \Saml2\Settings::getSecurityWantAssertionsSigned());
-     * @covers \Saml2\Settings::getSecurityWantAssertionsEncrypted());
-     * @covers \Saml2\Settings::getSecurityWantNameIdEncrypted());
-     * @covers \Saml2\Settings::getSecurityRequestedAuthnContext());
-     * @covers \Saml2\Settings::getSecurityWantXMLValidation());
-     * @covers \Saml2\Settings::getSecurityWantNameId());
+     * @covers \Saml2\Settings::getSecurityNameIdEncrypted
+     * @covers \Saml2\Settings::getSecurityAuthnRequestsSigned
+     * @covers \Saml2\Settings::getSecurityWantLogoutRequestSigned
+     * @covers \Saml2\Settings::getSecurityWantLogoutResponseSigned
+     * @covers \Saml2\Settings::getSecurityWantMessagesSigned
+     * @covers \Saml2\Settings::getSecurityWantAssertionsSigned
+     * @covers \Saml2\Settings::getSecurityWantAssertionsEncrypted
+     * @covers \Saml2\Settings::getSecurityWantNameIdEncrypted
+     * @covers \Saml2\Settings::getSecurityRequestedAuthnContext
+     * @covers \Saml2\Settings::getSecurityWantXMLValidation
+     * @covers \Saml2\Settings::getSecurityWantNameId
      */
     public function testGetDefaultSecurityValues()
     {
