@@ -1318,6 +1318,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
 
     /**
      * @covers \Saml2\Auth::buildRequestSignature
+     * @covers \Saml2\Auth::buildMessageSignature
      */
     public function testBuildRequestSignature()
     {
@@ -1332,6 +1333,7 @@ class AuthTest extends \PHPUnit\Framework\TestCase
 
     /**
      * @covers \Saml2\Auth::buildResponseSignature
+     * @covers \Saml2\Auth::buildMessageSignature
      */
     public function testBuildResponseSignature()
     {
