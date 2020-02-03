@@ -141,7 +141,7 @@ class Response
                     );
                 }
 
-                $currentURL = Utils::getSelfRoutedURLNoQuery();
+                $currentURLWithoutScheme = preg_replace("/^https?/", "", Utils::getSelfRoutedURLNoQuery());
 
                 if ($this->document->documentElement->hasAttribute('InResponseTo')) {
                     $responseInResponseTo = $this->document->documentElement->getAttribute('InResponseTo');
@@ -203,9 +203,9 @@ class Response
                                 ValidationError::EMPTY_DESTINATION
                             );
                         }
-                    } elseif (strpos($destination, $currentURL) !== 0 && strpos($destination, Utils::getSelfURLNoQuery()) !== 0) {
+                    } elseif (strpos(preg_replace("/^https?/", "", $destination), $currentURLWithoutScheme) !== 0 && strpos($destination, Utils::getSelfURLNoQuery()) !== 0) {
                         throw new ValidationError(
-                            "The response was received at $currentURL instead of $destination",
+                            "The response was received at $currentURLWithoutScheme instead of $destination",
                             ValidationError::WRONG_DESTINATION
                         );
                     }
@@ -278,7 +278,7 @@ class Response
                     }
                     if ($scnData->hasAttribute('Recipient')) {
                         $recipient = $scnData->getAttribute('Recipient');
-                        if (!empty($recipient) && strpos($recipient, $currentURL) === false) {
+                        if (!empty($recipient) && strpos($recipient, $currentURLWithoutScheme) === false) {
                             continue;
                         }
                     }
