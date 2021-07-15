@@ -54,11 +54,15 @@ class Utils
             throw new Exception('Empty string supplied as input');
         }
 
-        $oldEntityLoader = libxml_disable_entity_loader();
+        if (\LIBXML_VERSION < 20900) {
+            $oldEntityLoader = \libxml_disable_entity_loader();
+        }
 
         $res = $dom->loadXML($xml);
 
-        libxml_disable_entity_loader($oldEntityLoader);
+        if (\LIBXML_VERSION < 20900) {
+            \libxml_disable_entity_loader($oldEntityLoader);
+        }
 
         foreach ($dom->childNodes as $child) {
             if ($child->nodeType === XML_DOCUMENT_TYPE_NODE) {
@@ -85,9 +89,15 @@ class Utils
         libxml_clear_errors();
         libxml_use_internal_errors(true);
 
-        $oldEntityLoader = libxml_disable_entity_loader(false);
+        if (\LIBXML_VERSION < 20900) {
+            $oldEntityLoader = \libxml_disable_entity_loader(false);
+        }
+
         $res = $xml->schemaValidate(__DIR__ . '/schemas/' . $schema);
-        libxml_disable_entity_loader($oldEntityLoader);
+
+        if (\LIBXML_VERSION < 20900) {
+            \libxml_disable_entity_loader($oldEntityLoader);
+        }
 
         return $res;
     }
